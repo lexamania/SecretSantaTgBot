@@ -1,3 +1,5 @@
+using SecretSantaTgBot.Storage;
+
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -5,9 +7,10 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot;
 
-public class MessageBroker(TelegramBotClient bot)
+public class MessageBroker(TelegramBotClient bot, SantaDatabase db)
 {
     private readonly TelegramBotClient _bot = bot;
+    private readonly SantaDatabase _db = db;
 
     public async Task OnMessage(Message msg, UpdateType type)
     {
@@ -106,43 +109,43 @@ public class MessageBroker(TelegramBotClient bot)
                 parseMode: ParseMode.Html, linkPreviewOptions: true,
                 replyMarkup: new ReplyKeyboardRemove());
 
-    private Task CommandParticipate(Chat chat)
-    {
+    // private Task CommandParticipate(Chat chat)
+    // {
 
-    }
+    // }
 
-    private Task CommandStopParticipate(Chat chat)
-    {
+    // private Task CommandStopParticipate(Chat chat)
+    // {
 
-    }
+    // }
 
-    private Task CommandStartWishes(Chat chat)
-    {
+    // private Task CommandStartWishes(Chat chat)
+    // {
 
-    }
+    // }
 
-    private Task CommandStopWishes(Chat chat)
-    {
+    // private Task CommandStopWishes(Chat chat)
+    // {
 
-    }
+    // }
 
-    private Task CommandClearWishes(Chat chat)
-    {
+    // private Task CommandClearWishes(Chat chat)
+    // {
 
-    }
+    // }
 
-    private Task CommandShowSantaTarget(Chat chat)
-    {
+    // private Task CommandShowSantaTarget(Chat chat)
+    // {
 
-    }
+    // }
 
-    private Task CommandShowMyWishes(Chat chat)
-    {
+    // private Task CommandShowMyWishes(Chat chat)
+    // {
 
-    }
+    // }
 
-    private Task CommandShowParticipationList(Chat chat)
-    {
+    // private Task CommandShowParticipationList(Chat chat)
+    // {
 
-    }
+    // }
 }

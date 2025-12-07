@@ -8,7 +8,8 @@
             "name": "C#: SecretSantaTgBot Debug",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj"
+            "projectPath": "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
+            
         }
 
     ]
