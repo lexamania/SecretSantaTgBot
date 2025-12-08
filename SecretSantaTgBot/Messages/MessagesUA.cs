@@ -27,7 +27,7 @@ public class MessagesUA : MessagesBase
     public override string ChooseRoom { get; } = "Виберіть кімнату:";
     public override string EnterRealName { get; } = "Введіть ваше ім'я:";
     public override string RoomDoesntExist { get; } = "❌ Кімнати з таким кодом не знайдено❌ ";
-    public override string RoomCreated { get; } = "🥳 Кімната створена! 🥳\n\nКод кімнати:";
+    public override string RoomCreated { get; } = "Кімната створена!\n\nКод кімнати:";
     public override string RoomDeleted { get; } = "- кімнату видалено! 🥳";
     public override string RoomsList { get; } = "<b>Список твоїх кімнат</b>:";
 

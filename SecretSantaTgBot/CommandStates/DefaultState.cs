@@ -116,16 +116,8 @@ public class DefaultState : CommandStateBase
         if (room is null)
             return _bot.SendMessage(chat, _msgDict[_lang].RoomDoesntExist);
 
-        user.AvailableRooms.Add(room);
-        room.Users.Add(new()
-        {
-            Id = user.Id,
-            Username = user.Username,
-            CurrentState = InRoomEnterNameState.TITLE,
-        });
-
-        _db.Users.Update(user);
-        _db.Rooms.Update(room);
+        var newState = NameParser.JoinArgs(RegistrationState.TITLE, roomId);
+        UpdateUserState(user.Id, newState);
 
         return _bot.SendMessage(chat,
             _msgDict[_lang].EnterRealName,
@@ -138,7 +130,8 @@ public class DefaultState : CommandStateBase
         if (user.AvailableRooms is not { Count: > 0 })
             return _bot.SendMessage(chat, _msgDict[_lang].ZeroRooms);
 
-        UpdateUserState(user.Id, NameParser.JoinArgs(TITLE, RoomSelectState.TITLE));
+        var newState = NameParser.JoinArgs(TITLE, RoomSelectState.TITLE);
+        UpdateUserState(user.Id, newState);
 
         var buttons = user.AvailableRooms.Select(x => $"{x.Title} {x.Id}").ToArray();
         return _bot.SendMessage(chat,
@@ -154,10 +147,8 @@ public class DefaultState : CommandStateBase
         if (rooms is not { Count: > 0 })
             return _bot.SendMessage(chat, _msgDict[_lang].ZeroRooms);
 
-        UpdateUserState(user.Id, NameParser.JoinArgs(TITLE, RoomDeleteState.TITLE));
-        // var inlineButtons = rooms
-        //     .Select(x => new InlineKeyboardButton(x.Title, x.Id.ToString()))
-        //     .ToArray();
+        var newState = NameParser.JoinArgs(TITLE, RoomDeleteState.TITLE);
+        UpdateUserState(user.Id, newState);
 
         var buttons = rooms.Select(x => $"{x.Title} {x.Id}").ToArray();
         return _bot.SendMessage(chat,

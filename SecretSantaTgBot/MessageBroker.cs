@@ -30,7 +30,8 @@ public class MessageBroker
         _states = new()
         {
             [DefaultState.TITLE] = new DefaultState(this),
-            [RoomCreateState.TITLE] = new RoomCreateState(this)
+            [RoomCreateState.TITLE] = new RoomCreateState(this),
+            [RegistrationState.TITLE] = new RegistrationState(this)
         };
 
         _baseState = DefaultState.TITLE;

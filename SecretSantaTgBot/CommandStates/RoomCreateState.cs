@@ -58,17 +58,11 @@ public class RoomCreateState : CommandStateBase
         {
             Title = msg,
             Admin = user,
-            Users = [ new Participant()
-            {
-                Id = user.Id,
-                Username = user.Username,
-                CurrentState = InRoomEnterNameState.TITLE
-            }]
+            Users = []
         };
 
         _db.Rooms.Insert(room);
 
-        user.AvailableRooms.Add(room);
         user.CurrentState = NameParser.JoinArgs(TITLE, room.Id);
         _db.Users.Update(user);
 
@@ -84,13 +78,16 @@ public class RoomCreateState : CommandStateBase
         room.PartyDescription = text;
         _db.Rooms.Update(room);
 
-        user.CurrentState = default;
+        user.CurrentState = NameParser.JoinArgs(RegistrationState.TITLE, roomId);
         _db.Users.Update(user);
 
         await _bot.SendMessage(user.Id,
             $"{_msgDict[_lang].RoomCreated} {roomId}",
             parseMode: ParseMode.Html,
             replyMarkup: new ReplyKeyboardRemove());
-        await _csm.UpdateAfterStatusChanged(user);
+        await _bot.SendMessage(user.Id,
+            _msgDict[_lang].EnterRealName,
+            parseMode: ParseMode.Html,
+            replyMarkup: new ReplyKeyboardRemove());
     }
 }
