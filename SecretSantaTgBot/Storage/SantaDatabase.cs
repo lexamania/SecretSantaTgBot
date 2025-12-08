@@ -9,9 +9,8 @@ public class SantaDatabase: IDisposable
 {
     private LiteDatabase _db;
 
-    public ILiteCollection<Participant> Participants { get; private set; }
-    public ILiteCollection<User> Users { get; private set; }
-    public ILiteCollection<UserWishes> UserWishes { get; private set; }
+    public ILiteCollection<UserTg> Users { get; private set; }
+    public ILiteCollection<PartyRoom> Rooms { get; private set; }
 
     public SantaDatabase()
     {
@@ -24,9 +23,8 @@ public class SantaDatabase: IDisposable
         DirectoryUtils.CreateDirectoryRecursively(Path.GetDirectoryName(dbPath)!);
 
         _db = new LiteDatabase(dbPath);
-        Participants = _db.GetCollection<Participant>("participants");
-        Users = _db.GetCollection<User>("users");
-        UserWishes = _db.GetCollection<UserWishes>("user_wishes");
+        Users = _db.GetCollection<UserTg>("users");
+        Rooms = _db.GetCollection<PartyRoom>("rooms");
     }
 
     public void Dispose()

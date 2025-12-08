@@ -12,11 +12,7 @@ public static class EnvVariables
         DotNetEnv.Env.TraversePath().Load();
 
         BotToken = Environment.GetEnvironmentVariable("BOT_TOKEN")!;
-        DBPath = Path.Combine(
-                    AppContext.BaseDirectory, 
-                    Environment.GetEnvironmentVariable("STORAGE_PATH")!);
-        ImagesPath = Path.Combine(
-                    AppContext.BaseDirectory, 
-                    Environment.GetEnvironmentVariable("IMAGE_STORAGE_PATH")!);
+        DBPath = Path.Combine(AppContext.BaseDirectory, @"Data\Storage.db");
+        ImagesPath = Path.Combine(AppContext.BaseDirectory, @"Data\Images");
     }
 }

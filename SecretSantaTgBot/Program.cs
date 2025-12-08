@@ -1,4 +1,5 @@
 ﻿using SecretSantaTgBot;
+using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Storage;
 
 using Telegram.Bot;
@@ -9,11 +10,14 @@ using var cts = new CancellationTokenSource();
 using var db = new SantaDatabase();
 
 var bot = new TelegramBotClient(botToken, cancellationToken: cts.Token);
+var msgDict = new MessagesDictionary();
 var errorBroker = new ErrorBroker(cts);
-var msgBroker = new MessageBroker(bot, db);
+var msgBroker = new MessageBroker(bot, db, msgDict);
+var queryBroker = new QueryBroker(bot, db, msgDict);
 
 bot.OnError += errorBroker.OnError;
 bot.OnMessage += msgBroker.OnMessage;
+bot.OnUpdate += queryBroker.OnUpdate;
 
 var me = await bot.GetMe();
 

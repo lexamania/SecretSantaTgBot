@@ -4,7 +4,13 @@ namespace SecretSantaTgBot.Storage.Models;
 
 public class Participant
 {
-    [BsonRef("users")] public User User { get; set; }
-    [BsonRef("users")] public User? TargetUser { get; set; }
-    public bool IsActive { get; set; }
+    [BsonId] public long Id { get; set; }
+    public string Username { get; set; }
+    public string? RealName { get; set; }
+
+    public List<UserWish> Wishes { get; set; } 
+    [BsonRef("users")] public UserTg TargetUser { get; set; }
+
+    public string? CurrentState { get; set; }
+    public string? LastCommand { get; set; }
 }

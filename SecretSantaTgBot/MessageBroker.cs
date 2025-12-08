@@ -1,16 +1,40 @@
+using SecretSantaTgBot.CommandStates;
+using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Storage;
+using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Utils;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot;
 
-public class MessageBroker(TelegramBotClient bot, SantaDatabase db)
+public class MessageBroker
 {
-    private readonly TelegramBotClient _bot = bot;
-    private readonly SantaDatabase _db = db;
+    private readonly Dictionary<string, CommandStateBase> _states;
+    private readonly string _baseState;
+
+    public TelegramBotClient Bot { get; }
+    public SantaDatabase DB { get; }
+    public MessagesDictionary MsgDict { get; }
+    public string Lang { get; }
+
+    public MessageBroker(TelegramBotClient bot, SantaDatabase db, MessagesDictionary msgDict)
+    {
+        Bot = bot;
+        DB = db;
+        MsgDict = msgDict;
+        Lang = "UA";
+
+        _states = new()
+        {
+            [DefaultState.TITLE] = new DefaultState(this),
+            [RoomCreateState.TITLE] = new RoomCreateState(this)
+        };
+
+        _baseState = DefaultState.TITLE;
+    }
 
     public async Task OnMessage(Message msg, UpdateType type)
     {
@@ -20,132 +44,70 @@ public class MessageBroker(TelegramBotClient bot, SantaDatabase db)
             return;
         }
 
-        if (!text.StartsWith('/'))
+        Console.WriteLine($"Received a message: \"{msg.Text}\" in {msg.Chat} from {msg.Chat.Username}");
+        
+        var user = CreateUserIfNeed(msg.Chat);
+        await CallMessage(msg, user);
+    }
+
+    public Task UpdateAfterStatusChanged(UserTg user)
+    {
+        var msg = new Message()
         {
-            await OnTextMessage(msg);
+            Text = "/help",
+            Chat = new()
+            {
+                Id = user.Id,
+                Username = user.Username
+            }
+        };
+
+        return CallMessage(msg, user);
+    }
+
+    private async Task CallMessage(Message msg, UserTg user)
+    {
+        var stateStr = GetCurrentState(user);
+
+        if (!_states.TryGetValue(stateStr, out var state))
+        {
+            await Bot.SendMessage(msg.Chat, MsgDict[Lang].CommandError);
             return;
         }
-
-        var words = text.Split(' ').Where(x => x.Length > 0).ToArray();
-        var command = words[0];
-        var args = words.Length > 1
-            ? words[1..]
-            : [];
-
-        await OnCommand(command, args, msg);
+        
+        try
+        {
+            await state.OnMessage(msg, user);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
-    private async Task OnTextMessage(Message msg)
+    private string GetCurrentState(UserTg user)
+        => user.CurrentState is not null
+            ? NameParser.ParseArgs(user.CurrentState)[0]
+            : _baseState;
+
+    private UserTg CreateUserIfNeed(Chat chat)
     {
-        Console.WriteLine($"Received text '{msg.Text}' in {msg.Chat}");
-        await OnCommand("/start", [""], msg);
+        var user = DB.Users
+            .Include(x => x.AvailableRooms)
+            .Include(x => x.SelectedRoom)
+            .FindById(chat.Id);
+
+        if (user is null)
+        {
+            user = new() { Id = chat.Id, Username = chat.Username!, AvailableRooms = [] };
+            DB.Users.Insert(user);
+        }
+        else if (user.Username != chat.Username)
+        {
+            user.Username = chat.Username!;
+            DB.Users.Update(user);
+        }
+
+        return user;
     }
-
-    private async Task OnCommand(string command, string[] args, Message msg)
-    {
-        Console.WriteLine($"Received command: {command} {args}");
-        // switch (command)
-        // {
-        //     case "/start":
-        //         await _bot.SendMessage(msg.Chat, """
-        //         <b><u>Bot menu</u></b>:
-        //         /photo [url]    - send a photo <i>(optionally from an <a href="https://picsum.photos/310/200.jpg">url</a>)</i>
-        //         /inline_buttons - send inline buttons
-        //         /keyboard       - send keyboard buttons
-        //         /remove         - remove keyboard buttons
-        //         /poll           - send a poll
-        //         /reaction       - send a reaction
-        //         """, parseMode: ParseMode.Html, linkPreviewOptions: true,
-        //             replyMarkup: new ReplyKeyboardRemove()); // also remove keyboard to clean-up things
-        //         break;
-        //     case "/photo":
-        //         if (args.StartsWith("http"))
-        //             await _bot.SendPhoto(msg.Chat, args, caption: "Source: " + args);
-        //         else
-        //         {
-        //             await _bot.SendChatAction(msg.Chat, ChatAction.UploadPhoto);
-        //             await Task.Delay(2000); // simulate a long task
-        //             await using var fileStream = new FileStream("_bot.gif", FileMode.Open, FileAccess.Read);
-        //             await _bot.SendPhoto(msg.Chat, fileStream, caption: "Read https://telegrambots.github.io/book/");
-        //         }
-        //         break;
-        //     case "/inline_buttons":
-        //         await _bot.SendMessage(msg.Chat, "Inline buttons:", replyMarkup: new InlineKeyboardButton[][] {
-        //         ["1.1", "1.2", "1.3"],
-        //         [("WithCallbackData", "CallbackData"), ("WithUrl", "https://github.com/TelegramBots/Telegram.Bot")]
-        //     });
-        //         break;
-        //     case "/keyboard":
-        //         await _bot.SendMessage(msg.Chat, "Keyboard buttons:", replyMarkup: new[] { "MENU", "INFO", "LANGUAGE" });
-        //         break;
-        //     case "/remove":
-        //         await _bot.SendMessage(msg.Chat, "Removing keyboard", replyMarkup: new ReplyKeyboardRemove());
-        //         break;
-        //     case "/poll":
-        //         await _bot.SendPoll(msg.Chat, "Question", ["Option 0", "Option 1", "Option 2"], isAnonymous: false, allowsMultipleAnswers: true);
-        //         break;
-        //     case "/reaction":
-        //         await _bot.SetMessageReaction(msg.Chat, msg.Id, ["❤"], false);
-        //         break;
-        // }
-    }
-
-    private Task CommandStart(Chat chat)
-        => CommandHelp(chat);
-
-    private Task CommandHelp(Chat chat)
-        => _bot.SendMessage(chat, """
-                <b><u>Bot menu</u></b>:
-                /help              - сторінка з усіма командами
-                /participate       - взяти участь в Таємному Санті
-                /stop_participate  - прибрати себе зі списків Таємного Санти
-                /show_participants - показати список учасників
-                /show_my_target    - показати мою ціль на Таємного Санту
-                /start_wishes      - розпочати додавати бажання
-                /stop_wishes       - зупинити додавати бажання
-                /clear_wishes      - очистити список своїх бажань
-                /show_my_wishes    - показати мої бажання
-                """, 
-                parseMode: ParseMode.Html, linkPreviewOptions: true,
-                replyMarkup: new ReplyKeyboardRemove());
-
-    // private Task CommandParticipate(Chat chat)
-    // {
-
-    // }
-
-    // private Task CommandStopParticipate(Chat chat)
-    // {
-
-    // }
-
-    // private Task CommandStartWishes(Chat chat)
-    // {
-
-    // }
-
-    // private Task CommandStopWishes(Chat chat)
-    // {
-
-    // }
-
-    // private Task CommandClearWishes(Chat chat)
-    // {
-
-    // }
-
-    // private Task CommandShowSantaTarget(Chat chat)
-    // {
-
-    // }
-
-    // private Task CommandShowMyWishes(Chat chat)
-    // {
-
-    // }
-
-    // private Task CommandShowParticipationList(Chat chat)
-    // {
-
-    // }
 }
