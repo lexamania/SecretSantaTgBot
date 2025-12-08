@@ -54,9 +54,8 @@ public class DefaultState : CommandStateBase
 
     public override Task OnMessage(Message msg, UserTg user)
     {
-        var text = msg.Text!;
 
-        if (!text.StartsWith('/'))
+        if (msg.Type != MessageType.Text || !msg.Text!.StartsWith('/'))
         {
             var states = user.CurrentState is not null
                 ? NameParser.ParseArgs(user.CurrentState!)
@@ -70,7 +69,8 @@ public class DefaultState : CommandStateBase
             return OnCommandError(msg.Chat);
         }
 
-        var words = text.Split(' ').Where(x => x.Length > 0).ToArray();
+        var text = msg.Text!.Trim();
+        var words = NameParser.ParseArgs(text);
         var command = words[0];
         var args = words.Length > 1
             ? words[1..]
@@ -86,12 +86,21 @@ public class DefaultState : CommandStateBase
         return cmd.Callback.Invoke(msg.Chat, user, args);
     }
 
+    private Task OnCommandError(Chat chat)
+        => _bot.SendMessage(chat, _msgDict[_lang].CommandError);
+
+    private void UpdateUserState(UserTg user, string state)
+    {
+        user.CurrentState = state;
+        _db.Users.Update(user);
+    }
+
     private Task CommandStart(Chat chat, UserTg user, string[] args)
         => CommandHelp(chat, user, args);
 
     private Task CommandHelp(Chat chat, UserTg user, string[] args)
     {
-        var msg = MessageBuilder.GetHelpMessage(_commands.Values, _msgDict[_lang]);
+        var msg = MessageBuilder.GetHelpMessage(_msgDict[_lang], _commands.Values, true);
 
         return _bot.SendMessage(chat, msg,
                 parseMode: ParseMode.Html,
@@ -100,7 +109,7 @@ public class DefaultState : CommandStateBase
 
     private Task CommandCreateRoom(Chat chat, UserTg user, string[] args)
     {
-        UpdateUserState(chat.Id, RoomCreateState.TITLE);
+        UpdateUserState(user, RoomCreateState.TITLE);
         return _bot.SendMessage(chat, _msgDict[_lang].RoomCreationEnterTitle,
                 parseMode: ParseMode.Html,
                 replyMarkup: new ReplyKeyboardRemove());
@@ -117,7 +126,7 @@ public class DefaultState : CommandStateBase
             return _bot.SendMessage(chat, _msgDict[_lang].RoomDoesntExist);
 
         var newState = NameParser.JoinArgs(RegistrationState.TITLE, roomId);
-        UpdateUserState(user.Id, newState);
+        UpdateUserState(user, newState);
 
         return _bot.SendMessage(chat,
             _msgDict[_lang].EnterRealName,
@@ -131,7 +140,7 @@ public class DefaultState : CommandStateBase
             return _bot.SendMessage(chat, _msgDict[_lang].ZeroRooms);
 
         var newState = NameParser.JoinArgs(TITLE, RoomSelectState.TITLE);
-        UpdateUserState(user.Id, newState);
+        UpdateUserState(user, newState);
 
         var buttons = user.AvailableRooms.Select(x => $"{x.Title} {x.Id}").ToArray();
         return _bot.SendMessage(chat,
@@ -148,7 +157,7 @@ public class DefaultState : CommandStateBase
             return _bot.SendMessage(chat, _msgDict[_lang].ZeroRooms);
 
         var newState = NameParser.JoinArgs(TITLE, RoomDeleteState.TITLE);
-        UpdateUserState(user.Id, newState);
+        UpdateUserState(user, newState);
 
         var buttons = rooms.Select(x => $"{x.Title} {x.Id}").ToArray();
         return _bot.SendMessage(chat,
@@ -181,15 +190,5 @@ public class DefaultState : CommandStateBase
         return _bot.SendMessage(chat, strBldr.ToString(),
             parseMode: ParseMode.Html,
             replyMarkup: new ReplyKeyboardRemove());
-    }
-
-    private Task OnCommandError(Chat chat)
-        => _bot.SendMessage(chat, _msgDict[_lang].CommandError);
-
-    private void UpdateUserState(long userId, string state)
-    {
-        var user = _db.Users.FindById(userId);
-        user.CurrentState = state;
-        _db.Users.Update(user);
     }
 }

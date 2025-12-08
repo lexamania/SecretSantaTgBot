@@ -31,14 +31,13 @@ public class RoomDeleteState : CommandStateBase
 
     public override async Task OnMessage(Message msg, UserTg user)
     {
-        var text = msg.Text!.Trim();
-
-        if (text.Length == 0 || text.StartsWith('/'))
+        if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
         {
             await OnCommandError(msg.Chat);
             return;
         }
-
+    
+        var text = msg.Text!.Trim();
         var roomId = NameParser.ParseButton(text).Last();
         var room = user.AvailableRooms
             .Where(x => x.Admin.Id == user.Id)
@@ -49,12 +48,26 @@ public class RoomDeleteState : CommandStateBase
             await _bot.SendMessage(msg.Chat, _msgDict[_lang].RoomDoesntExist);
             return;
         }
-        
-        user.AvailableRooms.Remove(room);
-        user.CurrentState = default;
+
+        var userIds = room.Users.Select(x => x.Id).ToList();
+        var users = _db.Users
+            .Include(x => x.AvailableRooms)
+            .Include(x => x.SelectedRoom)
+            .Find(x => userIds.Contains(x.Id))
+            .ToList();
+
+        foreach (var u in users)
+        {
+            u.AvailableRooms.Remove(room);
+            if (u.SelectedRoom?.Id == room.Id)
+            {
+                u.SelectedRoom = default;
+                u.CurrentState = default;
+            }
+        }
 
         _db.Rooms.Delete(room.Id);
-        _db.Users.Update(user);
+        _db.Users.Update(users);
 
         await _bot.SendMessage(msg.Chat, 
             $"{room.Title} ({room.Id}) {_msgDict[_lang].RoomDeleted}",

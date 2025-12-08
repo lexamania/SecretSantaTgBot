@@ -31,7 +31,6 @@ public class RoomCreateState : CommandStateBase
 
     public override async Task OnMessage(Message msg, UserTg user)
     {
-        var text = msg.Text!.Trim();
         var stateArgs = NameParser.ParseArgs(user.CurrentState!);
 
         var roomId = stateArgs.Length > 1 ? stateArgs[1] : null;
@@ -39,12 +38,13 @@ public class RoomCreateState : CommandStateBase
             ? _msgDict[_lang].RoomCreationEnterTitle
             : _msgDict[_lang].RoomCreationEnterDescription;
 
-        if (text.Length == 0 || text.StartsWith('/'))
+        if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
         {
             await _bot.SendMessage(msg.Chat, $"{_msgDict[_lang].CommandError}\n\n{helpMessage}");
             return;
         }
 
+        var text = msg.Text!.Trim();
         var task = roomId == null
             ? OnTitleEnter(user, text)
             : OnDescriptionEnter(user, text, roomId);

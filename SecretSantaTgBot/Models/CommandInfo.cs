@@ -14,5 +14,12 @@ public class CommandInfo(
 {
 	public CommandCallback Callback { get; } = callback;
     public bool ShowHelp { get; init; } = true;
-    public bool IsForAdmin { get; init; } = false;
+    public AccessRights Access { get; init; } = AccessRights.Default;
+}
+
+public enum AccessRights
+{
+    Default,
+    Admin,
+    NotForAdmin
 }

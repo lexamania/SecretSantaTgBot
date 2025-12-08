@@ -13,7 +13,6 @@ namespace SecretSantaTgBot;
 public class MessageBroker
 {
     private readonly Dictionary<string, CommandStateBase> _states;
-    private readonly string _baseState;
 
     public TelegramBotClient Bot { get; }
     public SantaDatabase DB { get; }
@@ -31,17 +30,18 @@ public class MessageBroker
         {
             [DefaultState.TITLE] = new DefaultState(this),
             [RoomCreateState.TITLE] = new RoomCreateState(this),
-            [RegistrationState.TITLE] = new RegistrationState(this)
-        };
+            [RegistrationState.TITLE] = new RegistrationState(this),
 
-        _baseState = DefaultState.TITLE;
+            [InRoomCommandState.TITLE] = new InRoomCommandState(this),
+        };
     }
 
     public async Task OnMessage(Message msg, UpdateType type)
     {
-        if (msg.Text is not { } text)
+        if (msg.Type != MessageType.Text && msg.Type != MessageType.Photo)
         {
             Console.WriteLine($"Received a message of type {msg.Type}");
+            await Bot.SendMessage(msg.Chat, MsgDict[Lang].CommandError);
             return;
         }
 
@@ -87,9 +87,14 @@ public class MessageBroker
     }
 
     private string GetCurrentState(UserTg user)
-        => user.CurrentState is not null
-            ? NameParser.ParseArgs(user.CurrentState)[0]
-            : _baseState;
+    {
+        if (user.CurrentState is not null)
+            return NameParser.ParseArgs(user.CurrentState)[0];
+
+        return user.SelectedRoom != null
+            ? InRoomCommandState.TITLE
+            : DefaultState.TITLE;
+    }
 
     private UserTg CreateUserIfNeed(Chat chat)
     {

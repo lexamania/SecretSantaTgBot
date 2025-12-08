@@ -30,17 +30,17 @@ public class RoomSelectState : CommandStateBase
 
     public override Task OnMessage(Message msg, UserTg user)
     {
-        var text = msg.Text!.Trim();
-
-        if (text.Length == 0 || text.StartsWith('/'))
+        if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
             return OnCommandError(msg.Chat);
+
+        var text = msg.Text!.Trim();
 
         var roomId = NameParser.ParseButton(text).Last();
         var room = user.AvailableRooms.FirstOrDefault(x => roomId.Equals(x.Id.ToString()));
-        
+
         if (room is null)
             return _bot.SendMessage(msg.Chat, _msgDict[_lang].RoomDoesntExist);
-        
+
         user.SelectedRoom = room;
         user.CurrentState = default;
         _db.Users.Update(user);

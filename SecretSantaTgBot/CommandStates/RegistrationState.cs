@@ -30,14 +30,15 @@ public class RegistrationState  : CommandStateBase
 
     public override async Task OnMessage(Message msg, UserTg user)
     {
-        var text = msg.Text!.Trim();
         var args = NameParser.ParseArgs(user.CurrentState!);
 
-        if (text.Length == 0 || text.StartsWith('/'))
+        if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
         {
             await OnCommandError(msg.Chat);
             return;
         }
+
+        var text = msg.Text!.Trim();
 
         if (args.Length < 2)
         {
