@@ -96,7 +96,12 @@ public class DefaultState : CommandStateBase
     }
 
     private Task CommandStart(Chat chat, UserTg user, string[] args)
-        => CommandHelp(chat, user, args);
+    {
+        if (args.Length == 0)
+            return CommandHelp(chat, user, args);
+
+        return CommandJoinRoom(chat, user, args);
+    }
 
     private Task CommandHelp(Chat chat, UserTg user, string[] args)
     {

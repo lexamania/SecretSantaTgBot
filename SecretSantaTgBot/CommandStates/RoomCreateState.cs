@@ -81,8 +81,10 @@ public class RoomCreateState : CommandStateBase
         user.CurrentState = NameParser.JoinArgs(RegistrationState.TITLE, roomId);
         _db.Users.Update(user);
 
+        var message = $"{_msgDict[_lang].RoomCreated} {roomId}\n{NameParser.GetRoomJoinLink(roomId)}";
+
         await _bot.SendMessage(user.Id,
-            $"{_msgDict[_lang].RoomCreated} {roomId}",
+            message,
             parseMode: ParseMode.Html,
             replyMarkup: new ReplyKeyboardRemove());
         await _bot.SendMessage(user.Id,

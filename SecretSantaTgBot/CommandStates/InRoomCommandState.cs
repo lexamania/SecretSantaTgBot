@@ -167,7 +167,8 @@ public class InRoomCommandState : CommandStateBase
 
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>\"{room.Title}\"</b>");
-        strBldr.AppendLine($"<b>room code: </b><u>{room.Id}</u>");
+        strBldr.AppendLine($"<b>room code: </b><i>{room.Id}</i>");
+        strBldr.AppendLine($"<b>room link: </b>{NameParser.GetRoomJoinLink(room.Id.ToString())}");
         strBldr.AppendLine($"admin: {admin.RealName} - @{admin.Username}");
         strBldr.AppendLine($"{room.PartyDescription}");
         strBldr.AppendLine();
