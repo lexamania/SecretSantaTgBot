@@ -1,16 +1,13 @@
-using System.Text;
-
 using SecretSantaTgBot.CommandStates;
 using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Models;
+using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
-using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot;
 
@@ -21,37 +18,35 @@ public class InRoomCommandState : CommandStateBase
     private readonly Dictionary<string, CommandInfo> _commands;
     private readonly Dictionary<string, CommandStateBase> _innerStates;
 
-    private readonly TelegramBotClient _bot;
+    private readonly MessageBrokerService _csm;
     private readonly SantaDatabase _db;
-    private readonly MessagesDictionary _msgDict;
-    private readonly string _lang;
-    private readonly MessageBroker _csm;
+    private readonly NotificationService _notifyService;
 
-    public InRoomCommandState(MessageBroker csm)
+    private static MessagesBase Msgs => EnvVariables.Messages;
+
+    public InRoomCommandState(MessageBrokerService csm)
     {
-        _bot = csm.Bot;
-        _db = csm.DB;
-        _msgDict = csm.MsgDict;
-        _lang = csm.Lang;
         _csm = csm;
+        _db = csm.DB;
+        _notifyService = _csm.NotifyService;
 
         _commands = new List<CommandInfo> {
-            new("/help", _msgDict[_lang].CommandHelp, CommandHelp),
-            new("/show_room_info", _msgDict[_lang].CommandShowRoomInfo, CommandShowRoomInfo),
-            new("/leave_room", _msgDict[_lang].CommandLeaveRoom, CommandLeaveRoom)
+            new("/help", Msgs.CommandHelp, CommandHelp),
+            new("/show_room_info", Msgs.CommandShowRoomInfo, CommandShowRoomInfo),
+            new("/leave_room", Msgs.CommandLeaveRoom, CommandLeaveRoom)
             {
                 Access = AccessRights.NotForAdmin
             },
-            new("/show_me", _msgDict[_lang].CommandShowMe, CommandShowMe),
-            new("/show_my_target", _msgDict[_lang].CommandShowTarget, CommandShowTarget),
-            new("/start_wishes", _msgDict[_lang].CommandStartWishes, CommandStartWishes),
-            new("/stop_wishes", _msgDict[_lang].CommandStopWishes, CommandStopWishes),
-            new("/clear_wishes", _msgDict[_lang].CommandClearWishes, CommandClearWishes),
-            new("/start_santa", _msgDict[_lang].StartSanta, CommandStartSecretSanta)
+            new("/show_me", Msgs.CommandShowMe, CommandShowMe),
+            new("/show_my_target", Msgs.CommandShowTarget, CommandShowTarget),
+            new("/start_wishes", Msgs.CommandStartWishes, CommandStartWishes),
+            new("/stop_wishes", Msgs.CommandStopWishes, CommandStopWishes),
+            new("/clear_wishes", Msgs.CommandClearWishes, CommandClearWishes),
+            new("/start_santa", Msgs.StartSanta, CommandStartSecretSanta)
             {
                 Access = AccessRights.Admin
             },
-            new("/back", _msgDict[_lang].CommandBack, CommandBack),
+            new("/back", Msgs.CommandBack, CommandBack),
         }.ToDictionary(x => x.Command);
 
         _innerStates = new()
@@ -73,7 +68,7 @@ public class InRoomCommandState : CommandStateBase
                     return innserState.OnMessage(msg, user);
             }
 
-            return OnCommandError(msg.Chat);
+            return _notifyService.SendErrorCommandMessage(msg.Chat.Id);
         }
 
         var text = msg.Text!.Trim();
@@ -85,7 +80,7 @@ public class InRoomCommandState : CommandStateBase
 
         var cmd = _commands.GetValueOrDefault(command);
         if (cmd is null)
-            return OnCommandError(msg.Chat);
+            return _notifyService.SendErrorCommandMessage(msg.Chat.Id);
 
         user.CurrentState = default;
         _db.Users.Update(user);
@@ -95,11 +90,9 @@ public class InRoomCommandState : CommandStateBase
 
 
 
-    private Task OnCommandError(Chat chat)
-        => _bot.SendMessage(chat, _msgDict[_lang].CommandError);
 
     private void UpdateUserState(UserTg user, string? state)
-    {   
+    {
         user.CurrentState = state;
         _db.Users.Update(user);
     }
@@ -117,11 +110,8 @@ public class InRoomCommandState : CommandStateBase
 
     private Task CommandHelp(Chat chat, UserTg user, string[] args)
     {
-        var msg = MessageBuilder.GetHelpMessage(_msgDict[_lang], _commands.Values, IsAdmin(user));
-
-        return _bot.SendMessage(chat, msg,
-                parseMode: ParseMode.Html,
-                replyMarkup: new ReplyKeyboardRemove());
+        var msg = MessageBuilder.BuildHelpMessage(_commands.Values, IsAdmin(user));
+        return _notifyService.SendMessage(chat.Id, msg);
     }
 
     private Task CommandBack(Chat chat, UserTg user, string[] args)
@@ -136,7 +126,7 @@ public class InRoomCommandState : CommandStateBase
     {
         if (IsAdmin(user))
         {
-            await _bot.SendMessage(chat, _msgDict[_lang].AdminCantLeaveRoom);
+            await _notifyService.SendErrorMessage(chat.Id, Msgs.AdminCantLeaveRoom);
             return;
         }
 
@@ -150,37 +140,15 @@ public class InRoomCommandState : CommandStateBase
         _db.Users.Update(user);
         _db.Rooms.Update(room);
 
-        foreach (var u in room.Users)
-            await _bot.SendMessage(u.Id, $"{part.RealName} (@{part.Username}) {_msgDict[_lang].UserLeavedRoomForAll}");
-
-        await _bot.SendMessage(chat,
-            _msgDict[_lang].UserLeavedRoom,
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        var message = MessageBuilder.BuildLeaveMessage(part);
+        await _notifyService.NotifyEveryone(room, message);
+        await _notifyService.SendMessage(chat.Id, Msgs.UserLeavedRoom);
     }
 
     private Task CommandShowRoomInfo(Chat chat, UserTg user, string[] args)
     {
-        var room = user.SelectedRoom!;
-        var participants = room.Users;
-        var admin = GetParticipantById(user, room.Admin.Id);
-
-        var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>\"{room.Title}\"</b>");
-        strBldr.AppendLine($"<b>room code: </b><i>{room.Id}</i>");
-        strBldr.AppendLine($"<b>room link: </b>{NameParser.GetRoomJoinLink(room.Id.ToString())}");
-        strBldr.AppendLine($"admin: {admin.RealName} - @{admin.Username}");
-        strBldr.AppendLine($"{room.PartyDescription}");
-        strBldr.AppendLine();
-        strBldr.AppendLine($"<b>{_msgDict[_lang].ParticipantsList} ({participants.Count})</b>");
-
-        foreach (var prt in participants)
-            strBldr.AppendLine($" ► {prt.RealName} - @{prt.Username}");
-
-        return _bot.SendMessage(chat,
-            strBldr.ToString(),
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        var message = MessageBuilder.BuildRoomInfoMessage(user.SelectedRoom!);
+        return _notifyService.SendMessage(chat.Id, message);
     }
 
 
@@ -188,58 +156,30 @@ public class InRoomCommandState : CommandStateBase
     private Task CommandShowMe(Chat chat, UserTg user, string[] args)
     {
         var target = GetMeAsParticipant(user);
-        return ShowUserInfo(user.Id, target, 
-            _msgDict[_lang].UserWishesList, 
-            _msgDict[_lang].UserHaveZeroWishes);
+        return ShowUserInfo(user.Id, target,
+            Msgs.UserWishesList,
+            Msgs.UserHaveZeroWishes);
     }
 
     private Task CommandShowTarget(Chat chat, UserTg user, string[] args)
     {
         var me = GetMeAsParticipant(user);
         if (me.TargetUserId is null)
-            return _bot.SendMessage(chat, _msgDict[_lang].SecretSantaStillOffline);
+            return _notifyService.SendErrorMessage(chat.Id, Msgs.SecretSantaStillOffline);
 
         var target = GetParticipantById(user, me.TargetUserId.Value);
         return ShowUserInfo(user.Id, target,
-            _msgDict[_lang].TargetWishesList,
-            _msgDict[_lang].TargetHaveZeroWishes);
+            Msgs.TargetWishesList,
+            Msgs.TargetHaveZeroWishes);
     }
 
-    private async Task ShowUserInfo(long chatId, Participant target, string headerMsg, string emptyMsg)
+    private async Task ShowUserInfo(long chatId, Participant target, string header, string emptyMsg)
     {
-        var wishes = target.Wishes;
+        var message = MessageBuilder.BuildUserInfoMessage(header, target);
+        await _notifyService.SendMessage(chatId, message);
 
-        var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{target.RealName} - @{target.Username}</b>");
-
-        if (target.Wishes.Count == 0)
-        {
-            await _bot.SendMessage(chatId,
-                strBldr.ToString(),
-                parseMode: ParseMode.Html,
-                replyMarkup: new ReplyKeyboardRemove());
-            return;
-        }
-        
-        strBldr.AppendLine();
-        strBldr.AppendLine($"<b>{headerMsg}</b>");
-
-        foreach (var wish in target.Wishes.Where(x => x.Images is not { Count: > 0 }))
-            strBldr.AppendLine($" ► {wish.Message}");
-
-        await _bot.SendMessage(chatId,
-            strBldr.ToString(),
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
-
-        foreach (var wish in wishes.Where(x => x.Images is { Count: > 0 }))
-        {
-            var images = wish.Images!
-                .Select(x => new InputMediaPhoto(x))
-                .ToArray();
-            images.First().Caption = wish.Message;
-            await _bot.SendMediaGroup(chatId, images);
-        }
+        foreach (var wish in target.Wishes.Where(x => x.Images is { Count: > 0 }))
+            await _notifyService.SendImages(chatId, wish.Images, wish.Message);
     }
 
 
@@ -249,20 +189,14 @@ public class InRoomCommandState : CommandStateBase
         var states = NameParser.JoinArgs(TITLE, InRoomWishesState.TITLE);
         UpdateUserState(user, states);
 
-        return _bot.SendMessage(chat,
-            _msgDict[_lang].UserStartWishes,
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        return _notifyService.SendMessage(chat.Id, Msgs.UserStartWishes);
     }
 
     private async Task CommandStopWishes(Chat chat, UserTg user, string[] args)
     {
         UpdateUserState(user, default);
 
-        await _bot.SendMessage(chat,
-            _msgDict[_lang].UserStopWishes,
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        await _notifyService.SendMessage(chat.Id, Msgs.UserStopWishes);
         await _csm.UpdateAfterStatusChanged(user);
     }
 
@@ -272,64 +206,36 @@ public class InRoomCommandState : CommandStateBase
         me.Wishes.Clear();
         _db.Rooms.Update(user.SelectedRoom!);
 
-        return _bot.SendMessage(chat, _msgDict[_lang].UserWishesCleared);
+        return _notifyService.SendMessage(chat.Id, Msgs.UserWishesCleared);
     }
 
 
 
-    private async Task CommandStartSecretSanta(Chat chat, UserTg user, string[] args)
+    private Task CommandStartSecretSanta(Chat chat, UserTg user, string[] args)
     {
         var room = user.SelectedRoom!;
         if (room.Admin.Id != user.Id)
-        {
-            await _bot.SendMessage(chat, _msgDict[_lang].NeedAdminRights);
-            return;
-        }
+            return _notifyService.SendErrorMessage(chat.Id, Msgs.NeedAdminRights);
 
-        var random = new Random();
         var participants = room.Users;
-        
         if (participants.Count < 2)
-        {
-            await _bot.SendMessage(chat, _msgDict[_lang].NotEnoughParticipants);
-            return;
-        }
+            return _notifyService.SendErrorMessage(chat.Id, Msgs.NotEnoughParticipants);
 
-        var ap = participants.ToList();
-        
-
-        for (int i = 0; i < participants.Count; ++i)
-        {
-            var fap = ap.Where(x => x != participants[i]).ToArray();
-
-            if (fap.Length == 0)
-            {
-                participants[i].TargetUserId = participants[i - 1].TargetUserId;
-                participants[i - 1].TargetUserId = ap.Last().Id;
-                ap.Remove(ap.Last());
-                continue;
-            }
-
-            var idx = random.Next(0, fap.Length);
-            participants[i].TargetUserId = fap[idx].Id;
-
-            ap.Remove(fap[idx]);
-        }
-
+        room.Users = ShuffleTargets(room.Users);
+        room.IsPlayed = true;
         _db.Rooms.Update(room);
 
-        foreach (var part in participants)
-        {
-            var target = participants.First(x => x.Id == part.TargetUserId);
+        return _notifyService.NotifyEveryoneTheirTarget(room);
+    }
 
-            var strBldr = new StringBuilder();
-            strBldr.AppendLine($"{_msgDict[_lang].RoomNumber} \"{room.Title}\" - {room.Id}");
-            strBldr.AppendLine(_msgDict[_lang].SantaFinished);
-            strBldr.AppendLine($"{_msgDict[_lang].UserTarget} {target.RealName} @{target.Username}");
+    private List<Participant> ShuffleTargets(List<Participant> participants)
+    {
+        var pArray = participants.ToArray();
+        var targetListIds = RandomExtension.GetShuffledUniqueIndexRange(pArray.Length);
 
-            await _bot.SendMessage(part.Id,
-                strBldr.ToString(),
-                parseMode: ParseMode.Html);
-            }
+        for (int i = 0; i < pArray.Length; ++i)
+            pArray[i].TargetUserId = pArray[targetListIds[i]].Id;
+
+        return participants;
     }
 }

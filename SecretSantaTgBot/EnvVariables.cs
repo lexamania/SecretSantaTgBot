@@ -1,10 +1,16 @@
+using SecretSantaTgBot.Messages;
+
 namespace SecretSantaTgBot;
 
 public static class EnvVariables
 {
+    private static readonly MessagesDictionary _msgDict = new();
+
     public static string BotToken { get; }
     public static string DBPath { get; }
-    public static string ImagesPath { get; }
+    public static string BotName { get; set; }
+    public static string Language  { get; } = "UA";
+    public static MessagesBase Messages => _msgDict[Language];
 
     static EnvVariables()
     {
@@ -13,6 +19,5 @@ public static class EnvVariables
 
         BotToken = Environment.GetEnvironmentVariable("BOT_TOKEN")!;
         DBPath = Path.Combine(AppContext.BaseDirectory, @"Data\Storage.db");
-        ImagesPath = Path.Combine(AppContext.BaseDirectory, @"Data\Images");
     }
 }

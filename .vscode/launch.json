@@ -8,16 +8,8 @@
             "name": "C#: SecretSantaTgBot Debug",
             "type": "dotnet",
             "request": "launch",
-            "preLaunchTask": "build Debug",
             "projectPath": "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-        },
-        {
-            "name": "C#: SecretSantaTgBot Release",
-            "type": "dotnet",
-            "request": "launch",
-            "preLaunchTask": "build Release",
-            "projectPath": "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-        },
+        }
 
 
     ]

@@ -32,6 +32,7 @@ public abstract class MessagesBase
     public abstract string RoomCreated { get; }
     public abstract string RoomDeleted { get; }
     public abstract string RoomsList { get; }
+    public abstract string AlreadyJoiningRoom { get; }
 
     public abstract string NeedAdminRights { get; }
     public abstract string NotEnoughParticipants { get; }

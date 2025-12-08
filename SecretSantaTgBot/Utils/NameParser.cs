@@ -12,5 +12,5 @@ public static class NameParser
         => string.Join(' ', args);
 
     public static string GetRoomJoinLink(string roomId)
-        => $"t.me/secret_santa_lexamania_bot?start={roomId}";
+        => $"t.me/{EnvVariables.BotName}?start={roomId}";
 }

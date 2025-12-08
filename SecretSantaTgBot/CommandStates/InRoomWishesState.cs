@@ -1,11 +1,10 @@
 using SecretSantaTgBot.Messages;
+using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 
-using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot.CommandStates;
 
@@ -13,19 +12,15 @@ public class InRoomWishesState : CommandStateBase
 {
     public const string TITLE = "in_room_wishes";
 
-    private readonly TelegramBotClient _bot;
     private readonly SantaDatabase _db;
-    private readonly MessagesDictionary _msgDict;
-    private readonly string _lang;
-    private readonly MessageBroker _csm;
+    private readonly NotificationService _notifyService;
 
-    public InRoomWishesState(MessageBroker csm)
+    private static MessagesBase Msgs => EnvVariables.Messages;
+
+    public InRoomWishesState(MessageBrokerService csm)
     {
-        _bot = csm.Bot;
         _db = csm.DB;
-        _msgDict = csm.MsgDict;
-        _lang = csm.Lang;
-        _csm = csm;
+        _notifyService = csm.NotifyService;
     }
 
     public override Task OnMessage(Message msg, UserTg user)
@@ -38,8 +33,8 @@ public class InRoomWishesState : CommandStateBase
             var text = msg.Text!.Trim();
             if (text is not { Length: > 0 } || text.StartsWith('/'))
             {
-                var error = $"{_msgDict[_lang].CommandError}\n\n{_msgDict[_lang].UserStartWishes}";
-                return _bot.SendMessage(msg.Chat, error);
+                var error = $"{Msgs.CommandError}\n\n{Msgs.UserStartWishes}";
+                return _notifyService.SendErrorMessage(msg.Chat.Id, error);
             }
 
             me.Wishes.Add(new()
@@ -67,9 +62,6 @@ public class InRoomWishesState : CommandStateBase
 
         _db.Rooms.Update(room);
 
-        return _bot.SendMessage(user.Id,
-            _msgDict[_lang].UserWishAdded,
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        return _notifyService.SendMessage(user.Id, Msgs.UserWishAdded);
     }
 }

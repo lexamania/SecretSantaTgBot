@@ -1,12 +1,10 @@
 using SecretSantaTgBot.Messages;
+using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
-using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot.CommandStates;
 
@@ -14,19 +12,15 @@ public class RoomCreateState : CommandStateBase
 {
     public const string TITLE = "room_creation";
 
-    private readonly TelegramBotClient _bot;
     private readonly SantaDatabase _db;
-    private readonly MessagesDictionary _msgDict;
-    private readonly string _lang;
-    private readonly MessageBroker _csm;
+    private readonly NotificationService _notifyService;
 
-    public RoomCreateState(MessageBroker csm)
+    private static MessagesBase Msgs => EnvVariables.Messages;
+
+    public RoomCreateState(MessageBrokerService csm)
     {
-        _bot = csm.Bot;
         _db = csm.DB;
-        _msgDict = csm.MsgDict;
-        _lang = csm.Lang;
-        _csm = csm;
+        _notifyService = csm.NotifyService;
     }
 
     public override async Task OnMessage(Message msg, UserTg user)
@@ -35,12 +29,12 @@ public class RoomCreateState : CommandStateBase
 
         var roomId = stateArgs.Length > 1 ? stateArgs[1] : null;
         var helpMessage = roomId == null
-            ? _msgDict[_lang].RoomCreationEnterTitle
-            : _msgDict[_lang].RoomCreationEnterDescription;
+            ? Msgs.RoomCreationEnterTitle
+            : Msgs.RoomCreationEnterDescription;
 
         if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
         {
-            await _bot.SendMessage(msg.Chat, $"{_msgDict[_lang].CommandError}\n\n{helpMessage}");
+            await _notifyService.SendErrorCommandMessage(msg.Chat.Id, helpMessage);
             return;
         }
 
@@ -66,10 +60,7 @@ public class RoomCreateState : CommandStateBase
         user.CurrentState = NameParser.JoinArgs(TITLE, room.Id);
         _db.Users.Update(user);
 
-        return _bot.SendMessage(user.Id,
-            _msgDict[_lang].RoomCreationEnterDescription,
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        return _notifyService.SendMessage(user.Id, Msgs.RoomCreationEnterDescription);
     }
 
     private async Task OnDescriptionEnter(UserTg user, string text, string roomId)
@@ -81,15 +72,8 @@ public class RoomCreateState : CommandStateBase
         user.CurrentState = NameParser.JoinArgs(RegistrationState.TITLE, roomId);
         _db.Users.Update(user);
 
-        var message = $"{_msgDict[_lang].RoomCreated} {roomId}\n{NameParser.GetRoomJoinLink(roomId)}";
-
-        await _bot.SendMessage(user.Id,
-            message,
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
-        await _bot.SendMessage(user.Id,
-            _msgDict[_lang].EnterRealName,
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        var message = MessageBuilder.BuildCreateRoomMessage(roomId);
+        await _notifyService.SendMessage(user.Id, message);
+        await _notifyService.SendMessage(user.Id, Msgs.EnterRealName);
     }
 }

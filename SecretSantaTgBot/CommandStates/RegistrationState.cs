@@ -1,11 +1,10 @@
 using SecretSantaTgBot.Messages;
+using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
-using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot.CommandStates;
 
@@ -13,19 +12,17 @@ public class RegistrationState  : CommandStateBase
 {
     public const string TITLE = "registration";
 
-    private readonly TelegramBotClient _bot;
     private readonly SantaDatabase _db;
-    private readonly MessagesDictionary _msgDict;
-    private readonly string _lang;
-    private readonly MessageBroker _csm;
+    private readonly NotificationService _notifyService;
+    private readonly MessageBrokerService _csm;
 
-    public RegistrationState(MessageBroker csm)
+    private static MessagesBase Msgs => EnvVariables.Messages;
+
+    public RegistrationState(MessageBrokerService csm)
     {
-        _bot = csm.Bot;
-        _db = csm.DB;
-        _msgDict = csm.MsgDict;
-        _lang = csm.Lang;
         _csm = csm;
+        _db = csm.DB;
+        _notifyService = csm.NotifyService;
     }
 
     public override async Task OnMessage(Message msg, UserTg user)
@@ -34,17 +31,15 @@ public class RegistrationState  : CommandStateBase
 
         if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
         {
-            await OnCommandError(msg.Chat);
+            await _notifyService.SendErrorCommandMessage(msg.Chat.Id, Msgs.EnterRealName);
             return;
         }
-
-        var text = msg.Text!.Trim();
 
         if (args.Length < 2)
         {
             user.CurrentState = default;
             _db.Users.Update(user);
-            await OnCommandError(msg.Chat);
+            await _notifyService.SendErrorCommandMessage(msg.Chat.Id, Msgs.EnterRealName);
             return;
         }
 
@@ -58,21 +53,14 @@ public class RegistrationState  : CommandStateBase
         {
             Id = user.Id,
             Username = user.Username,
-            RealName = text
+            RealName = msg.Text!.Trim()
         });
 
         user.CurrentState = default;
         _db.Users.Update(user);
         _db.Rooms.Update(room);
 
-        await _bot.SendMessage(msg.Chat,
-            _msgDict[_lang].UserParticipationEnd,
-            parseMode: Telegram.Bot.Types.Enums.ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
-
+        await _notifyService.SendMessage(msg.Chat.Id, Msgs.UserParticipationEnd);
         await _csm.UpdateAfterStatusChanged(user);
     }
-
-    private Task OnCommandError(Chat chat)
-        => _bot.SendMessage(chat, $"{_msgDict[_lang].CommandError}\n\n{_msgDict[_lang].EnterRealName}");
 }

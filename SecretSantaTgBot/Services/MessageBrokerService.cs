@@ -1,5 +1,4 @@
 using SecretSantaTgBot.CommandStates;
-using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
@@ -8,23 +7,19 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace SecretSantaTgBot;
+namespace SecretSantaTgBot.Services;
 
-public class MessageBroker
+public class MessageBrokerService
 {
     private readonly Dictionary<string, CommandStateBase> _states;
 
-    public TelegramBotClient Bot { get; }
     public SantaDatabase DB { get; }
-    public MessagesDictionary MsgDict { get; }
-    public string Lang { get; }
+    public NotificationService NotifyService { get; }
 
-    public MessageBroker(TelegramBotClient bot, SantaDatabase db, MessagesDictionary msgDict)
+    public MessageBrokerService(SantaDatabase db, NotificationService notify)
     {
-        Bot = bot;
         DB = db;
-        MsgDict = msgDict;
-        Lang = "UA";
+        NotifyService = notify;
 
         _states = new()
         {
@@ -41,14 +36,26 @@ public class MessageBroker
         if (msg.Type != MessageType.Text && msg.Type != MessageType.Photo)
         {
             Console.WriteLine($"Received a message of type {msg.Type}");
-            await Bot.SendMessage(msg.Chat, MsgDict[Lang].CommandError);
+            await NotifyService.SendErrorCommandMessage(msg.Chat.Id);
             return;
         }
 
-        Console.WriteLine($"Received a message: \"{msg.Text}\" in {msg.Chat} from {msg.Chat.Username}");
+        var text = msg.Text is not null && msg.Text.StartsWith('/')
+            ? msg.Text
+            : "MESSAGE";
+
+        Console.WriteLine($"Received a message: \"{text}\" in {msg.Chat} from {msg.Chat.Username}");
         
         var user = CreateUserIfNeed(msg.Chat);
-        await CallMessage(msg, user);
+
+        try
+        {
+            await CallMessage(msg, user);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     public Task UpdateAfterStatusChanged(UserTg user)
@@ -66,24 +73,14 @@ public class MessageBroker
         return CallMessage(msg, user);
     }
 
-    private async Task CallMessage(Message msg, UserTg user)
+    private Task CallMessage(Message msg, UserTg user)
     {
         var stateStr = GetCurrentState(user);
 
         if (!_states.TryGetValue(stateStr, out var state))
-        {
-            await Bot.SendMessage(msg.Chat, MsgDict[Lang].CommandError);
-            return;
-        }
+            return NotifyService.SendErrorCommandMessage(msg.Chat.Id);
         
-        try
-        {
-            await state.OnMessage(msg, user);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
+        return state.OnMessage(msg, user);
     }
 
     private string GetCurrentState(UserTg user)

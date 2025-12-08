@@ -31,6 +31,9 @@ public class MessagesUA : MessagesBase
     public override string RoomCreated { get; } = "Кімната створена!\n\nКод кімнати:";
     public override string RoomDeleted { get; } = "- кімнату видалено! 🥳";
     public override string RoomsList { get; } = "<b>Список твоїх кімнат</b>:";
+    public override string UserLeavedRoom { get; } = "🗿 Вас викреслено з участі! 🗿";
+    public override string UserLeavedRoomForAll { get; } = "покинув кімнату! 🗿";
+    public override string AlreadyJoiningRoom { get; } = "Ви вже доєдналися до цієї кімнати! 🗿";
 
     public override string NeedAdminRights { get; } = "❌ Ви не адміністратор кімнати!";
     public override string NotEnoughParticipants { get; } = "Недостатньо участників для розподілення!";
@@ -43,8 +46,6 @@ public class MessagesUA : MessagesBase
     public override string ParticipantsList { get; } = "🎅 Список учасників ";
     public override string EmptyParticipants { get; } = "🛎 Учасники ще не розпочали реєстрацію. Будь першим! 🛎";
     public override string AdminCantLeaveRoom { get; } = "Ви як адміністратор не можете покинути цю кімнату!\nЯкщо треба ви можете видалити її з основного меню.";
-    public override string UserLeavedRoom { get; } = "🗿 Вас викреслено з участі! 🗿";
-    public override string UserLeavedRoomForAll { get; } = "покинув кімнату! 🗿";
 
     public override string UserTarget { get; } = "🎅 Ваша ціль:";
     public override string TargetHaveZeroWishes { get; } = "🔕 Твоя ціль не вказала бажання 🔕";

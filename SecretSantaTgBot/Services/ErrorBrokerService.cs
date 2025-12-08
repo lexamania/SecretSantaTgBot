@@ -1,8 +1,8 @@
 using Telegram.Bot.Polling;
 
-namespace SecretSantaTgBot;
+namespace SecretSantaTgBot.Services;
 
-public class ErrorBroker(CancellationTokenSource cts)
+public class ErrorBrokerService(CancellationTokenSource cts)
 {
     private readonly CancellationTokenSource _cts = cts;
 

@@ -1,10 +1,10 @@
 
 using SecretSantaTgBot.Messages;
+using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
-using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.CommandStates;
@@ -13,25 +13,23 @@ public class RoomSelectState : CommandStateBase
 {
     public const string TITLE = "room_selection";
 
-    private readonly TelegramBotClient _bot;
     private readonly SantaDatabase _db;
-    private readonly MessagesDictionary _msgDict;
-    private readonly string _lang;
-    private readonly MessageBroker _csm;
+    private readonly NotificationService _notifyService;
+    private readonly MessageBrokerService _csm;
 
-    public RoomSelectState(MessageBroker csm)
+    private static MessagesBase Msgs => EnvVariables.Messages;
+
+    public RoomSelectState(MessageBrokerService csm)
     {
-        _bot = csm.Bot;
-        _db = csm.DB;
-        _msgDict = csm.MsgDict;
-        _lang = csm.Lang;
         _csm = csm;
+        _db = csm.DB;
+        _notifyService = csm.NotifyService;
     }
 
     public override Task OnMessage(Message msg, UserTg user)
     {
         if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
-            return OnCommandError(msg.Chat);
+            return _notifyService.SendErrorCommandMessage(msg.Chat.Id, Msgs.ChooseRoom);
 
         var text = msg.Text!.Trim();
 
@@ -39,7 +37,7 @@ public class RoomSelectState : CommandStateBase
         var room = user.AvailableRooms.FirstOrDefault(x => roomId.Equals(x.Id.ToString()));
 
         if (room is null)
-            return _bot.SendMessage(msg.Chat, _msgDict[_lang].RoomDoesntExist);
+            return _notifyService.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
 
         user.SelectedRoom = room;
         user.CurrentState = default;
@@ -47,7 +45,4 @@ public class RoomSelectState : CommandStateBase
 
         return _csm.UpdateAfterStatusChanged(user);
     }
-
-    private Task OnCommandError(Chat chat)
-        => _bot.SendMessage(chat, $"{_msgDict[_lang].CommandError}\n\n{_msgDict[_lang].ChooseRoom}");
 }

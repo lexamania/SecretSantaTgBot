@@ -1,15 +1,12 @@
-using System.Text;
-
 using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Models;
+using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
-using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot.CommandStates;
 
@@ -20,29 +17,28 @@ public class DefaultState : CommandStateBase
     private readonly Dictionary<string, CommandInfo> _commands;
     private readonly Dictionary<string, CommandStateBase> _innerStates;
 
-    private readonly TelegramBotClient _bot;
     private readonly SantaDatabase _db;
-    private readonly MessagesDictionary _msgDict;
-    private readonly string _lang;
+    private readonly MessageBrokerService _csm;
+    private readonly NotificationService _notifyService;
 
-    public DefaultState(MessageBroker csm)
+    private static MessagesBase Msgs => EnvVariables.Messages;
+
+    public DefaultState(MessageBrokerService csm)
     {
-        _bot = csm.Bot;
+        _csm = csm;
         _db = csm.DB;
-        _msgDict = csm.MsgDict;
-        _lang = csm.Lang;
+        _notifyService = csm.NotifyService;
 
         _commands = new List<CommandInfo> {
             new("/start", "START", CommandStart)
             {
                 ShowHelp = false
             },
-            new("/help", _msgDict[_lang].CommandHelp, CommandHelp),
-            new("/show_rooms", _msgDict[_lang].CommandShowRooms, CommandShowRooms),
-            new("/create_room", _msgDict[_lang].CommandCreateRoom, CommandCreateRoom),
-            new("/join_room", _msgDict[_lang].CommandJoinRoom, CommandJoinRoom),
-            new("/select_room", _msgDict[_lang].CommandSelectRoom, CommandSelectRoom),
-            new("/delete_room", _msgDict[_lang].CommandDeleteRoom, CommandDeleteRoom),
+            new("/help", Msgs.CommandHelp, CommandHelp),
+            new("/select_room", Msgs.CommandSelectRoom, CommandSelectRoom),
+            new("/create_room", Msgs.CommandCreateRoom, CommandCreateRoom),
+            new("/delete_room", Msgs.CommandDeleteRoom, CommandDeleteRoom),
+            new("/show_rooms", Msgs.CommandShowRooms, CommandShowRooms)
         }.ToDictionary(x => x.Command);
 
         _innerStates = new()
@@ -54,7 +50,6 @@ public class DefaultState : CommandStateBase
 
     public override Task OnMessage(Message msg, UserTg user)
     {
-
         if (msg.Type != MessageType.Text || !msg.Text!.StartsWith('/'))
         {
             var states = user.CurrentState is not null
@@ -66,7 +61,7 @@ public class DefaultState : CommandStateBase
                     return innserState.OnMessage(msg, user);
             }
 
-            return OnCommandError(msg.Chat);
+            return _notifyService.SendErrorCommandMessage(msg.Chat.Id);
         }
 
         var text = msg.Text!.Trim();
@@ -78,7 +73,7 @@ public class DefaultState : CommandStateBase
 
         var cmd = _commands.GetValueOrDefault(command);
         if (cmd is null)
-            return OnCommandError(msg.Chat);
+            return _notifyService.SendErrorCommandMessage(msg.Chat.Id);
 
         user.CurrentState = default;
         _db.Users.Update(user);
@@ -86,72 +81,59 @@ public class DefaultState : CommandStateBase
         return cmd.Callback.Invoke(msg.Chat, user, args);
     }
 
-    private Task OnCommandError(Chat chat)
-        => _bot.SendMessage(chat, _msgDict[_lang].CommandError);
-
     private void UpdateUserState(UserTg user, string state)
     {
         user.CurrentState = state;
         _db.Users.Update(user);
     }
 
+
+
     private Task CommandStart(Chat chat, UserTg user, string[] args)
     {
         if (args.Length == 0)
             return CommandHelp(chat, user, args);
 
-        return CommandJoinRoom(chat, user, args);
+        var roomId = new Guid(args[0]);
+        var room = _db.Rooms.FindById(roomId);
+        if (room == null)
+            return _notifyService.SendErrorMessage(chat.Id, Msgs.RoomDoesntExist);
+
+        user.SelectedRoom = room;
+
+        if (user.AvailableRooms.Any(x => x.Id == room.Id))
+            return _csm.UpdateAfterStatusChanged(user);
+
+        var newState = NameParser.JoinArgs(RegistrationState.TITLE, room.Id);
+        UpdateUserState(user, newState);
+
+        return _notifyService.SendMessage(user.Id, Msgs.EnterRealName);
     }
 
     private Task CommandHelp(Chat chat, UserTg user, string[] args)
     {
-        var msg = MessageBuilder.GetHelpMessage(_msgDict[_lang], _commands.Values, true);
-
-        return _bot.SendMessage(chat, msg,
-                parseMode: ParseMode.Html,
-                replyMarkup: new ReplyKeyboardRemove());
+        var msg = MessageBuilder.BuildHelpMessage(_commands.Values, true);
+        return _notifyService.SendMessage(chat.Id, msg);
     }
+
+
 
     private Task CommandCreateRoom(Chat chat, UserTg user, string[] args)
     {
         UpdateUserState(user, RoomCreateState.TITLE);
-        return _bot.SendMessage(chat, _msgDict[_lang].RoomCreationEnterTitle,
-                parseMode: ParseMode.Html,
-                replyMarkup: new ReplyKeyboardRemove());
-    }
-
-    private Task CommandJoinRoom(Chat chat, UserTg user, string[] args)
-    {
-        if (args is not { Length: > 0 })
-            return OnCommandError(chat);
-
-        var roomId = new Guid(args[0]);
-        var room = _db.Rooms.FindById(roomId);
-        if (room is null)
-            return _bot.SendMessage(chat, _msgDict[_lang].RoomDoesntExist);
-
-        var newState = NameParser.JoinArgs(RegistrationState.TITLE, roomId);
-        UpdateUserState(user, newState);
-
-        return _bot.SendMessage(chat,
-            _msgDict[_lang].EnterRealName,
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        return _notifyService.SendMessage(chat.Id, Msgs.RoomCreationEnterTitle);
     }
 
     private Task CommandSelectRoom(Chat chat, UserTg user, string[] args)
     {
         if (user.AvailableRooms is not { Count: > 0 })
-            return _bot.SendMessage(chat, _msgDict[_lang].ZeroRooms);
+            return _notifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
         var newState = NameParser.JoinArgs(TITLE, RoomSelectState.TITLE);
         UpdateUserState(user, newState);
 
         var buttons = user.AvailableRooms.Select(x => $"{x.Title} {x.Id}").ToArray();
-        return _bot.SendMessage(chat,
-            _msgDict[_lang].ChooseRoom,
-            parseMode: ParseMode.Html,
-            replyMarkup: buttons);
+        return _notifyService.SendMessage(chat.Id, Msgs.ChooseRoom, buttons!);
     }
 
     private Task CommandDeleteRoom(Chat chat, UserTg user, string[] args)
@@ -159,41 +141,21 @@ public class DefaultState : CommandStateBase
         var rooms = user.AvailableRooms?.Where(x => x.Admin.Id == user.Id).ToList();
 
         if (rooms is not { Count: > 0 })
-            return _bot.SendMessage(chat, _msgDict[_lang].ZeroRooms);
+            return _notifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
         var newState = NameParser.JoinArgs(TITLE, RoomDeleteState.TITLE);
         UpdateUserState(user, newState);
 
         var buttons = rooms.Select(x => $"{x.Title} {x.Id}").ToArray();
-        return _bot.SendMessage(chat,
-            _msgDict[_lang].ChooseRoom,
-            parseMode: ParseMode.Html,
-            replyMarkup: buttons);
+        return _notifyService.SendMessage(chat.Id, Msgs.ChooseRoom, buttons!);
     }
 
     private Task CommandShowRooms(Chat chat, UserTg user, string[] args)
     {
         if (user.AvailableRooms is not { Count: > 0 })
-            return _bot.SendMessage(chat, _msgDict[_lang].ZeroRooms);
+            return _notifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
-        var strBldr = new StringBuilder();
-        strBldr.AppendLine(_msgDict[_lang].RoomsList);
-        strBldr.AppendLine();
-
-        foreach (var room in user.AvailableRooms)
-        {
-            var adminText = room.Admin.Id == user.Id
-                ? " - admin"
-                : string.Empty;
-
-            strBldr.AppendLine($" ► <i>{room.Id}{adminText}</i>");
-            strBldr.AppendLine($"   <b>{room.Title}</b>");
-            strBldr.AppendLine($"   {room.PartyDescription}");
-            strBldr.AppendLine();
-        }
-
-        return _bot.SendMessage(chat, strBldr.ToString(),
-            parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
+        var message = MessageBuilder.BuildRoomsInfoMessage(user);
+        return _notifyService.SendMessage(chat.Id, message);
     }
 }
