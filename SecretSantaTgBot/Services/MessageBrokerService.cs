@@ -3,7 +3,6 @@ using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
-using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -15,11 +14,13 @@ public class MessageBrokerService
 
     public SantaDatabase DB { get; }
     public NotificationService NotifyService { get; }
+    public LocalLogger Logger { get; }
 
-    public MessageBrokerService(SantaDatabase db, NotificationService notify)
+    public MessageBrokerService(SantaDatabase db, NotificationService notify, LocalLogger logger)
     {
         DB = db;
         NotifyService = notify;
+        Logger = logger;
 
         _states = new()
         {
@@ -35,16 +36,12 @@ public class MessageBrokerService
     {
         if (msg.Type != MessageType.Text && msg.Type != MessageType.Photo)
         {
-            Console.WriteLine($"Received a message of type {msg.Type}");
+            Logger.LogUnrecognizedMessage(msg);
             await NotifyService.SendErrorCommandMessage(msg.Chat.Id);
             return;
         }
 
-        var text = msg.Text is not null && msg.Text.StartsWith('/')
-            ? msg.Text
-            : "MESSAGE";
-
-        Console.WriteLine($"Received a message: \"{text}\" in {msg.Chat} from {msg.Chat.Username}");
+        Logger.LogMessage(msg);
         
         var user = CreateUserIfNeed(msg.Chat);
 
@@ -54,7 +51,7 @@ public class MessageBrokerService
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Logger.LogError(ex);
         }
     }
 

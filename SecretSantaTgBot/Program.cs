@@ -11,9 +11,10 @@ using var db = new SantaDatabase();
 
 var bot = new TelegramBotClient(botToken, cancellationToken: cts.Token);
 var notifyService = new NotificationService(bot);
+var logger = new LocalLogger();
 
 var errorBroker = new ErrorBrokerService(cts);
-var msgBroker = new MessageBrokerService(db, notifyService);
+var msgBroker = new MessageBrokerService(db, notifyService, logger);
 var queryBroker = new QueryBrokerService(bot, db);
 
 bot.OnError += errorBroker.OnError;

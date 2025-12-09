@@ -8,9 +8,11 @@ public static class EnvVariables
 
     public static string BotToken { get; }
     public static string DBPath { get; }
-    public static string BotName { get; set; }
+    public static string LogsDirPath { get; }
     public static string Language  { get; } = "UA";
     public static MessagesBase Messages => _msgDict[Language];
+
+    public static string BotName { get; set; }
 
     static EnvVariables()
     {
@@ -19,5 +21,6 @@ public static class EnvVariables
 
         BotToken = Environment.GetEnvironmentVariable("BOT_TOKEN")!;
         DBPath = Path.Combine(AppContext.BaseDirectory, @"Data\Storage.db");
+        LogsDirPath = Path.Combine(AppContext.BaseDirectory, @"Logs");
     }
 }
