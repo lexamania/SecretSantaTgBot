@@ -1,67 +1,60 @@
-using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Services;
-using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace SecretSantaTgBot.CommandStates;
 
-public class InRoomWishesState : CommandStateBase
+public class InRoomWishesState(MessageBrokerService csm, string parentTitle)
+    : MessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_wishes";
 
-    private readonly SantaDatabase _db;
-    private readonly NotificationService _notifyService;
+    protected override string Message => Msgs.UserStartWishes;
 
-    private static MessagesBase Msgs => EnvVariables.Messages;
-
-    public InRoomWishesState(MessageBrokerService csm)
-    {
-        _db = csm.DB;
-        _notifyService = csm.NotifyService;
-    }
-
-    public override Task OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
         var room = user.SelectedRoom!;
         var me = room.Users.First(x => x.Id == user.Id);
 
-        if (msg.Type == MessageType.Text)
+        if (MessageParser.IsCommand(msg, out var command, out var args))
         {
-            var text = msg.Text!.Trim();
-            if (text is not { Length: > 0 } || text.StartsWith('/'))
-            {
-                var error = $"{Msgs.CommandError}\n\n{Msgs.UserStartWishes}";
-                return _notifyService.SendErrorMessage(msg.Chat.Id, error);
-            }
-
-            me.Wishes.Add(new()
-            {
-                Message = text,
-            });
+            await CallRequiredCommand(command!, msg, user, args);
+            return true;
         }
-        else if (msg.Type == MessageType.Photo)
+
+        if (MessageParser.IsMessage(msg, out var message))
+        {
+            me.Wishes.Add(new() { Message = message, });
+            DB.Rooms.Update(room);
+            await NotifyService.SendMessage(user.Id, Msgs.UserWishAdded);
+            return true;
+        }
+
+        if (MessageParser.IsImage(msg, out var capture, out var image))
         {
             var lastWish = me.Wishes.LastOrDefault();
             if (msg.Caption is null && lastWish is not null && lastWish.Images.Count > 0)
             {
-                lastWish.Images.Add(msg.Photo!.First().FileId);
+                lastWish.Images.Add(image!.FileId);
             }
             else
             {
                 var wish = new UserWish()
                 {
                     Message = msg.Caption,
-                    Images = [msg.Photo!.First().FileId]
+                    Images = [image!.FileId]
                 };
                 me.Wishes.Add(wish);
             }
+
+            DB.Rooms.Update(room);
+            await NotifyService.SendMessage(user.Id, Msgs.UserWishAdded);
+            return true;
         }
 
-        _db.Rooms.Update(room);
-
-        return _notifyService.SendMessage(user.Id, Msgs.UserWishAdded);
+        await NotifyService.SendErrorCommandMessage(msg.Chat.Id, Message);
+        return true;
     }
 }

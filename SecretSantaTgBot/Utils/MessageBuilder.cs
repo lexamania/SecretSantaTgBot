@@ -58,7 +58,7 @@ public static class MessageBuilder
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>\"{room.Title}\"</b>");
         strBldr.AppendLine();
-        strBldr.AppendLine($"<b>room link: </b>{NameParser.GetRoomJoinLink(room.Id.ToString())}");
+        strBldr.AppendLine($"<b>room link: </b>{BuildJoinLink(room.Id.ToString())}");
         strBldr.AppendLine($"admin: {admin.RealName} - @{admin.Username}");
         strBldr.AppendLine();
         strBldr.AppendLine($"{room.PartyDescription}");
@@ -74,7 +74,7 @@ public static class MessageBuilder
     public static string BuildRoomsInfoMessage(UserTg user)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine(Msgs.RoomsList);
+        strBldr.AppendLine($"<b>{Msgs.RoomsList}</b>");
         strBldr.AppendLine();
 
         foreach (var room in user.AvailableRooms)
@@ -84,8 +84,8 @@ public static class MessageBuilder
                 : string.Empty;
 
             strBldr.AppendLine($" ► <b>{room.Title}{adminText}</b>");
-            strBldr.AppendLine($"   {NameParser.GetRoomJoinLink(room.Id.ToString())}");
-            strBldr.AppendLine($"   {room.PartyDescription}");
+            strBldr.AppendLine($"{room.PartyDescription}");
+            strBldr.AppendLine($"{BuildJoinLink(room.Id.ToString())}");
             strBldr.AppendLine();
         }
 
@@ -96,8 +96,11 @@ public static class MessageBuilder
         => $"{p.RealName} (@{p.Username}) {Msgs.UserLeavedRoomForAll}";
 
     public static string BuildCreateRoomMessage(string roomId)
-        => $"{Msgs.RoomCreated} {roomId}\n{NameParser.GetRoomJoinLink(roomId)}";
+        => $"{Msgs.RoomCreated} {roomId}\n{BuildJoinLink(roomId)}";
 
     public static string BuildDeleteRoomMessage(PartyRoom room)
         => $"{room.Title} ({room.Id}) {Msgs.RoomDeleted}";
+
+    public static string BuildJoinLink(string roomId)
+        => $"t.me/{EnvVariables.BotName}?start={roomId}";
 }

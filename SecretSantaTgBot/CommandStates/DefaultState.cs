@@ -1,12 +1,9 @@
-using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services;
-using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace SecretSantaTgBot.CommandStates;
 
@@ -14,126 +11,101 @@ public class DefaultState : CommandStateBase
 {
     public const string TITLE = "default";
 
-    private readonly Dictionary<string, CommandInfo> _commands;
     private readonly Dictionary<string, CommandStateBase> _innerStates;
 
-    private readonly SantaDatabase _db;
-    private readonly MessageBrokerService _csm;
-    private readonly NotificationService _notifyService;
-
-    private static MessagesBase Msgs => EnvVariables.Messages;
-
-    public DefaultState(MessageBrokerService csm)
+    public DefaultState(MessageBrokerService csm) : base(csm, TITLE)
     {
-        _csm = csm;
-        _db = csm.DB;
-        _notifyService = csm.NotifyService;
-
-        _commands = new List<CommandInfo> {
+        var commands = new List<CommandInfo> {
             new("/start", "START", CommandStart)
             {
                 ShowHelp = false
             },
-            new("/help", Msgs.CommandHelp, CommandHelp),
             new("/select_room", Msgs.CommandSelectRoom, CommandSelectRoom),
             new("/create_room", Msgs.CommandCreateRoom, CommandCreateRoom),
             new("/delete_room", Msgs.CommandDeleteRoom, CommandDeleteRoom),
             new("/show_rooms", Msgs.CommandShowRooms, CommandShowRooms)
-        }.ToDictionary(x => x.Command);
+        };
+
+        foreach (var command in commands)
+            Commands.Add(command.Command, command);
 
         _innerStates = new()
         {
-            [RoomSelectState.TITLE] = new RoomSelectState(csm),
-            [RoomDeleteState.TITLE] = new RoomDeleteState(csm),
+            [RoomSelectState.TITLE] = new RoomSelectState(csm, Title),
+            [RoomDeleteState.TITLE] = new RoomDeleteState(csm, Title),
+            [RoomCreateState.TITLE] = new RoomCreateState(csm, Title),
         };
     }
 
-    public override Task OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
-        if (msg.Type != MessageType.Text || !msg.Text!.StartsWith('/'))
+        if (MessageParser.HasNewState(_innerStates, user.CurrentState!, Title, out var innerState))
         {
-            var states = user.CurrentState is not null
-                ? NameParser.ParseArgs(user.CurrentState!)
-                : [];
-            if (states.Length > 1)
-            {
-                if (_innerStates.TryGetValue(states[1], out var innserState))
-                    return innserState.OnMessage(msg, user);
-            }
-
-            return _notifyService.SendErrorCommandMessage(msg.Chat.Id);
+            if (await innerState!.OnMessage(msg, user))
+                return true;
         }
 
-        var text = msg.Text!.Trim();
-        var words = NameParser.ParseArgs(text);
-        var command = words[0];
-        var args = words.Length > 1
-            ? words[1..]
-            : [];
+        if (MessageParser.IsCommand(msg, out var command, out var commandArgs))
+        {
+            if (!Commands.TryGetValue(command!, out var cmd))
+                return false;
 
-        var cmd = _commands.GetValueOrDefault(command);
-        if (cmd is null)
-            return _notifyService.SendErrorCommandMessage(msg.Chat.Id);
+            await cmd.Callback.Invoke(msg.Chat, user, commandArgs!);
+            return true;
+        }
 
-        user.CurrentState = default;
-        _db.Users.Update(user);
-
-        return cmd.Callback.Invoke(msg.Chat, user, args);
-    }
-
-    private void UpdateUserState(UserTg user, string state)
-    {
-        user.CurrentState = state;
-        _db.Users.Update(user);
+        return false;
     }
 
 
 
-    private Task CommandStart(Chat chat, UserTg user, string[] args)
+    private async Task CommandStart(Chat chat, UserTg user, string[] args)
     {
         if (args.Length == 0)
-            return CommandHelp(chat, user, args);
+        {
+            await CommandHelp(chat, user, args);
+            return;
+        }
 
-        var roomId = new Guid(args[0]);
-        var room = _db.Rooms.FindById(roomId);
-        if (room == null)
-            return _notifyService.SendErrorMessage(chat.Id, Msgs.RoomDoesntExist);
+        if (!Guid.TryParse(args[0], out var roomId) || DB.Rooms.FindById(roomId) is not { } room)
+        {
+            await NotifyService.SendErrorMessage(chat.Id, Msgs.RoomDoesntExist);
+            return;
+        }
 
-        user.SelectedRoom = room;
+        if (!user.AvailableRooms.Any(x => x.Id == room.Id))
+        {
+            user.AvailableRooms.Add(room);
+            room.Users.Add(new()
+            {
+                Id = user.Id,
+                Username = user.Username
+            });
 
-        if (user.AvailableRooms.Any(x => x.Id == room.Id))
-            return _csm.UpdateAfterStatusChanged(user);
+            DB.Rooms.Update(room);
+            DB.Users.Update(user);
+            await NotifyService.SendMessage(user.Id, Msgs.UserNewParticipation);
+        }
 
-        var newState = NameParser.JoinArgs(RegistrationState.TITLE, room.Id);
-        UpdateUserState(user, newState);
-
-        return _notifyService.SendMessage(user.Id, Msgs.EnterRealName);
-    }
-
-    private Task CommandHelp(Chat chat, UserTg user, string[] args)
-    {
-        var msg = MessageBuilder.BuildHelpMessage(_commands.Values, true);
-        return _notifyService.SendMessage(chat.Id, msg);
+        var msg = new Message()
+        {
+            Chat = chat,
+            Text = $"{room.Title} {room.Id}"
+        };
+        await _innerStates[RoomSelectState.TITLE].OnMessage(msg, user);
     }
 
 
 
     private Task CommandCreateRoom(Chat chat, UserTg user, string[] args)
-    {
-        UpdateUserState(user, RoomCreateState.TITLE);
-        return _notifyService.SendMessage(chat.Id, Msgs.RoomCreationEnterTitle);
-    }
+        => _innerStates[RoomCreateState.TITLE].StartState(user, args);
 
     private Task CommandSelectRoom(Chat chat, UserTg user, string[] args)
     {
         if (user.AvailableRooms is not { Count: > 0 })
-            return _notifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
+            return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
-        var newState = NameParser.JoinArgs(TITLE, RoomSelectState.TITLE);
-        UpdateUserState(user, newState);
-
-        var buttons = user.AvailableRooms.Select(x => $"{x.Title} {x.Id}").ToArray();
-        return _notifyService.SendMessage(chat.Id, Msgs.ChooseRoom, buttons!);
+        return _innerStates[RoomSelectState.TITLE].StartState(user, args);
     }
 
     private Task CommandDeleteRoom(Chat chat, UserTg user, string[] args)
@@ -141,21 +113,17 @@ public class DefaultState : CommandStateBase
         var rooms = user.AvailableRooms?.Where(x => x.Admin.Id == user.Id).ToList();
 
         if (rooms is not { Count: > 0 })
-            return _notifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
+            return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
-        var newState = NameParser.JoinArgs(TITLE, RoomDeleteState.TITLE);
-        UpdateUserState(user, newState);
-
-        var buttons = rooms.Select(x => $"{x.Title} {x.Id}").ToArray();
-        return _notifyService.SendMessage(chat.Id, Msgs.ChooseRoom, buttons!);
+        return _innerStates[RoomDeleteState.TITLE].StartState(user, args);
     }
 
     private Task CommandShowRooms(Chat chat, UserTg user, string[] args)
     {
         if (user.AvailableRooms is not { Count: > 0 })
-            return _notifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
+            return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
         var message = MessageBuilder.BuildRoomsInfoMessage(user);
-        return _notifyService.SendMessage(chat.Id, message);
+        return NotifyService.SendMessage(chat.Id, message);
     }
 }

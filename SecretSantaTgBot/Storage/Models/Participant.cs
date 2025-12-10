@@ -10,7 +10,4 @@ public class Participant
 
     public List<UserWish> Wishes { get; set; } = [];
     public long? TargetUserId { get; set; }
-
-    public string? CurrentState { get; set; }
-    public string? LastCommand { get; set; }
 }

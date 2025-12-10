@@ -5,11 +5,12 @@ public class MessagesUA : MessagesBase
     public override string CommandError { get; } = "❌ Не роспізнана команда! ❌";
     public override string CommandBotMenu { get; } = "☃️ Меню Бота ☃️\n";
     public override string CommandHelp { get; } = "сторінка з усіма командами";
-    public override string CommandParticipate { get; } = "взяти участь в Таємному Санті";
+    public override string CommandStop { get; } = "перейти до головного меню";
+
+    public override string CommandUpdateRoom { get; } = "змінити опис кімнати";
     public override string CommandLeaveRoom { get; } = "зупинити участь і покинути кімнату";
     public override string CommandShowRoomInfo { get; } = "показати інформацію по кімнаті";
     public override string CommandShowTarget { get; } = "показати мою ціль на Таємного Санту";
-    public override string CommandShowTargetWishes { get; } = "показати бажання цілі";
     public override string CommandStartWishes { get; } = "розпочати додавати бажання";
     public override string CommandStopWishes { get; } = "зупинити додавати бажання";
     public override string CommandClearWishes { get; } = "очистити список своїх бажань";
@@ -17,7 +18,6 @@ public class MessagesUA : MessagesBase
     public override string CommandBack { get; } = "повернутися до списку кімнат";
 
     public override string CommandCreateRoom { get; } = "створити нову кімнату";
-    public override string CommandJoinRoom { get; } = "{room_id} доєднатися до існуючої кімнати";
     public override string CommandSelectRoom { get; } = "перейти до кімнати";
     public override string CommandDeleteRoom { get; } = "видалити кімнату";
     public override string CommandShowRooms { get; } = "показати список моїх кімнат";
@@ -30,21 +30,16 @@ public class MessagesUA : MessagesBase
     public override string RoomDoesntExist { get; } = "❌ Кімнати з таким кодом не знайдено!";
     public override string RoomCreated { get; } = "Кімната створена!\n\nКод кімнати:";
     public override string RoomDeleted { get; } = "- кімнату видалено! 🥳";
-    public override string RoomsList { get; } = "<b>Список твоїх кімнат</b>:";
+    public override string RoomsList { get; } = "Список твоїх кімнат:";
+    public override string RoomDescriptionUpdated { get; } = "Опис кімнати оновлено! 🥳";
+
     public override string UserLeavedRoom { get; } = "🗿 Вас викреслено з участі! 🗿";
     public override string UserLeavedRoomForAll { get; } = "покинув кімнату! 🗿";
-    public override string AlreadyJoiningRoom { get; } = "Ви вже доєдналися до цієї кімнати! 🗿";
-
     public override string NeedAdminRights { get; } = "❌ Ви не адміністратор кімнати!";
     public override string NotEnoughParticipants { get; } = "Недостатньо участників для розподілення!";
     public override string UserNewParticipation { get; } = "🥳 Розпочинаємо реєстрацію, введіть ваше ім'я:";
-    public override string EnteredNameError { get; } = "❌ Введене Ім'я не коректне. Спробуйте знову:";
     public override string UserParticipationEnd { get; } = "🥳 Вас зареєстровано! 🥳";
-    public override string UserTakeParticipation { get; } = "💌 Ви вже приймаєте участь! 💌";
-    public override string UserCantCancelParticipation { get; } = "Учасники вже були обрані, ви не можете піти на пів шляху🙂 Зверніться до Лекса🎅";
-    public override string UserDontTakeParticipation { get; } = "🥶 Ви не приймаєте участь! 🥶";
     public override string ParticipantsList { get; } = "🎅 Список учасників ";
-    public override string EmptyParticipants { get; } = "🛎 Учасники ще не розпочали реєстрацію. Будь першим! 🛎";
     public override string AdminCantLeaveRoom { get; } = "Ви як адміністратор не можете покинути цю кімнату!\nЯкщо треба ви можете видалити її з основного меню.";
 
     public override string UserTarget { get; } = "🎅 Ваша ціль:";
@@ -60,7 +55,7 @@ public class MessagesUA : MessagesBase
         1. Можете всі побажання відправити текстом за 1 повідомлення
         2. Можете відправити текст з прикріпленними картинками
         3. Чи просто самі картинки
-        4. Для завершення виберіть команду /stop_wishes чи будь-яку іншу
+        4. Для завершення виберіть команду /stop чи будь-яку іншу
         """;
     public override string UserStopWishes { get; } = "🎁 Ваші побажання збережено! 🥳";
     public override string UserWishAdded { get; } = "🎁 Побажання додано! 🥳 \n\n Продовжіть додавати побажання чи завершіть зараз /stop_wishes";

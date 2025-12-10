@@ -1,6 +1,4 @@
-using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Services;
-using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
@@ -8,72 +6,67 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.CommandStates;
 
-public class RoomCreateState : CommandStateBase
+public class RoomCreateState(MessageBrokerService csm, string parentTitle)
+    : MessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "room_creation";
 
-    private readonly SantaDatabase _db;
-    private readonly NotificationService _notifyService;
+    protected override string Message => Msgs.RoomCreationEnterTitle;
 
-    private static MessagesBase Msgs => EnvVariables.Messages;
-
-    public RoomCreateState(MessageBrokerService csm)
+    public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
-        _db = csm.DB;
-        _notifyService = csm.NotifyService;
-    }
+        if (MessageParser.IsCommand(msg, out var command, out var tempArgs))
+        {
+            await CallRequiredCommand(command!, msg, user, tempArgs);
+            return true;
+        }
 
-    public override async Task OnMessage(Message msg, UserTg user)
-    {
-        var stateArgs = NameParser.ParseArgs(user.CurrentState!);
-
-        var roomId = stateArgs.Length > 1 ? stateArgs[1] : null;
-        var helpMessage = roomId == null
+        var args = NameParser.ClearState(user.CurrentState, Title);
+        var enterMessage = args is null || args.Length == 0
             ? Msgs.RoomCreationEnterTitle
             : Msgs.RoomCreationEnterDescription;
 
-        if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
+        if (!MessageParser.IsMessage(msg, out var message))
         {
-            await _notifyService.SendErrorCommandMessage(msg.Chat.Id, helpMessage);
-            return;
+            await NotifyService.SendErrorCommandMessage(msg.Chat.Id, enterMessage);
+            return true;
         }
 
-        var text = msg.Text!.Trim();
-        var task = roomId == null
-            ? OnTitleEnter(user, text)
-            : OnDescriptionEnter(user, text, roomId);
+        if (args is null || args.Length == 0)
+            await SaveTitle(user, message!);
+        else
+            await CreateRoom(user, args, message!);
 
-        await task;
+        return true;
     }
 
-    private Task OnTitleEnter(UserTg user, string msg)
+    private Task SaveTitle(UserTg user, string title)
     {
-        var room = new PartyRoom()
+        UpdateUserState(user, NameParser.JoinArgs(Title, $"{title}"));
+        return NotifyService.SendMessage(user.Id, Msgs.RoomCreationEnterDescription);
+    }
+
+    private Task CreateRoom(UserTg user, string title, string description)
+    {
+        var room = new PartyRoom
         {
-            Title = msg,
+            Title = title!,
+            PartyDescription = description!,
             Admin = user,
-            Users = []
+            Users = [new()
+            {
+                Id = user.Id,
+                Username = user.Username,
+            }],
         };
+        user.AvailableRooms.Add(room);
 
-        _db.Rooms.Insert(room);
+        DB.Rooms.Insert(room);
+        DB.Users.Update(user);
 
-        user.CurrentState = NameParser.JoinArgs(TITLE, room.Id);
-        _db.Users.Update(user);
+        UpdateUserState(user, default);
 
-        return _notifyService.SendMessage(user.Id, Msgs.RoomCreationEnterDescription);
-    }
-
-    private async Task OnDescriptionEnter(UserTg user, string text, string roomId)
-    {
-        var room = _db.Rooms.FindById(new Guid(roomId));
-        room.PartyDescription = text;
-        _db.Rooms.Update(room);
-
-        user.CurrentState = NameParser.JoinArgs(RegistrationState.TITLE, roomId);
-        _db.Users.Update(user);
-
-        var message = MessageBuilder.BuildCreateRoomMessage(roomId);
-        await _notifyService.SendMessage(user.Id, message);
-        await _notifyService.SendMessage(user.Id, Msgs.EnterRealName);
+        var message = MessageBuilder.BuildCreateRoomMessage(room.Id.ToString());
+        return NotifyService.SendMessage(user.Id, message);
     }
 }

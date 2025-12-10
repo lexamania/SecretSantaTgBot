@@ -25,34 +25,33 @@ public class MessageBrokerService
         _states = new()
         {
             [DefaultState.TITLE] = new DefaultState(this),
-            [RoomCreateState.TITLE] = new RoomCreateState(this),
-            [RegistrationState.TITLE] = new RegistrationState(this),
-
             [InRoomCommandState.TITLE] = new InRoomCommandState(this),
         };
     }
 
     public async Task OnMessage(Message msg, UpdateType type)
     {
-        if (msg.Type != MessageType.Text && msg.Type != MessageType.Photo)
-        {
-            Logger.LogUnrecognizedMessage(msg);
-            await NotifyService.SendErrorCommandMessage(msg.Chat.Id);
-            return;
-        }
-
-        Logger.LogMessage(msg);
-        
         var user = CreateUserIfNeed(msg.Chat);
 
         try
         {
-            await CallMessage(msg, user);
+            if (await CallMessage(msg, user))
+            {
+                Logger.LogMessage(msg);
+                return;
+            }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex);
+            return;
         }
+
+        user.CurrentState = default;
+        DB.Users.Update(user);
+
+        Logger.LogUnrecognizedMessage(msg);
+        await NotifyService.SendErrorCommandMessage(msg.Chat.Id);
     }
 
     public Task UpdateAfterStatusChanged(UserTg user)
@@ -70,20 +69,18 @@ public class MessageBrokerService
         return CallMessage(msg, user);
     }
 
-    private Task CallMessage(Message msg, UserTg user)
+    private Task<bool> CallMessage(Message msg, UserTg user)
     {
         var stateStr = GetCurrentState(user);
-
-        if (!_states.TryGetValue(stateStr, out var state))
-            return NotifyService.SendErrorCommandMessage(msg.Chat.Id);
-        
-        return state.OnMessage(msg, user);
+        return _states.TryGetValue(stateStr, out var state) 
+            ? state.OnMessage(msg, user)
+            : Task.FromResult(false);
     }
 
     private string GetCurrentState(UserTg user)
     {
         if (user.CurrentState is not null)
-            return NameParser.ParseArgs(user.CurrentState)[0];
+            return NameParser.ParseStateArgs(user.CurrentState, "abcd")[0];
 
         return user.SelectedRoom != null
             ? InRoomCommandState.TITLE

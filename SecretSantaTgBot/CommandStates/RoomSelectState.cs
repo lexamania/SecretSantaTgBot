@@ -1,7 +1,4 @@
-
-using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Services;
-using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
@@ -9,40 +6,65 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.CommandStates;
 
-public class RoomSelectState : CommandStateBase
+public class RoomSelectState : MessageStateBase
 {
     public const string TITLE = "room_selection";
+    private readonly InRoomNameRegistrationState _regState;
 
-    private readonly SantaDatabase _db;
-    private readonly NotificationService _notifyService;
-    private readonly MessageBrokerService _csm;
-
-    private static MessagesBase Msgs => EnvVariables.Messages;
-
-    public RoomSelectState(MessageBrokerService csm)
+    public RoomSelectState(MessageBrokerService csm, string parentTitle) : base(csm, NameParser.JoinArgs(parentTitle, TITLE))
     {
-        _csm = csm;
-        _db = csm.DB;
-        _notifyService = csm.NotifyService;
+        _regState = new(csm, Title);
     }
 
-    public override Task OnMessage(Message msg, UserTg user)
+    protected override string Message => Msgs.ChooseRoom;
+
+    public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
-        if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
-            return _notifyService.SendErrorCommandMessage(msg.Chat.Id, Msgs.ChooseRoom);
+        var states = NameParser.ParseStateArgs(user.CurrentState, Title);
+        if (states.Length > 0 && states[0] == InRoomNameRegistrationState.TITLE)
+        {
+            if (await _regState!.OnMessage(msg, user))
+                return true;
+        }
 
-        var text = msg.Text!.Trim();
+        if (MessageParser.IsCommand(msg, out var _, out var _))
+            return false;
 
-        var roomId = NameParser.ParseButton(text).Last();
+        if (!MessageParser.IsMessage(msg, out var message))
+        {
+            await NotifyService.SendErrorCommandMessage(msg.Chat.Id, Message);
+            return true;
+        }
+
+        var roomId = NameParser.ParseButton(message!).Last();
         var room = user.AvailableRooms.FirstOrDefault(x => roomId.Equals(x.Id.ToString()));
 
         if (room is null)
-            return _notifyService.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
+        {
+            await NotifyService.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
+            return true;
+        }
 
         user.SelectedRoom = room;
-        user.CurrentState = default;
-        _db.Users.Update(user);
+        UpdateUserState(user, default);
 
-        return _csm.UpdateAfterStatusChanged(user);
+        var participant = room.Users.First(u => u.Id == user.Id);
+        if (participant.RealName is null)
+        {
+            await _regState.StartState(user, []);
+            return true;
+        }
+
+        await Csm.UpdateAfterStatusChanged(user);
+        return true;
+    }
+
+    public override Task StartState(UserTg user, string[] args)
+    {
+        UpdateUserState(user, Title);
+        var buttons = user.AvailableRooms
+            .Select(x => $"{x.Title} {x.Id}")
+            .ToArray();
+        return NotifyService.SendMessage(user.Id, Message, buttons!);
     }
 }

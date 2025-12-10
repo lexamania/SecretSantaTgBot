@@ -1,6 +1,4 @@
-using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Services;
-using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
@@ -8,45 +6,37 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.CommandStates;
 
-public class RoomDeleteState : CommandStateBase
+public class RoomDeleteState(MessageBrokerService csm, string parentTitle)
+    : MessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "room_delete";
 
-    private readonly SantaDatabase _db;
-    private readonly NotificationService _notifyService;
-    private readonly MessageBrokerService _csm;
+    protected override string Message => Msgs.ChooseRoom;
 
-    private static MessagesBase Msgs => EnvVariables.Messages;
-
-    public RoomDeleteState(MessageBrokerService csm)
+    public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
-        _csm = csm;
-        _db = csm.DB;
-        _notifyService = csm.NotifyService;
-    }
+        if (MessageParser.IsCommand(msg, out var _, out var _))
+            return false;
 
-    public override async Task OnMessage(Message msg, UserTg user)
-    {
-        if (msg.Text is not { Length: > 0 } || msg.Text.StartsWith('/'))
+        if (!MessageParser.IsMessage(msg, out var message))
         {
-            await _notifyService.SendErrorCommandMessage(msg.Chat.Id, Msgs.ChooseRoom);
-            return;
+            await NotifyService.SendErrorCommandMessage(msg.Chat.Id, Message);
+            return true;
         }
     
-        var text = msg.Text!.Trim();
-        var roomId = NameParser.ParseButton(text).Last();
+        var roomId = NameParser.ParseButton(message!).Last();
         var room = user.AvailableRooms
             .Where(x => x.Admin.Id == user.Id)
             .FirstOrDefault(x => roomId.Equals(x.Id.ToString()));
         
         if (room is null)
         {
-            await _notifyService.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
-            return;
+            await NotifyService.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
+            return true;
         }
 
         var userIds = room.Users.Select(x => x.Id).ToList();
-        var users = _db.Users
+        var users = DB.Users
             .Include(x => x.AvailableRooms)
             .Include(x => x.SelectedRoom)
             .Find(x => userIds.Contains(x.Id))
@@ -62,11 +52,23 @@ public class RoomDeleteState : CommandStateBase
             }
         }
 
-        _db.Rooms.Delete(room.Id);
-        _db.Users.Update(users);
+        DB.Rooms.Delete(room.Id);
+        DB.Users.Update(users);
+        UpdateUserState(user, default);
 
-        var message = MessageBuilder.BuildDeleteRoomMessage(room);
-        await _notifyService.SendMessage(msg.Chat.Id, message);
-        await _csm.UpdateAfterStatusChanged(user);
+        var notifyMessage = MessageBuilder.BuildDeleteRoomMessage(room);
+        await NotifyService.NotifyEveryone(room, notifyMessage);
+        await Csm.UpdateAfterStatusChanged(user);
+        return true;
+    }
+
+    public override Task StartState(UserTg user, string[] args)
+    {
+        UpdateUserState(user, Title);
+        var buttons = user.AvailableRooms
+            .Where(x => x.Admin.Id == user.Id)
+            .Select(x => $"{x.Title} {x.Id}")
+            .ToArray();
+        return NotifyService.SendMessage(user.Id, Message, buttons!);
     }
 }

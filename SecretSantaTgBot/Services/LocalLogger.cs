@@ -44,8 +44,8 @@ public class LocalLogger
     {
         var text = msg.Text is not null && msg.Text.StartsWith('/')
             ? msg.Text
-            : "MESSAGE";
-        var message = $"Received a message: \"{text}\" in {msg.Chat} from {msg.Chat.Username}";
+            : msg.Type.ToString();
+        var message = $"Received a message: \"{text}\" in '{msg.Chat}'";
         WriteToFile(message);
     }
 
