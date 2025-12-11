@@ -29,7 +29,7 @@ EnvVariables.BotName = me.Username!;
 
 Console.WriteLine($"@{me.Username} is running... Send Alt+Num1 to terminate");
 
-while (Console.Read() != '☺') ;
+while (Console.ReadLine() != "STOP") ;
 
 var endUsers = db.Users.FindAll().Select(x => x.Id).ToArray();
 await notifyService.NotifyEveryone(startUsers, "Бот відключено!", true);
