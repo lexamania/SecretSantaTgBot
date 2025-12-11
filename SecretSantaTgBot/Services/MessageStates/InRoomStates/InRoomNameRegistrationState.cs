@@ -1,13 +1,13 @@
-using SecretSantaTgBot.Services;
+using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
-namespace SecretSantaTgBot.CommandStates;
+namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
 public class InRoomNameRegistrationState(MessageBrokerService csm, string parentTitle)
-    : MessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
+    : SimpleMessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "registration";
 

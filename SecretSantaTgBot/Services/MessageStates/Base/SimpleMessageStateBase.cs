@@ -1,17 +1,16 @@
 using SecretSantaTgBot.Models;
-using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
-namespace SecretSantaTgBot.CommandStates;
+namespace SecretSantaTgBot.Services.MessageStates.Base;
 
-public abstract class MessageStateBase : CommandStateBase
+public abstract class SimpleMessageStateBase : MessageStateBase
 {
     protected abstract string Message { get; }
 
-    public MessageStateBase(MessageBrokerService csm, string title) : base(csm, title)
+    public SimpleMessageStateBase(MessageBrokerService csm, string title) : base(csm, title)
     {
         var command = new CommandInfo("/stop", Msgs.CommandStop, CommandStop);
         Commands.Add(command.Command, command);

@@ -1,12 +1,13 @@
-using SecretSantaTgBot.Services;
+using SecretSantaTgBot.Services.MessageStates.Base;
+using SecretSantaTgBot.Services.MessageStates.InRoomStates;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
-namespace SecretSantaTgBot.CommandStates;
+namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
-public class RoomSelectState : MessageStateBase
+public class RoomSelectState : SimpleMessageStateBase
 {
     public const string TITLE = "room_selection";
     private readonly InRoomNameRegistrationState _regState;

@@ -1,0 +1,94 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                // Ask dotnet build to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "release",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "publish",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "linux-x64",
+                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
+                // Ask dotnet build to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "release stand-alone win",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "publish",
+                "--self-contained",
+                "true",
+                "--runtime",
+                "win-x64",
+                "-p:PublishSingleFile=true",
+                "-p:PublishTrimmed=true",
+                "--output",
+                "${workspaceFolder}/Builds/win-x64",
+                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
+                // "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "release stand-alone linux",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "publish",
+                "--self-contained",
+                "true",
+                "--runtime",
+                "linux-x64",
+                "-p:PublishSingleFile=true",
+                "-p:PublishTrimmed=true",
+                "--output",
+                "${workspaceFolder}/Builds/linux-x64",
+                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
+                // "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+    ]
+}

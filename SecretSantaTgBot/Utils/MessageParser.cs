@@ -1,4 +1,4 @@
-using SecretSantaTgBot.CommandStates;
+using SecretSantaTgBot.Services.MessageStates.Base;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -51,7 +51,7 @@ public static class MessageParser
         return false;
     }
 
-    public static bool HasNewState(Dictionary<string, CommandStateBase> innerStates, string fullState, string currentState, out CommandStateBase? result)
+    public static bool HasNewState(Dictionary<string, MessageStateBase> innerStates, string fullState, string currentState, out MessageStateBase? result)
     {
         result = default;
 

@@ -1,18 +1,18 @@
-using SecretSantaTgBot.CommandStates;
 using SecretSantaTgBot.Models;
-using SecretSantaTgBot.Services;
+using SecretSantaTgBot.Services.MessageStates.Base;
+using SecretSantaTgBot.Services.MessageStates.InRoomStates;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
-namespace SecretSantaTgBot;
+namespace SecretSantaTgBot.Services.MessageStates;
 
-public class InRoomCommandState : CommandStateBase
+public class InRoomCommandState : MessageStateBase
 {
     public const string TITLE = "in_room";
 
-    private readonly Dictionary<string, CommandStateBase> _innerStates;
+    private readonly Dictionary<string, MessageStateBase> _innerStates;
 
     public InRoomCommandState(MessageBrokerService csm) : base(csm, TITLE)
     {

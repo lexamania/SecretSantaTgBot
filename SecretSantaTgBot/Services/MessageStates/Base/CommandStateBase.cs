@@ -1,15 +1,14 @@
 using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Models;
-using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
-namespace SecretSantaTgBot.CommandStates;
+namespace SecretSantaTgBot.Services.MessageStates.Base;
 
-public abstract class CommandStateBase
+public abstract class MessageStateBase
 {
     protected string Title { get; }
     protected Dictionary<string, CommandInfo> Commands { get; } = [];
@@ -19,7 +18,7 @@ public abstract class CommandStateBase
     protected NotificationService NotifyService => Csm.NotifyService;
     protected static MessagesBase Msgs => EnvVariables.Messages;
 
-    public CommandStateBase(MessageBrokerService csm, string title)
+    public MessageStateBase(MessageBrokerService csm, string title)
     {
         Csm = csm;
         Title = title;

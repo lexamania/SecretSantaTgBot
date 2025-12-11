@@ -1,4 +1,5 @@
-using SecretSantaTgBot.CommandStates;
+using SecretSantaTgBot.Services.MessageStates;
+using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
@@ -10,7 +11,7 @@ namespace SecretSantaTgBot.Services;
 
 public class MessageBrokerService
 {
-    private readonly Dictionary<string, CommandStateBase> _states;
+    private readonly Dictionary<string, MessageStateBase> _states;
 
     public SantaDatabase DB { get; }
     public NotificationService NotifyService { get; }

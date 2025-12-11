@@ -1,17 +1,18 @@
 using SecretSantaTgBot.Models;
-using SecretSantaTgBot.Services;
+using SecretSantaTgBot.Services.MessageStates.Base;
+using SecretSantaTgBot.Services.MessageStates.DefaultStates;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
-namespace SecretSantaTgBot.CommandStates;
+namespace SecretSantaTgBot.Services.MessageStates;
 
-public class DefaultState : CommandStateBase
+public class DefaultState : MessageStateBase
 {
     public const string TITLE = "default";
 
-    private readonly Dictionary<string, CommandStateBase> _innerStates;
+    private readonly Dictionary<string, MessageStateBase> _innerStates;
 
     public DefaultState(MessageBrokerService csm) : base(csm, TITLE)
     {
