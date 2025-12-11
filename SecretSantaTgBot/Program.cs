@@ -27,7 +27,7 @@ bot.OnUpdate += queryBroker.OnUpdate;
 var me = await bot.GetMe();
 EnvVariables.BotName = me.Username!;
 
-Console.WriteLine($"@{me.Username} is running... Send Alt+Num1 to terminate");
+Console.WriteLine($"@{me.Username} is running... Send STOP to terminate");
 
 while (Console.ReadLine() != "STOP") ;
 
