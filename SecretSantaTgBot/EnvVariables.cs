@@ -20,7 +20,7 @@ public static class EnvVariables
         DotNetEnv.Env.TraversePath().Load();
 
         BotToken = Environment.GetEnvironmentVariable("BOT_TOKEN")!;
-        DBPath = Path.Combine(AppContext.BaseDirectory, @"Data\Storage.db");
-        LogsDirPath = Path.Combine(AppContext.BaseDirectory, @"Logs");
+        DBPath = Path.Join(AppContext.BaseDirectory, "Data", "Storage.db");
+        LogsDirPath = Path.Join(AppContext.BaseDirectory, @"Logs");
     }
 }
