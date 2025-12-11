@@ -112,7 +112,7 @@ public class InRoomCommandState : CommandStateBase
         DB.Rooms.Update(room);
 
         var message = MessageBuilder.BuildLeaveMessage(part);
-        await NotifyService.NotifyEveryone(room, message);
+        await NotifyService.NotifyEveryoneInRoom(room, message);
         await NotifyService.SendMessage(chat.Id, Msgs.UserLeavedRoom);
     }
 
@@ -180,7 +180,7 @@ public class InRoomCommandState : CommandStateBase
         room.IsPlayed = true;
         DB.Rooms.Update(room);
 
-        return NotifyService.NotifyEveryoneTheirTarget(room);
+        return NotifyEveryoneTheirTarget(room);
     }
 
     private List<Participant> ShuffleTargets(List<Participant> participants)
@@ -192,5 +192,19 @@ public class InRoomCommandState : CommandStateBase
             pArray[i].TargetUserId = pArray[targetListIds[i]].Id;
 
         return participants;
+    }
+
+    private Task NotifyEveryoneTheirTarget(PartyRoom room)
+    {
+        var result = new List<(long Id, string Msg)>();
+
+        foreach (var p in room.Users)
+        {
+            var target = room.Users.First(x => x.Id == p.TargetUserId);
+            var message = MessageBuilder.BuildTargetMessage(room, target);
+            result.Add((target.Id, message));
+        }
+
+        return NotifyService.NotifyEveryone(result);
     }
 }

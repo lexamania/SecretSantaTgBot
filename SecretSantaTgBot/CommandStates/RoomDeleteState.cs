@@ -57,7 +57,7 @@ public class RoomDeleteState(MessageBrokerService csm, string parentTitle)
         UpdateUserState(user, default);
 
         var notifyMessage = MessageBuilder.BuildDeleteRoomMessage(room);
-        await NotifyService.NotifyEveryone(room, notifyMessage);
+        await NotifyService.NotifyEveryoneInRoom(room, notifyMessage);
         await Csm.UpdateAfterStatusChanged(user);
         return true;
     }

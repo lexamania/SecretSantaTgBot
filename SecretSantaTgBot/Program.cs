@@ -17,6 +17,9 @@ var errorBroker = new ErrorBrokerService(cts);
 var msgBroker = new MessageBrokerService(db, notifyService, logger);
 var queryBroker = new QueryBrokerService(bot, db);
 
+var startUsers = db.Users.FindAll().Select(x => x.Id).ToArray();
+await notifyService.NotifyEveryone(startUsers, "Бот знову активний!", true);
+
 bot.OnError += errorBroker.OnError;
 bot.OnMessage += msgBroker.OnMessage;
 bot.OnUpdate += queryBroker.OnUpdate;
@@ -28,4 +31,6 @@ Console.WriteLine($"@{me.Username} is running... Send Alt+Num1 to terminate");
 
 while (Console.Read() != '☺') ;
 
+var endUsers = db.Users.FindAll().Select(x => x.Id).ToArray();
+await notifyService.NotifyEveryone(startUsers, "Бот відключено!", true);
 cts.Cancel(); // stop the bot
