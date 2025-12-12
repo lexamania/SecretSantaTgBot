@@ -7,17 +7,25 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
 public class InRoomNameRegistrationState(MessageBrokerService csm, string parentTitle)
-    : SimpleMessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
+    : MessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "registration";
+    private string Message => Msgs.EnterRealName;
 
-    protected override string Message => Msgs.EnterRealName;
+    public override Task StartState(UserTg user, string[] args)
+    {
+        var strArgs = NameParser.JoinArgs(args);
+        var state = NameParser.JoinArgs(Title, strArgs);
+        UpdateUserState(user, state);
+
+        return NotifyService.SendMessage(user.Id, Message);
+    }
 
     public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await NotifyService.SendErrorCommandMessage(msg.Chat.Id, Msgs.EnterRealName);
+            await NotifyService.SendErrorCommandMessage(msg.Chat.Id, Message);
             return true;
         }
 
@@ -31,14 +39,5 @@ public class InRoomNameRegistrationState(MessageBrokerService csm, string parent
         await NotifyService.SendMessage(msg.Chat.Id, Msgs.UserParticipationEnd);
         await Csm.UpdateAfterStatusChanged(user);
         return true;
-    }
-
-    public override Task StartState(UserTg user, string[] args)
-    {
-        var strArgs = NameParser.JoinArgs(args);
-        var state = NameParser.JoinArgs(Title, strArgs);
-        UpdateUserState(user, state);
-
-        return NotifyService.SendMessage(user.Id, Message);
     }
 }

@@ -36,7 +36,8 @@ public abstract class MessageStateBase
 
     protected Task CommandHelp(Chat chat, UserTg user, string[] args)
     {
-        var msg = MessageBuilder.BuildHelpMessage(Commands.Values, true);
+        var isAdmin = user.SelectedRoom?.Admin.Id == user.Id;
+        var msg = MessageBuilder.BuildHelpMessage(Commands.Values, isAdmin);
         return NotifyService.SendMessage(chat.Id, msg);
     }
 }

@@ -6,15 +6,39 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
-public class RoomDeleteState(MessageBrokerService csm, string parentTitle)
-    : SimpleMessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
+public class RoomDeleteState: MessageStateBase
 {
     public const string TITLE = "room_delete";
+    private const string DELETE_TITLE = "delete_confirmation";
 
-    protected override string Message => Msgs.ChooseRoom;
+    private string Message => Msgs.ChooseRoom;
+    private readonly ConfirmationState _confirmationState;
+
+    public RoomDeleteState(MessageBrokerService csm, string parentTitle)
+        : base(csm, NameParser.JoinArgs(parentTitle, TITLE))
+    {
+        _confirmationState = new ConfirmationState(csm, Title, DELETE_TITLE, DeleteConfirmation);
+    }
+
+    public override Task StartState(UserTg user, string[] args)
+    {
+        UpdateUserState(user, Title);
+        var buttons = user.AvailableRooms
+            .Where(x => x.Admin.Id == user.Id)
+            .Select(x => $"{x.Title} {x.Id}")
+            .ToArray();
+        return NotifyService.SendMessage(user.Id, Message, buttons!);
+    }
 
     public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
+        var parsedStates = NameParser.ParseStateArgs(user.CurrentState, Title);
+        if (parsedStates.Length > 0 && parsedStates[0] == DELETE_TITLE)
+        {
+            if (await _confirmationState.OnMessage(msg, user))
+                return true;
+        }
+
         if (MessageParser.IsCommand(msg, out var _, out var _))
             return false;
 
@@ -34,6 +58,15 @@ public class RoomDeleteState(MessageBrokerService csm, string parentTitle)
             await NotifyService.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
             return true;
         }
+
+        await _confirmationState.StartState(user, [roomId]);
+        return true;
+    }
+
+    private async Task DeleteConfirmation(Chat chat, UserTg user, string[] args)
+    {
+        var roomId = args[0];
+        var room = user.AvailableRooms.First(x => roomId.Equals(x.Id.ToString()));
 
         var userIds = room.Users.Select(x => x.Id).ToList();
         var users = DB.Users
@@ -59,16 +92,5 @@ public class RoomDeleteState(MessageBrokerService csm, string parentTitle)
         var notifyMessage = MessageBuilder.BuildDeleteRoomMessage(room);
         await NotifyService.NotifyEveryoneInRoom(room, notifyMessage);
         await Csm.UpdateAfterStatusChanged(user);
-        return true;
-    }
-
-    public override Task StartState(UserTg user, string[] args)
-    {
-        UpdateUserState(user, Title);
-        var buttons = user.AvailableRooms
-            .Where(x => x.Admin.Id == user.Id)
-            .Select(x => $"{x.Title} {x.Id}")
-            .ToArray();
-        return NotifyService.SendMessage(user.Id, Message, buttons!);
     }
 }

@@ -64,4 +64,8 @@ public class MessagesUA : MessagesBase
     public override string StartSanta { get; } = "Розпочинаємо крутити барабан на Санту🎰!";
     public override string SantaFinished { get; } = "Вибір Санти завершився. Перейдіть в кімнату аби подивитися хто став вашою ціллю 🥳";
     public override string RoomNumber { get; } = "Кімната -";
+    
+    public override string AskConfirmation { get; } = "Ви впевнені? (Так/Ні)";
+    public override string ButtonYes { get; } = "Так";
+    public override string ButtonNo { get; } = "Ні";
 }

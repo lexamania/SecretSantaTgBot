@@ -109,6 +109,15 @@ public class DefaultState : MessageStateBase
         return _innerStates[RoomSelectState.TITLE].StartState(user, args);
     }
 
+    private Task CommandShowRooms(Chat chat, UserTg user, string[] args)
+    {
+        if (user.AvailableRooms is not { Count: > 0 })
+            return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
+
+        var message = MessageBuilder.BuildRoomsInfoMessage(user);
+        return NotifyService.SendMessage(chat.Id, message);
+    }
+
     private Task CommandDeleteRoom(Chat chat, UserTg user, string[] args)
     {
         var rooms = user.AvailableRooms?.Where(x => x.Admin.Id == user.Id).ToList();
@@ -117,14 +126,5 @@ public class DefaultState : MessageStateBase
             return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
         return _innerStates[RoomDeleteState.TITLE].StartState(user, args);
-    }
-
-    private Task CommandShowRooms(Chat chat, UserTg user, string[] args)
-    {
-        if (user.AvailableRooms is not { Count: > 0 })
-            return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
-
-        var message = MessageBuilder.BuildRoomsInfoMessage(user);
-        return NotifyService.SendMessage(chat.Id, message);
     }
 }

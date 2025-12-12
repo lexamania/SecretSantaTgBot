@@ -7,17 +7,26 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
-public class RoomSelectState : SimpleMessageStateBase
+public class RoomSelectState : MessageStateBase
 {
     public const string TITLE = "room_selection";
     private readonly InRoomNameRegistrationState _regState;
+    private string Message => Msgs.ChooseRoom;
 
-    public RoomSelectState(MessageBrokerService csm, string parentTitle) : base(csm, NameParser.JoinArgs(parentTitle, TITLE))
+    public RoomSelectState(MessageBrokerService csm, string parentTitle)
+        : base(csm, NameParser.JoinArgs(parentTitle, TITLE))
     {
         _regState = new(csm, Title);
     }
 
-    protected override string Message => Msgs.ChooseRoom;
+    public override Task StartState(UserTg user, string[] args)
+    {
+        UpdateUserState(user, Title);
+        var buttons = user.AvailableRooms
+            .Select(x => $"{x.Title} {x.Id}")
+            .ToArray();
+        return NotifyService.SendMessage(user.Id, Message, buttons!);
+    }
 
     public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
@@ -58,14 +67,5 @@ public class RoomSelectState : SimpleMessageStateBase
 
         await Csm.UpdateAfterStatusChanged(user);
         return true;
-    }
-
-    public override Task StartState(UserTg user, string[] args)
-    {
-        UpdateUserState(user, Title);
-        var buttons = user.AvailableRooms
-            .Select(x => $"{x.Title} {x.Id}")
-            .ToArray();
-        return NotifyService.SendMessage(user.Id, Message, buttons!);
     }
 }

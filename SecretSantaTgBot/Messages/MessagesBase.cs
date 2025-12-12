@@ -56,4 +56,9 @@ public abstract class MessagesBase
     public abstract string StartSanta { get; }
     public abstract string SantaFinished { get; }
     public abstract string RoomNumber { get; }
+
+    public abstract string ButtonYes { get; }
+    public abstract string ButtonNo { get; }
+    public abstract string AskConfirmation { get; }
+
 }

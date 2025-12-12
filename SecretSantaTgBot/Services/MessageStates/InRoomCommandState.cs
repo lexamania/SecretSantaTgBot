@@ -1,5 +1,6 @@
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates.Base;
+using SecretSantaTgBot.Services.MessageStates.DefaultStates;
 using SecretSantaTgBot.Services.MessageStates.InRoomStates;
 using SecretSantaTgBot.Storage.Models;
 using SecretSantaTgBot.Utils;
@@ -11,6 +12,7 @@ namespace SecretSantaTgBot.Services.MessageStates;
 public class InRoomCommandState : MessageStateBase
 {
     public const string TITLE = "in_room";
+    private const string LEAVE_TITLE = "leave_confirmation";
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
@@ -44,6 +46,7 @@ public class InRoomCommandState : MessageStateBase
         {
             [InRoomWishesState.TITLE] = new InRoomWishesState(csm, Title),
             [InRoomUpdateState.TITLE] = new InRoomUpdateState(csm, Title),
+            [LEAVE_TITLE] = new ConfirmationState(csm, Title, LEAVE_TITLE, CommandLeaveRoomConfirmation),
         };
     }
 
@@ -93,14 +96,15 @@ public class InRoomCommandState : MessageStateBase
         return NotifyService.SendMessage(chat.Id, message);
     }
 
-    private async Task CommandLeaveRoom(Chat chat, UserTg user, string[] args)
+    private Task CommandLeaveRoom(Chat chat, UserTg user, string[] args)
     {
-        if (IsAdmin(user))
-        {
-            await NotifyService.SendErrorMessage(chat.Id, Msgs.AdminCantLeaveRoom);
-            return;
-        }
+        return IsAdmin(user)
+            ? NotifyService.SendErrorMessage(chat.Id, Msgs.AdminCantLeaveRoom)
+            : _innerStates[LEAVE_TITLE].StartState(user, args);
+    }
 
+    private async Task CommandLeaveRoomConfirmation(Chat chat, UserTg user, string[] args)
+    {
         var room = user.SelectedRoom!;
         var part = GetMeAsParticipant(user);
 
@@ -164,12 +168,16 @@ public class InRoomCommandState : MessageStateBase
 
 
     private Task CommandUpdateRoom(Chat chat, UserTg user, string[] args)
-        => _innerStates[InRoomUpdateState.TITLE].StartState(user, args);
+    {
+        return !IsAdmin(user)
+            ? NotifyService.SendErrorMessage(chat.Id, Msgs.NeedAdminRights)
+            : _innerStates[InRoomUpdateState.TITLE].StartState(user, args);
+    }
 
     private Task CommandStartSecretSanta(Chat chat, UserTg user, string[] args)
     {
         var room = user.SelectedRoom!;
-        if (room.Admin.Id != user.Id)
+        if (!IsAdmin(user))
             return NotifyService.SendErrorMessage(chat.Id, Msgs.NeedAdminRights);
 
         var participants = room.Users;

@@ -42,7 +42,7 @@ public class RoomCreateState(MessageBrokerService csm, string parentTitle)
 
     private Task SaveTitle(UserTg user, string title)
     {
-        UpdateUserState(user, NameParser.JoinArgs(Title, $"{title}"));
+        UpdateUserState(user, NameParser.JoinArgs(Title, title));
         return NotifyService.SendMessage(user.Id, Msgs.RoomCreationEnterDescription);
     }
 
