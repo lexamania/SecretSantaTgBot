@@ -32,5 +32,5 @@ Console.WriteLine($"@{me.Username} is running... Send STOP to terminate");
 while (Console.ReadLine() != "STOP") ;
 
 var endUsers = db.Users.FindAll().Select(x => x.Id).ToArray();
-await notifyService.NotifyEveryone(startUsers, "Бот відключено!", true);
+await notifyService.NotifyEveryone(endUsers, "Бот відключено!", true);
 cts.Cancel(); // stop the bot

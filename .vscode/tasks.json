@@ -4,14 +4,27 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "run tasks",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "release win",
+                "release linux",
+                "release stand-alone win",
+                "release stand-alone linux"
+            ],
+        },
+        {
+            "label": "release win",
             "command": "dotnet",
             "type": "shell",
             "args": [
-                "build",
-                // Ask dotnet build to generate full paths for file names.
+                "publish",
+                "--runtime",
+                "win-x64",
+                "--output",
+                "${workspaceFolder}/Builds/win-x64",
+                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
                 "/property:GenerateFullPaths=true",
-                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
                 "/consoleloggerparameters:NoSummary"
             ],
             "group": "build",
@@ -21,19 +34,17 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "release",
+            "label": "release linux",
             "command": "dotnet",
             "type": "shell",
             "args": [
                 "publish",
-                "--configuration",
-                "Release",
                 "--runtime",
                 "linux-x64",
+                "--output",
+                "${workspaceFolder}/Builds/linux-x64",
                 "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-                // Ask dotnet build to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
-                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
                 "/consoleloggerparameters:NoSummary"
             ],
             "group": "build",
@@ -53,11 +64,12 @@
                 "--runtime",
                 "win-x64",
                 "-p:PublishSingleFile=true",
-                "-p:PublishTrimmed=true",
+                // Doesn't work well with some dependencies
+                // "-p:PublishTrimmed=true",
                 "--output",
-                "${workspaceFolder}/Builds/win-x64",
+                "${workspaceFolder}/Builds/full-win-x64",
                 "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-                // "/property:GenerateFullPaths=true",
+                "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
             "group": "build",
@@ -77,11 +89,12 @@
                 "--runtime",
                 "linux-x64",
                 "-p:PublishSingleFile=true",
-                "-p:PublishTrimmed=true",
+                // Doesn't work well with some dependencies
+                // "-p:PublishTrimmed=true",
                 "--output",
-                "${workspaceFolder}/Builds/linux-x64",
+                "${workspaceFolder}/Builds/full-linux-x64",
                 "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-                // "/property:GenerateFullPaths=true",
+                "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
             "group": "build",

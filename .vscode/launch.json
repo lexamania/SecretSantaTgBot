@@ -4,13 +4,22 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        // {
+        //     "name": "C#: Debug Build",
+        //     "type": "coreclr",
+        //     "request": "launch",
+        //     "preLaunchTask": "release stand-alone win",
+        //     "program": "${workspaceFolder}/Builds/win-x64/SecretSantaTgBot.dll",
+        //     "args": [],
+        //     "cwd": "${workspaceFolder}",
+        //     "stopAtEntry": false,
+        //     "console": "internalConsole"
+        // },
         {
-            "name": "C#: SecretSantaTgBot Debug",
+            "name": "C#: Launch & Debug",
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-        }
-
-
+        },
     ]
 }
