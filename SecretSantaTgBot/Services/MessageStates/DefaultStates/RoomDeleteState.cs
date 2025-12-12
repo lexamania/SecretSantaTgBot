@@ -77,7 +77,9 @@ public class RoomDeleteState: MessageStateBase
 
         foreach (var u in users)
         {
-            u.AvailableRooms.Remove(room);
+            var deletedRoom = u.AvailableRooms.First(r => r.Id == room.Id);
+            u.AvailableRooms.Remove(deletedRoom);
+
             if (u.SelectedRoom?.Id == room.Id)
             {
                 u.SelectedRoom = default;

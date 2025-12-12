@@ -105,11 +105,12 @@ public class InRoomCommandState : MessageStateBase
 
     private async Task CommandLeaveRoomConfirmation(Chat chat, UserTg user, string[] args)
     {
-        var room = user.SelectedRoom!;
         var part = GetMeAsParticipant(user);
-
+        var room = user.SelectedRoom!;
+        var deletedRoom = user.AvailableRooms.First(x => x.Id == room.Id);
+    
         user.SelectedRoom = default;
-        user.AvailableRooms.Remove(room);
+        user.AvailableRooms.Remove(deletedRoom);
         room.Users.Remove(part);
 
         DB.Users.Update(user);
