@@ -9,8 +9,6 @@
             "dependsOn": [
                 "release win",
                 "release linux",
-                "release stand-alone win",
-                "release stand-alone linux"
             ],
         },
         {
@@ -19,6 +17,9 @@
             "type": "shell",
             "args": [
                 "publish",
+                "-p:PublishSingleFile=true",
+                // Doesn't work well with some dependencies
+                // "-p:PublishTrimmed=true",
                 "--runtime",
                 "win-x64",
                 "--output",
@@ -39,60 +40,11 @@
             "type": "shell",
             "args": [
                 "publish",
+                "-p:PublishSingleFile=true",
                 "--runtime",
                 "linux-x64",
                 "--output",
                 "${workspaceFolder}/Builds/linux-x64",
-                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
-            ],
-            "group": "build",
-            "presentation": {
-                "reveal": "silent"
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "release stand-alone win",
-            "command": "dotnet",
-            "type": "shell",
-            "args": [
-                "publish",
-                "--self-contained",
-                "true",
-                "--runtime",
-                "win-x64",
-                "-p:PublishSingleFile=true",
-                // Doesn't work well with some dependencies
-                // "-p:PublishTrimmed=true",
-                "--output",
-                "${workspaceFolder}/Builds/full-win-x64",
-                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
-            ],
-            "group": "build",
-            "presentation": {
-                "reveal": "silent"
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "release stand-alone linux",
-            "command": "dotnet",
-            "type": "shell",
-            "args": [
-                "publish",
-                "--self-contained",
-                "true",
-                "--runtime",
-                "linux-x64",
-                "-p:PublishSingleFile=true",
-                // Doesn't work well with some dependencies
-                // "-p:PublishTrimmed=true",
-                "--output",
-                "${workspaceFolder}/Builds/full-linux-x64",
                 "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
