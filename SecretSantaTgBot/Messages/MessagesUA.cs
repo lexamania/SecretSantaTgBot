@@ -58,7 +58,7 @@ public class MessagesUA : MessagesBase
         4. Для завершення виберіть команду /stop чи будь-яку іншу
         """;
     public override string UserStopWishes { get; } = "🎁 Ваші побажання збережено! 🥳";
-    public override string UserWishAdded { get; } = "🎁 Побажання додано! 🥳 \n\n Продовжіть додавати побажання чи завершіть зараз /stop_wishes";
+    public override string UserWishAdded { get; } = "🎁 Побажання додано! 🥳 \n\n Продовжіть додавати побажання чи завершіть зараз /stop";
 
     public override string SecretSantaStillOffline { get; } = "🛎 Розподілення Санти ще не розпочалося! 🛎";
     public override string StartSanta { get; } = "Розпочинаємо крутити барабан на Санту🎰!";
