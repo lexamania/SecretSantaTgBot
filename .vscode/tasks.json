@@ -17,7 +17,7 @@
             "type": "shell",
             "args": [
                 "publish",
-                "-p:PublishSingleFile=true",
+                //"-p:PublishSingleFile=true",
                 // Doesn't work well with some dependencies
                 // "-p:PublishTrimmed=true",
                 "--runtime",
@@ -40,7 +40,7 @@
             "type": "shell",
             "args": [
                 "publish",
-                "-p:PublishSingleFile=true",
+                //"-p:PublishSingleFile=true",
                 "--runtime",
                 "linux-x64",
                 "--output",

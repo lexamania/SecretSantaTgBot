@@ -211,7 +211,7 @@ public class InRoomCommandState : MessageStateBase
         {
             var target = room.Users.First(x => x.Id == p.TargetUserId);
             var message = MessageBuilder.BuildTargetMessage(room, target);
-            result.Add((target.Id, message));
+            result.Add((p.Id, message));
         }
 
         return NotifyService.NotifyEveryone(result);
