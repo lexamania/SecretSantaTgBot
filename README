@@ -2,7 +2,7 @@ It's tg bot for Secret Santa.
 
 For using bot:
 
-1. You need to set Environment Variable 'BOT_TOKEN' with token of your bot. You can get tokne from @BotFather in tg.
+1. You need to set Environment Variable 'BOT_TOKEN' with token of your bot. You can get token from @BotFather in tg.
     1.1. Create file .env in folder with executable file. After that insert "BOT_TOKEN=your_bot_token"
     1.2. Or set Environment Variable via launch options or console
 2. Launch your bot.
@@ -10,3 +10,7 @@ For using bot:
     3.1. Write in the console "STOP" (recomended)
     3.2. Press ctrl+c
     3.3. Close console
+
+Launch options:
+ - start=true - run without start notification of all users
+ - stop=true - run without stop notification of all users
