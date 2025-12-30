@@ -77,7 +77,5 @@ public class LocalLogger
             using var stream = new StreamWriter(filePath, true);
             stream.WriteLine(message);
         }
-
-        Console.WriteLine(message);
     }
 }

@@ -30,6 +30,7 @@ public class InRoomNotifyEveryoneState(MessageBrokerService csm, string parentTi
         await NotifyService.SendMessage(user.Id, Msgs.InRoomMessageSend);
 
         UpdateUserState(user, default);
+        await Csm.UpdateAfterStatusChanged(user);
         return true;
     }
 }

@@ -23,7 +23,7 @@ public class MessagesUA : MessagesBase
     public override string CommandShowRooms { get; } = "показати список моїх кімнат";
     
     public override string CommandStartSanta { get; } = "Розпочинаємо крутити барабан на Санту🎰!";
-    public override string CommandNotifyEveryone { get; } = "Оповістити кожного в кімнаті";
+    public override string CommandNotifyEveryone { get; } = "оповістити кожного в кімнаті";
 
     public override string ZeroRooms { get; } = "В тебе немає кімнат!";
     public override string RoomCreationEnterTitle { get; } = "Введіть назву кімнати:";

@@ -18,11 +18,13 @@ public abstract class MessageStateBase
     protected NotificationService NotifyService => Csm.NotifyService;
     protected static MessagesBase Msgs => EnvVariables.Messages;
 
-    public MessageStateBase(MessageBrokerService csm, string title)
+    public MessageStateBase(MessageBrokerService csm, string title, bool setHelp = true)
     {
         Csm = csm;
         Title = title;
-        Commands.Add("/help", new("/help", Msgs.CommandHelp, CommandHelp));
+
+        if (setHelp)
+            Commands.Add("/help", new("/help", Msgs.CommandHelp, CommandHelp));
     }
 
     public abstract Task<bool> OnMessage(Message msg, UserTg user);

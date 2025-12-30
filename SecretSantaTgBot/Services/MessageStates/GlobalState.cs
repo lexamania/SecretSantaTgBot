@@ -12,9 +12,9 @@ public class GlobalState : MessageStateBase
 {
     public const string TITLE = "global";
 
-    private readonly RoomSelectState _selectState;
+    private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public GlobalState(MessageBrokerService csm) : base(csm, TITLE)
+    public GlobalState(MessageBrokerService csm) : base(csm, TITLE, setHelp: false)
     {
         var commands = new List<CommandInfo> {
             new("/start", "START", CommandStart)
@@ -23,11 +23,20 @@ public class GlobalState : MessageStateBase
         foreach (var command in commands)
             Commands.Add(command.Command, command);
 
-        _selectState = new RoomSelectState(csm, Title);
+        _innerStates = new()
+        {
+            [RoomSelectState.TITLE] = new RoomSelectState(csm, Title)
+        };
     }
 
     public override async Task<bool> OnMessage(Message msg, UserTg user)
     {
+        if (MessageParser.HasNewState(_innerStates, user.CurrentState!, Title, out var innerState))
+        {
+            if (await innerState!.OnMessage(msg, user))
+                return true;
+        }
+
         if (MessageParser.IsCommand(msg, out var command, out var commandArgs))
         {
             if (!Commands.TryGetValue(command!, out var cmd))
@@ -75,6 +84,6 @@ public class GlobalState : MessageStateBase
             Chat = chat,
             Text = $"{room.Title} {room.Id}"
         };
-        await _selectState.OnMessage(msg, user);
+        await _innerStates[RoomSelectState.TITLE].OnMessage(msg, user);
     }
 }
