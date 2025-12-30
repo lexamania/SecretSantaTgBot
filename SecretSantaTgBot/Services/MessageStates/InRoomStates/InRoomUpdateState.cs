@@ -31,8 +31,8 @@ public class InRoomUpdateState(MessageBrokerService csm, string parentTitle)
         room.PartyDescription = message!;
         DB.Rooms.Update(room);
 
-        UpdateUserState(user, default);
         await NotifyService.SendMessage(user.Id, Msgs.RoomDescriptionUpdated);
+        UpdateUserState(user, default);
         return true;
     }
 }

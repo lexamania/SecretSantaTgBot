@@ -22,6 +22,9 @@ public abstract class MessagesBase
     public abstract string CommandDeleteRoom { get; }
     public abstract string CommandShowRooms { get; }
 
+    public abstract string CommandStartSanta { get; }
+    public abstract string CommandNotifyEveryone { get; }
+
     public abstract string ZeroRooms { get; }
     public abstract string ChooseRoom { get; }
     public abstract string RoomsList { get; }
@@ -52,8 +55,9 @@ public abstract class MessagesBase
     public abstract string UserStopWishes { get; }
     public abstract string UserWishAdded { get; }
 
+    public abstract string EnterInRoomMessage { get; }
+    public abstract string InRoomMessageSend { get; }
     public abstract string SecretSantaStillOffline { get; }
-    public abstract string StartSanta { get; }
     public abstract string SantaFinished { get; }
     public abstract string RoomNumber { get; }
 

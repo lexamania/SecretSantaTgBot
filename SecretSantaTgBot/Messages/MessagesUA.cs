@@ -21,6 +21,9 @@ public class MessagesUA : MessagesBase
     public override string CommandSelectRoom { get; } = "перейти до кімнати";
     public override string CommandDeleteRoom { get; } = "видалити кімнату";
     public override string CommandShowRooms { get; } = "показати список моїх кімнат";
+    
+    public override string CommandStartSanta { get; } = "Розпочинаємо крутити барабан на Санту🎰!";
+    public override string CommandNotifyEveryone { get; } = "Оповістити кожного в кімнаті";
 
     public override string ZeroRooms { get; } = "В тебе немає кімнат!";
     public override string RoomCreationEnterTitle { get; } = "Введіть назву кімнати:";
@@ -60,8 +63,9 @@ public class MessagesUA : MessagesBase
     public override string UserStopWishes { get; } = "🎁 Ваші побажання збережено! 🥳";
     public override string UserWishAdded { get; } = "🎁 Побажання додано! 🥳 \n\n Продовжіть додавати побажання чи завершіть зараз /stop";
 
+    public override string EnterInRoomMessage { get; } = "Введіть повідомлення:";
+    public override string InRoomMessageSend { get; } = "Повідомлення відправлено!";
     public override string SecretSantaStillOffline { get; } = "🛎 Розподілення Санти ще не розпочалося! 🛎";
-    public override string StartSanta { get; } = "Розпочинаємо крутити барабан на Санту🎰!";
     public override string SantaFinished { get; } = "Вибір Санти завершився. Перейдіть в кімнату аби подивитися хто став вашою ціллю 🥳";
     public override string RoomNumber { get; } = "Кімната -";
     

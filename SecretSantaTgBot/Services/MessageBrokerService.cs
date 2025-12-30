@@ -12,6 +12,7 @@ namespace SecretSantaTgBot.Services;
 public class MessageBrokerService
 {
     private readonly Dictionary<string, MessageStateBase> _states;
+    private readonly GlobalState _globalState;
 
     public SantaDatabase DB { get; }
     public NotificationService NotifyService { get; }
@@ -23,6 +24,7 @@ public class MessageBrokerService
         NotifyService = notify;
         Logger = logger;
 
+        _globalState = new(this);
         _states = new()
         {
             [DefaultState.TITLE] = new DefaultState(this),
@@ -70,12 +72,15 @@ public class MessageBrokerService
         return CallMessage(msg, user);
     }
 
-    private Task<bool> CallMessage(Message msg, UserTg user)
+    private async Task<bool> CallMessage(Message msg, UserTg user)
     {
+        if (await _globalState.OnMessage(msg, user))
+            return true;
+
         var stateStr = GetCurrentState(user);
         return _states.TryGetValue(stateStr, out var state) 
-            ? state.OnMessage(msg, user)
-            : Task.FromResult(false);
+            ? await state.OnMessage(msg, user)
+            : false;
     }
 
     private string GetCurrentState(UserTg user)

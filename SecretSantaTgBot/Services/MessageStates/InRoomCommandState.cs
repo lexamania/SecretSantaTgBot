@@ -32,7 +32,11 @@ public class InRoomCommandState : MessageStateBase
             {
                 Access = AccessRights.Admin
             },
-            new("/start_santa", Msgs.StartSanta, CommandStartSecretSanta)
+            new("/notify_everyone", Msgs.CommandNotifyEveryone, CommandNotifyEveryone)
+            {
+                Access = AccessRights.Admin
+            },
+            new("/start_santa", Msgs.CommandStartSanta, CommandStartSecretSanta)
             {
                 Access = AccessRights.Admin
             },
@@ -46,6 +50,7 @@ public class InRoomCommandState : MessageStateBase
         {
             [InRoomWishesState.TITLE] = new InRoomWishesState(csm, Title),
             [InRoomUpdateState.TITLE] = new InRoomUpdateState(csm, Title),
+            [InRoomNotifyEveryoneState.TITLE] = new InRoomNotifyEveryoneState(csm, Title),
             [LEAVE_TITLE] = new ConfirmationState(csm, Title, LEAVE_TITLE, CommandLeaveRoomConfirmation),
         };
     }
@@ -173,6 +178,13 @@ public class InRoomCommandState : MessageStateBase
         return !IsAdmin(user)
             ? NotifyService.SendErrorMessage(chat.Id, Msgs.NeedAdminRights)
             : _innerStates[InRoomUpdateState.TITLE].StartState(user, args);
+    }
+
+    private Task CommandNotifyEveryone(Chat chat, UserTg user, string[] args)
+    {
+        return !IsAdmin(user)
+            ? NotifyService.SendErrorMessage(chat.Id, Msgs.NeedAdminRights)
+            : _innerStates[InRoomNotifyEveryoneState.TITLE].StartState(user, args);
     }
 
     private Task CommandStartSecretSanta(Chat chat, UserTg user, string[] args)
