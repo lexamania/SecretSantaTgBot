@@ -6,6 +6,7 @@
 # dotenv files
 .env
 Data/
+Builds/
 
 # User-specific files
 *.rsuser
