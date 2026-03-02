@@ -14,7 +14,7 @@ public class DefaultState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public DefaultState(MessageBrokerService csm) : base(csm, TITLE)
+    public DefaultState(ServiceContainer container) : base(container, TITLE)
     {
         var commands = new List<CommandInfo> {
             new("/select_room", Msgs.CommandSelectRoom, CommandSelectRoom),
@@ -28,17 +28,17 @@ public class DefaultState : MessageStateBase
 
         _innerStates = new()
         {
-            [RoomSelectState.TITLE] = new RoomSelectState(csm, Title),
-            [RoomDeleteState.TITLE] = new RoomDeleteState(csm, Title),
-            [RoomCreateState.TITLE] = new RoomCreateState(csm, Title),
+            [RoomSelectState.TITLE] = new RoomSelectState(container, Title),
+            [RoomDeleteState.TITLE] = new RoomDeleteState(container, Title),
+            [RoomCreateState.TITLE] = new RoomCreateState(container, Title),
         };
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserEntity user)
+    public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
         if (MessageParser.HasNewState(_innerStates, user.CurrentState!, Title, out var innerState))
         {
-            if (await innerState!.OnMessage(msg, user))
+            if (await innerState!.ProcessMessage(msg, user))
                 return true;
         }
 
@@ -57,23 +57,23 @@ public class DefaultState : MessageStateBase
 
 
     private Task CommandCreateRoom(Chat chat, UserEntity user, string[] args)
-        => _innerStates[RoomCreateState.TITLE].StartState(user, args);
+        => _innerStates[RoomCreateState.TITLE].PrepareState(user, args);
 
     private Task CommandSelectRoom(Chat chat, UserEntity user, string[] args)
     {
         if (user.AvailableRooms is not { Count: > 0 })
-            return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
+            return Notification.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
-        return _innerStates[RoomSelectState.TITLE].StartState(user, args);
+        return _innerStates[RoomSelectState.TITLE].PrepareState(user, args);
     }
 
     private Task CommandShowRooms(Chat chat, UserEntity user, string[] args)
     {
         if (user.AvailableRooms is not { Count: > 0 })
-            return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
+            return Notification.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
         var message = MessageBuilder.BuildRoomsInfoMessage(user);
-        return NotifyService.SendMessage(chat.Id, message);
+        return Notification.SendMessage(chat.Id, message);
     }
 
     private Task CommandDeleteRoom(Chat chat, UserEntity user, string[] args)
@@ -81,8 +81,8 @@ public class DefaultState : MessageStateBase
         var rooms = user.AvailableRooms?.Where(x => x.Admin.Id == user.Id).ToList();
 
         if (rooms is not { Count: > 0 })
-            return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
+            return Notification.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
 
-        return _innerStates[RoomDeleteState.TITLE].StartState(user, args);
+        return _innerStates[RoomDeleteState.TITLE].PrepareState(user, args);
     }
 }

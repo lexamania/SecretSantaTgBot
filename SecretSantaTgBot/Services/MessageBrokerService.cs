@@ -1,6 +1,6 @@
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates;
 using SecretSantaTgBot.Services.MessageStates.Base;
-using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
@@ -11,52 +11,48 @@ namespace SecretSantaTgBot.Services;
 
 public class MessageBrokerService
 {
-    private readonly Dictionary<string, MessageStateBase> _states;
+    private readonly ServiceContainer _container;
     private readonly GlobalState _globalState;
+    private readonly Dictionary<string, MessageStateBase> _states;
 
-    public SantaDatabase DB { get; }
-    public NotificationService NotifyService { get; }
-    public LocalLogger Logger { get; }
-
-    public MessageBrokerService(SantaDatabase db, NotificationService notify, LocalLogger logger)
+    public MessageBrokerService(ServiceContainer container)
     {
-        DB = db;
-        NotifyService = notify;
-        Logger = logger;
+        container.MessageBroker = this;
+        _container = container;
 
-        _globalState = new(this);
+        _globalState = new(container);
         _states = new()
         {
-            [DefaultState.TITLE] = new DefaultState(this),
-            [InRoomCommandState.TITLE] = new InRoomCommandState(this),
+            [DefaultState.TITLE] = new DefaultState(container),
+            [InRoomCommandState.TITLE] = new InRoomCommandState(container),
         };
     }
 
     public async Task OnMessage(Message msg, UpdateType type)
     {
-        var user = DB.UserDirectory.GetOrCreate(msg.Chat);
+        var user = _container.Database.UserDirectory.GetOrCreate(msg.Chat);
 
         try
         {
             if (await CallMessage(msg, user))
             {
-                Logger.LogMessage(msg);
+                _container.Logger.LogMessage(msg);
                 return;
             }
+
+            _container.Logger.LogUnrecognizedMessage(msg);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex);
-            return;
+            _container.Logger.LogError(ex);
         }
 
-        DB.UserDirectory.UpdateWithClearState(user);
-
-        Logger.LogUnrecognizedMessage(msg);
-        await NotifyService.SendErrorCommandMessage(msg.Chat.Id);
+        _container.Database.UserDirectory.UpdateWithClearState(user);
+        await _container.Notification.SendErrorCommandMessage(msg.Chat.Id);
+        await SendHelpMenu(user);
     }
 
-    public Task UpdateAfterStatusChanged(UserEntity user)
+    public Task SendHelpMenu(UserEntity user)
     {
         var msg = new Message()
         {
@@ -73,12 +69,12 @@ public class MessageBrokerService
 
     private async Task<bool> CallMessage(Message msg, UserEntity user)
     {
-        if (await _globalState.OnMessage(msg, user))
+        if (await _globalState.ProcessMessage(msg, user))
             return true;
 
         var stateStr = GetCurrentState(user);
-        return _states.TryGetValue(stateStr, out var state) 
-            ? await state.OnMessage(msg, user)
+        return _states.TryGetValue(stateStr, out var state)
+            ? await state.ProcessMessage(msg, user)
             : false;
     }
 

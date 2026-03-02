@@ -1,19 +1,16 @@
-using SecretSantaTgBot.Storage;
-
-using Telegram.Bot;
+using SecretSantaTgBot.Models;
 using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services;
 
 public class QueryBrokerService
 {
-    public TelegramBotClient Bot { get; }
-    public SantaDatabase DB { get; }
+    private readonly ServiceContainer _container;
 
-    public QueryBrokerService(TelegramBotClient bot, SantaDatabase db)
+    public QueryBrokerService (ServiceContainer container)
     {
-        Bot = bot;
-        DB = db;
+        container.QueryBroker = this;
+        _container = container;
     }
 
     public async Task OnUpdate(Update update)

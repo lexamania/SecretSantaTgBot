@@ -8,26 +8,26 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
 public class ConfirmationState(
-    MessageBrokerService csm,
+    ServiceContainer container,
     string parentTitle,
     string title,
     CommandCallback callback)
-    : MessageStateBase(csm, NameParser.JoinArgs(parentTitle, title))
+    : MessageStateBase(container, NameParser.JoinArgs(parentTitle, title))
 {
     private readonly CommandCallback _callback = callback;
     private string Message => Msgs.AskConfirmation;
 
-    public override Task StartState(UserEntity user, string[] args)
+    public override Task PrepareState(UserEntity user, string[] args)
     {
         var strArgs = NameParser.JoinArgs(args);
         var state = NameParser.JoinArgs(Title, strArgs);
         UpdateUserState(user, state);
 
         var buttons = new string[] { Msgs.ButtonYes, Msgs.ButtonNo };
-        return NotifyService.SendMessage(user.Id, Message, buttons!);
+        return Notification.SendMessage(user.Id, Message, buttons!);
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserEntity user)
+    public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
         if (!MessageParser.IsMessage(msg, out var message))
             return false;
@@ -43,11 +43,11 @@ public class ConfirmationState(
         if (message.Equals(Msgs.ButtonNo, StringComparison.CurrentCultureIgnoreCase))
         {
             UpdateUserState(user, default);
-            await Csm.UpdateAfterStatusChanged(user);
+            await MessageBroker.SendHelpMenu(user);
             return true;
         }
 
-        await NotifyService.SendErrorCommandMessage(user.Id, Message);
+        await Notification.SendErrorCommandMessage(user.Id, Message);
         return true;
     }
 }

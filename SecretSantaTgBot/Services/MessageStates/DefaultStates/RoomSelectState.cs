@@ -1,3 +1,4 @@
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Services.MessageStates.InRoomStates;
 using SecretSantaTgBot.Storage.Entities;
@@ -13,27 +14,27 @@ public class RoomSelectState : MessageStateBase
     private readonly InRoomNameRegistrationState _regState;
     private string Message => Msgs.ChooseRoom;
 
-    public RoomSelectState(MessageBrokerService csm, string parentTitle)
-        : base(csm, NameParser.JoinArgs(parentTitle, TITLE))
+    public RoomSelectState(ServiceContainer container, string parentTitle)
+        : base(container, NameParser.JoinArgs(parentTitle, TITLE))
     {
-        _regState = new(csm, Title);
+        _regState = new(container, Title);
     }
 
-    public override Task StartState(UserEntity user, string[] args)
+    public override Task PrepareState(UserEntity user, string[] args)
     {
         UpdateUserState(user, Title);
         var buttons = user.AvailableRooms
             .Select(x => $"{x.Title} {x.Id}")
             .ToArray();
-        return NotifyService.SendMessage(user.Id, Message, buttons!);
+        return Notification.SendMessage(user.Id, Message, buttons!);
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserEntity user)
+    public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
         var states = NameParser.ParseStateArgs(user.CurrentState, Title);
         if (states.Length > 0 && states[0] == InRoomNameRegistrationState.TITLE)
         {
-            if (await _regState!.OnMessage(msg, user))
+            if (await _regState!.ProcessMessage(msg, user))
                 return true;
         }
 
@@ -42,7 +43,7 @@ public class RoomSelectState : MessageStateBase
 
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await NotifyService.SendErrorCommandMessage(msg.Chat.Id, Message);
+            await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
             return true;
         }
 
@@ -51,7 +52,7 @@ public class RoomSelectState : MessageStateBase
 
         if (room is null)
         {
-            await NotifyService.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
+            await Notification.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
             return true;
         }
 
@@ -61,11 +62,11 @@ public class RoomSelectState : MessageStateBase
         var participant = room.Users.First(u => u.Id == user.Id);
         if (participant.RealName is null)
         {
-            await _regState.StartState(user, []);
+            await _regState.PrepareState(user, []);
             return true;
         }
 
-        await Csm.UpdateAfterStatusChanged(user);
+        await MessageBroker.SendHelpMenu(user);
         return true;
     }
 }

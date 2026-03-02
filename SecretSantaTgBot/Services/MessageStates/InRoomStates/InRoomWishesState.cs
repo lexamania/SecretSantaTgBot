@@ -1,4 +1,5 @@
 using SecretSantaTgBot.Extensions;
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
@@ -7,14 +8,14 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomWishesState(MessageBrokerService csm, string parentTitle)
-    : SimpleMessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
+public class InRoomWishesState(ServiceContainer container, string parentTitle)
+    : SimpleMessageStateBase(container, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_wishes";
 
     protected override string Message => Msgs.UserStartWishes;
 
-    public override async Task<bool> OnMessage(Message msg, UserEntity user)
+    public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
         var room = user.SelectedRoom!;
         var participant = user.GetAsParticipant(room)!;
@@ -28,8 +29,8 @@ public class InRoomWishesState(MessageBrokerService csm, string parentTitle)
         if (MessageParser.IsMessage(msg, out var message))
         {
             participant.Wishes.Add(new() { Message = message, });
-            DB.RoomDirectory.Update(room);
-            await NotifyService.SendMessage(user.Id, Msgs.UserWishAdded);
+            Database.RoomDirectory.Update(room);
+            await Notification.SendMessage(user.Id, Msgs.UserWishAdded);
             return true;
         }
 
@@ -50,12 +51,12 @@ public class InRoomWishesState(MessageBrokerService csm, string parentTitle)
                 participant.Wishes.Add(wish);
             }
 
-            DB.RoomDirectory.Update(room);
-            await NotifyService.SendMessage(user.Id, Msgs.UserWishAdded);
+            Database.RoomDirectory.Update(room);
+            await Notification.SendMessage(user.Id, Msgs.UserWishAdded);
             return true;
         }
 
-        await NotifyService.SendErrorCommandMessage(msg.Chat.Id, Message);
+        await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
         return true;
     }
 }

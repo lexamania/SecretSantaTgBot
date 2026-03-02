@@ -10,33 +10,35 @@ namespace SecretSantaTgBot.Services.MessageStates.Base;
 
 public abstract class MessageStateBase
 {
+    private readonly ServiceContainer _container;
+
     protected string Title { get; }
     protected Dictionary<string, CommandInfo> Commands { get; } = [];
 
-    protected MessageBrokerService Csm { get; }
-    protected SantaDatabase DB => Csm.DB;
-    protected NotificationService NotifyService => Csm.NotifyService;
+    protected MessageBrokerService MessageBroker => _container.MessageBroker!;
+    protected SantaDatabase Database => _container.Database;
+    protected NotificationService Notification => _container.Notification;
     protected static MessagesBase Msgs => EnvVariables.Messages;
 
-    public MessageStateBase(MessageBrokerService csm, string title, bool setHelp = true)
+    public MessageStateBase(ServiceContainer container, string title, bool setHelp = true)
     {
-        Csm = csm;
+        _container = container;
         Title = title;
 
         if (setHelp)
             Commands.Add("/help", new("/help", Msgs.CommandHelp, CommandHelp));
     }
 
-    public abstract Task<bool> OnMessage(Message msg, UserEntity user);
-    public virtual Task StartState(UserEntity user, string[] args) => Task.CompletedTask;
+    public virtual Task PrepareState(UserEntity user, string[] args) => Task.CompletedTask;
+    public abstract Task<bool> ProcessMessage(Message msg, UserEntity user);
 
     protected void UpdateUserState(UserEntity user, string? state)
-        => DB.UserDirectory.UpdateWithState(user, state);
+        => Database.UserDirectory.UpdateWithState(user, state);
 
     protected Task CommandHelp(Chat chat, UserEntity user, string[] args)
     {
         var isAdmin = user.SelectedRoom?.Admin.Id == user.Id;
         var msg = MessageBuilder.BuildHelpMessage(Commands.Values, isAdmin);
-        return NotifyService.SendMessage(chat.Id, msg);
+        return Notification.SendMessage(chat.Id, msg);
     }
 }

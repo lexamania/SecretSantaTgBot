@@ -1,4 +1,5 @@
 ﻿using SecretSantaTgBot;
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 
@@ -13,9 +14,15 @@ var bot = new TelegramBotClient(botToken, cancellationToken: cts.Token);
 var notifyService = new NotificationService(bot);
 var logger = new LocalLogger();
 
-var errorBroker = new ErrorBrokerService(cts);
-var msgBroker = new MessageBrokerService(db, notifyService, logger);
-var queryBroker = new QueryBrokerService(bot, db);
+var container = new ServiceContainer(
+    Database: db,
+    Notification: notifyService,
+    Logger: logger
+);
+
+var errorBroker = new ErrorBrokerService(container);
+var msgBroker = new MessageBrokerService(container);
+var queryBroker = new QueryBrokerService(container);
 
 bot.OnError += errorBroker.OnError;
 bot.OnMessage += msgBroker.OnMessage;

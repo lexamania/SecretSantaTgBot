@@ -14,7 +14,7 @@ public class GlobalState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public GlobalState(MessageBrokerService csm) : base(csm, TITLE, setHelp: false)
+    public GlobalState(ServiceContainer container) : base(container, TITLE, setHelp: false)
     {
         var commands = new List<CommandInfo> {
             new("/start", "START", CommandStart)
@@ -25,15 +25,15 @@ public class GlobalState : MessageStateBase
 
         _innerStates = new()
         {
-            [RoomSelectState.TITLE] = new RoomSelectState(csm, Title)
+            [RoomSelectState.TITLE] = new RoomSelectState(container, Title)
         };
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserEntity user)
+    public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
         if (MessageParser.HasNewState(_innerStates, user.CurrentState!, Title, out var innerState))
         {
-            if (await innerState!.OnMessage(msg, user))
+            if (await innerState!.ProcessMessage(msg, user))
                 return true;
         }
 
@@ -60,16 +60,16 @@ public class GlobalState : MessageStateBase
         }
 
         if (!Guid.TryParse(args[0], out var roomId)
-            || DB.RoomDirectory.GetById(roomId) is not { } room)
+            || Database.RoomDirectory.GetById(roomId) is not { } room)
         {
-            await NotifyService.SendErrorMessage(chat.Id, Msgs.RoomDoesntExist);
+            await Notification.SendErrorMessage(chat.Id, Msgs.RoomDoesntExist);
             return;
         }
 
         if (!user.AvailableRooms.Any(x => x.Id == room.Id))
         {
-            DB.JoinRoom(user, room);
-            await NotifyService.SendMessage(user.Id, Msgs.UserNewParticipation);
+            Database.JoinRoom(user, room);
+            await Notification.SendMessage(user.Id, Msgs.UserNewParticipation);
         }
 
         var msg = new Message()
@@ -77,6 +77,6 @@ public class GlobalState : MessageStateBase
             Chat = chat,
             Text = $"{room.Title} {room.Id}"
         };
-        await _innerStates[RoomSelectState.TITLE].OnMessage(msg, user);
+        await _innerStates[RoomSelectState.TITLE].ProcessMessage(msg, user);
     }
 }

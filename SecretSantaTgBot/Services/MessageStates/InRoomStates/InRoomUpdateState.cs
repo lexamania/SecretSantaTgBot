@@ -1,3 +1,4 @@
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
@@ -6,14 +7,14 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomUpdateState(MessageBrokerService csm, string parentTitle)
-    : SimpleMessageStateBase(csm, NameParser.JoinArgs(parentTitle, TITLE))
+public class InRoomUpdateState(ServiceContainer container, string parentTitle)
+    : SimpleMessageStateBase(container, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_update";
 
     protected override string Message => Msgs.RoomCreationEnterDescription;
 
-    public override async Task<bool> OnMessage(Message msg, UserEntity user)
+    public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
         if (MessageParser.IsCommand(msg, out var command, out var args))
         {
@@ -23,15 +24,15 @@ public class InRoomUpdateState(MessageBrokerService csm, string parentTitle)
 
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await NotifyService.SendErrorCommandMessage(msg.Chat.Id, Message);
+            await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
             return true;
         }
 
         var room = user.SelectedRoom!;
         room.PartyDescription = message!;
-        DB.RoomDirectory.Update(room);
+        Database.RoomDirectory.Update(room);
 
-        await NotifyService.SendMessage(user.Id, Msgs.RoomDescriptionUpdated);
+        await Notification.SendMessage(user.Id, Msgs.RoomDescriptionUpdated);
         UpdateUserState(user, default);
         return true;
     }
