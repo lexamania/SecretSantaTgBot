@@ -1,7 +1,7 @@
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Services.MessageStates.DefaultStates;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -34,7 +34,7 @@ public class DefaultState : MessageStateBase
         };
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         if (MessageParser.HasNewState(_innerStates, user.CurrentState!, Title, out var innerState))
         {
@@ -56,10 +56,10 @@ public class DefaultState : MessageStateBase
 
 
 
-    private Task CommandCreateRoom(Chat chat, UserTg user, string[] args)
+    private Task CommandCreateRoom(Chat chat, UserEntity user, string[] args)
         => _innerStates[RoomCreateState.TITLE].StartState(user, args);
 
-    private Task CommandSelectRoom(Chat chat, UserTg user, string[] args)
+    private Task CommandSelectRoom(Chat chat, UserEntity user, string[] args)
     {
         if (user.AvailableRooms is not { Count: > 0 })
             return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
@@ -67,7 +67,7 @@ public class DefaultState : MessageStateBase
         return _innerStates[RoomSelectState.TITLE].StartState(user, args);
     }
 
-    private Task CommandShowRooms(Chat chat, UserTg user, string[] args)
+    private Task CommandShowRooms(Chat chat, UserEntity user, string[] args)
     {
         if (user.AvailableRooms is not { Count: > 0 })
             return NotifyService.SendErrorMessage(chat.Id, Msgs.ZeroRooms);
@@ -76,7 +76,7 @@ public class DefaultState : MessageStateBase
         return NotifyService.SendMessage(chat.Id, message);
     }
 
-    private Task CommandDeleteRoom(Chat chat, UserTg user, string[] args)
+    private Task CommandDeleteRoom(Chat chat, UserEntity user, string[] args)
     {
         var rooms = user.AvailableRooms?.Where(x => x.Admin.Id == user.Id).ToList();
 

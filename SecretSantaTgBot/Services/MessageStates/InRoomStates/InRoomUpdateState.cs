@@ -1,5 +1,5 @@
 using SecretSantaTgBot.Services.MessageStates.Base;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -13,7 +13,7 @@ public class InRoomUpdateState(MessageBrokerService csm, string parentTitle)
 
     protected override string Message => Msgs.RoomCreationEnterDescription;
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         if (MessageParser.IsCommand(msg, out var command, out var args))
         {
@@ -29,7 +29,7 @@ public class InRoomUpdateState(MessageBrokerService csm, string parentTitle)
 
         var room = user.SelectedRoom!;
         room.PartyDescription = message!;
-        DB.Rooms.Update(room);
+        DB.RoomDirectory.Update(room);
 
         await NotifyService.SendMessage(user.Id, Msgs.RoomDescriptionUpdated);
         UpdateUserState(user, default);

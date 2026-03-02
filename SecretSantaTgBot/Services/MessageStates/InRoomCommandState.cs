@@ -1,8 +1,9 @@
+using SecretSantaTgBot.Extensions;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Services.MessageStates.DefaultStates;
 using SecretSantaTgBot.Services.MessageStates.InRoomStates;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -55,7 +56,7 @@ public class InRoomCommandState : MessageStateBase
         };
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         if (MessageParser.HasNewState(_innerStates, user.CurrentState!, Title, out var innerState))
         {
@@ -77,78 +78,61 @@ public class InRoomCommandState : MessageStateBase
 
 
 
-    private bool IsAdmin(UserTg user)
-        => user.SelectedRoom!.Admin.Id == user.Id;
-
-    private Participant GetParticipantById(UserTg user, long userId)
-        => user.SelectedRoom!.Users.First(x => x.Id == userId);
-
-    private Participant GetMeAsParticipant(UserTg user)
-        => GetParticipantById(user, user.Id);
-
-
-
-    private Task CommandBack(Chat chat, UserTg user, string[] args)
+    private Task CommandBack(Chat chat, UserEntity user, string[] args)
     {
-        user.SelectedRoom = default;
-        DB.Users.Update(user);
+        DB.UserDirectory.UpdateWithClearRoom(user);
         return Csm.UpdateAfterStatusChanged(user);
     }
 
-    private Task CommandShowRoomInfo(Chat chat, UserTg user, string[] args)
+    private Task CommandShowRoomInfo(Chat chat, UserEntity user, string[] args)
     {
         var message = MessageBuilder.BuildRoomInfoMessage(user.SelectedRoom!);
         return NotifyService.SendMessage(chat.Id, message);
     }
 
-    private Task CommandLeaveRoom(Chat chat, UserTg user, string[] args)
+    private Task CommandLeaveRoom(Chat chat, UserEntity user, string[] args)
     {
-        return IsAdmin(user)
+        return !user.IsAdmin()
             ? NotifyService.SendErrorMessage(chat.Id, Msgs.AdminCantLeaveRoom)
             : _innerStates[LEAVE_TITLE].StartState(user, args);
     }
 
-    private async Task CommandLeaveRoomConfirmation(Chat chat, UserTg user, string[] args)
+    private async Task CommandLeaveRoomConfirmation(Chat chat, UserEntity user, string[] args)
     {
-        var part = GetMeAsParticipant(user);
         var room = user.SelectedRoom!;
-        var deletedRoom = user.AvailableRooms.First(x => x.Id == room.Id);
-    
-        user.SelectedRoom = default;
-        user.AvailableRooms.Remove(deletedRoom);
-        room.Users.Remove(part);
+        var participant = user.GetAsParticipant(room);
 
-        DB.Users.Update(user);
-        DB.Rooms.Update(room);
+        DB.LeaveRoom(user, room);
 
-        var message = MessageBuilder.BuildLeaveMessage(part);
+        var message = MessageBuilder.BuildLeaveMessage(participant);
         await NotifyService.NotifyEveryoneInRoom(room, message);
         await NotifyService.SendMessage(chat.Id, Msgs.UserLeavedRoom);
     }
 
 
 
-    private Task CommandShowMe(Chat chat, UserTg user, string[] args)
+    private Task CommandShowMe(Chat chat, UserEntity user, string[] args)
     {
-        var target = GetMeAsParticipant(user);
+        var target = user.GetAsParticipant()!;
         return ShowUserInfo(user.Id, target,
             Msgs.UserWishesList,
             Msgs.UserHaveZeroWishes);
     }
 
-    private Task CommandShowTarget(Chat chat, UserTg user, string[] args)
+    private Task CommandShowTarget(Chat chat, UserEntity user, string[] args)
     {
-        var me = GetMeAsParticipant(user);
+        var me = user.GetAsParticipant()!;
         if (me.TargetUserId is null)
             return NotifyService.SendErrorMessage(chat.Id, Msgs.SecretSantaStillOffline);
 
-        var target = GetParticipantById(user, me.TargetUserId.Value);
+        var room = user.SelectedRoom!;
+        var target = room.Users.First(x => x.Id == me.TargetUserId.Value);
         return ShowUserInfo(user.Id, target,
             Msgs.TargetWishesList,
             Msgs.TargetHaveZeroWishes);
     }
 
-    private async Task ShowUserInfo(long chatId, Participant target, string header, string emptyMsg)
+    private async Task ShowUserInfo(long chatId, ParticipantEntity target, string header, string emptyMsg)
     {
         var message = MessageBuilder.BuildUserInfoMessage(header, target);
         await NotifyService.SendMessage(chatId, message);
@@ -159,39 +143,44 @@ public class InRoomCommandState : MessageStateBase
 
 
 
-    private Task CommandStartWishes(Chat chat, UserTg user, string[] args)
+    private Task CommandStartWishes(Chat chat, UserEntity user, string[] args)
         => _innerStates[InRoomWishesState.TITLE].StartState(user, args);
 
-    private Task CommandClearWishes(Chat chat, UserTg user, string[] args)
+    private Task CommandClearWishes(Chat chat, UserEntity user, string[] args)
     {
-        var me = GetMeAsParticipant(user);
-        me.Wishes.Clear();
-        DB.Rooms.Update(user.SelectedRoom!);
+        var room = user.SelectedRoom!;
+        var participant = user.GetAsParticipant(room)!;
+        participant.Wishes.Clear();
+        DB.RoomDirectory.Update(room);
 
         return NotifyService.SendMessage(chat.Id, Msgs.UserWishesCleared);
     }
 
 
 
-    private Task CommandUpdateRoom(Chat chat, UserTg user, string[] args)
+    private Task CommandUpdateRoom(Chat chat, UserEntity user, string[] args)
     {
-        return !IsAdmin(user)
+        return !user.IsAdmin()
             ? NotifyService.SendErrorMessage(chat.Id, Msgs.NeedAdminRights)
             : _innerStates[InRoomUpdateState.TITLE].StartState(user, args);
     }
 
-    private Task CommandNotifyEveryone(Chat chat, UserTg user, string[] args)
+    private Task CommandNotifyEveryone(Chat chat, UserEntity user, string[] args)
     {
-        return !IsAdmin(user)
+        return !user.IsAdmin()
             ? NotifyService.SendErrorMessage(chat.Id, Msgs.NeedAdminRights)
             : _innerStates[InRoomNotifyEveryoneState.TITLE].StartState(user, args);
     }
 
-    private Task CommandStartSecretSanta(Chat chat, UserTg user, string[] args)
+    private Task CommandStartSecretSanta(Chat chat, UserEntity user, string[] args)
     {
         var room = user.SelectedRoom!;
-        if (!IsAdmin(user))
+
+        if (!user.IsAdmin())
             return NotifyService.SendErrorMessage(chat.Id, Msgs.NeedAdminRights);
+
+        if (room.IsPlayed)
+            return NotifyService.SendErrorMessage(chat.Id, Msgs.SecretSantaWasPlayed);
 
         var participants = room.Users;
         if (participants.Count < 2)
@@ -199,15 +188,15 @@ public class InRoomCommandState : MessageStateBase
 
         room.Users = ShuffleTargets(room.Users);
         room.IsPlayed = true;
-        DB.Rooms.Update(room);
+        DB.RoomDirectory.Update(room);
 
         return NotifyEveryoneTheirTarget(room);
     }
 
-    private List<Participant> ShuffleTargets(List<Participant> participants)
+    private List<ParticipantEntity> ShuffleTargets(List<ParticipantEntity> participants)
     {
         var pArray = participants.ToArray();
-        var targetListIds = RandomExtension.GetShuffledUniqueIndexRange(pArray.Length);
+        var targetListIds = RandomExtensions.GetShuffledUniqueIndexRange(pArray.Length);
 
         for (int i = 0; i < pArray.Length; ++i)
             pArray[i].TargetUserId = pArray[targetListIds[i]].Id;
@@ -215,7 +204,7 @@ public class InRoomCommandState : MessageStateBase
         return participants;
     }
 
-    private Task NotifyEveryoneTheirTarget(PartyRoom room)
+    private Task NotifyEveryoneTheirTarget(PartyRoomEntity room)
     {
         var result = new List<(long Id, string Msg)>();
 

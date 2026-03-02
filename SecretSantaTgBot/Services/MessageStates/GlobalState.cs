@@ -1,7 +1,7 @@
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Services.MessageStates.DefaultStates;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -29,7 +29,7 @@ public class GlobalState : MessageStateBase
         };
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         if (MessageParser.HasNewState(_innerStates, user.CurrentState!, Title, out var innerState))
         {
@@ -51,7 +51,7 @@ public class GlobalState : MessageStateBase
 
 
 
-    private async Task CommandStart(Chat chat, UserTg user, string[] args)
+    private async Task CommandStart(Chat chat, UserEntity user, string[] args)
     {
         if (args.Length == 0)
         {
@@ -59,7 +59,8 @@ public class GlobalState : MessageStateBase
             return;
         }
 
-        if (!Guid.TryParse(args[0], out var roomId) || DB.Rooms.FindById(roomId) is not { } room)
+        if (!Guid.TryParse(args[0], out var roomId)
+            || DB.RoomDirectory.GetById(roomId) is not { } room)
         {
             await NotifyService.SendErrorMessage(chat.Id, Msgs.RoomDoesntExist);
             return;
@@ -67,15 +68,7 @@ public class GlobalState : MessageStateBase
 
         if (!user.AvailableRooms.Any(x => x.Id == room.Id))
         {
-            user.AvailableRooms.Add(room);
-            room.Users.Add(new()
-            {
-                Id = user.Id,
-                Username = user.Username
-            });
-
-            DB.Rooms.Update(room);
-            DB.Users.Update(user);
+            DB.JoinRoom(user, room);
             await NotifyService.SendMessage(user.Id, Msgs.UserNewParticipation);
         }
 

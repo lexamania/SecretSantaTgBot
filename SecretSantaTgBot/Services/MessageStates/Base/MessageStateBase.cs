@@ -1,7 +1,7 @@
 using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -27,16 +27,13 @@ public abstract class MessageStateBase
             Commands.Add("/help", new("/help", Msgs.CommandHelp, CommandHelp));
     }
 
-    public abstract Task<bool> OnMessage(Message msg, UserTg user);
-    public virtual Task StartState(UserTg user, string[] args) => Task.CompletedTask;
+    public abstract Task<bool> OnMessage(Message msg, UserEntity user);
+    public virtual Task StartState(UserEntity user, string[] args) => Task.CompletedTask;
 
-    protected void UpdateUserState(UserTg user, string? state)
-    {
-        user.CurrentState = state;
-        DB.Users.Update(user);
-    }
+    protected void UpdateUserState(UserEntity user, string? state)
+        => DB.UserDirectory.UpdateWithState(user, state);
 
-    protected Task CommandHelp(Chat chat, UserTg user, string[] args)
+    protected Task CommandHelp(Chat chat, UserEntity user, string[] args)
     {
         var isAdmin = user.SelectedRoom?.Admin.Id == user.Id;
         var msg = MessageBuilder.BuildHelpMessage(Commands.Values, isAdmin);

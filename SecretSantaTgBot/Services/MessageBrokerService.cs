@@ -1,7 +1,7 @@
 using SecretSantaTgBot.Services.MessageStates;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Storage;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -34,7 +34,7 @@ public class MessageBrokerService
 
     public async Task OnMessage(Message msg, UpdateType type)
     {
-        var user = CreateUserIfNeed(msg.Chat);
+        var user = DB.UserDirectory.GetOrCreate(msg.Chat);
 
         try
         {
@@ -50,14 +50,13 @@ public class MessageBrokerService
             return;
         }
 
-        user.CurrentState = default;
-        DB.Users.Update(user);
+        DB.UserDirectory.UpdateWithClearState(user);
 
         Logger.LogUnrecognizedMessage(msg);
         await NotifyService.SendErrorCommandMessage(msg.Chat.Id);
     }
 
-    public Task UpdateAfterStatusChanged(UserTg user)
+    public Task UpdateAfterStatusChanged(UserEntity user)
     {
         var msg = new Message()
         {
@@ -72,7 +71,7 @@ public class MessageBrokerService
         return CallMessage(msg, user);
     }
 
-    private async Task<bool> CallMessage(Message msg, UserTg user)
+    private async Task<bool> CallMessage(Message msg, UserEntity user)
     {
         if (await _globalState.OnMessage(msg, user))
             return true;
@@ -83,7 +82,7 @@ public class MessageBrokerService
             : false;
     }
 
-    private string GetCurrentState(UserTg user)
+    private string GetCurrentState(UserEntity user)
     {
         if (user.CurrentState is not null)
             return NameParser.ParseStateArgs(user.CurrentState, "abcd")[0];
@@ -91,26 +90,5 @@ public class MessageBrokerService
         return user.SelectedRoom != null
             ? InRoomCommandState.TITLE
             : DefaultState.TITLE;
-    }
-
-    private UserTg CreateUserIfNeed(Chat chat)
-    {
-        var user = DB.Users
-            .Include(x => x.AvailableRooms)
-            .Include(x => x.SelectedRoom)
-            .FindById(chat.Id);
-
-        if (user is null)
-        {
-            user = new() { Id = chat.Id, Username = chat.Username!, AvailableRooms = [] };
-            DB.Users.Insert(user);
-        }
-        else if (user.Username != chat.Username)
-        {
-            user.Username = chat.Username!;
-            DB.Users.Update(user);
-        }
-
-        return user;
     }
 }

@@ -1,6 +1,6 @@
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates.Base;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -17,7 +17,7 @@ public class ConfirmationState(
     private readonly CommandCallback _callback = callback;
     private string Message => Msgs.AskConfirmation;
 
-    public override Task StartState(UserTg user, string[] args)
+    public override Task StartState(UserEntity user, string[] args)
     {
         var strArgs = NameParser.JoinArgs(args);
         var state = NameParser.JoinArgs(Title, strArgs);
@@ -27,7 +27,7 @@ public class ConfirmationState(
         return NotifyService.SendMessage(user.Id, Message, buttons!);
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         if (!MessageParser.IsMessage(msg, out var message))
             return false;

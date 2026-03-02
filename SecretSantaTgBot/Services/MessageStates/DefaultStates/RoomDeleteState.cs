@@ -1,5 +1,5 @@
 using SecretSantaTgBot.Services.MessageStates.Base;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -20,7 +20,7 @@ public class RoomDeleteState: MessageStateBase
         _confirmationState = new ConfirmationState(csm, Title, DELETE_TITLE, DeleteConfirmation);
     }
 
-    public override Task StartState(UserTg user, string[] args)
+    public override Task StartState(UserEntity user, string[] args)
     {
         UpdateUserState(user, Title);
         var buttons = user.AvailableRooms
@@ -30,7 +30,7 @@ public class RoomDeleteState: MessageStateBase
         return NotifyService.SendMessage(user.Id, Message, buttons!);
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         var parsedStates = NameParser.ParseStateArgs(user.CurrentState, Title);
         if (parsedStates.Length > 0 && parsedStates[0] == DELETE_TITLE)
@@ -63,33 +63,10 @@ public class RoomDeleteState: MessageStateBase
         return true;
     }
 
-    private async Task DeleteConfirmation(Chat chat, UserTg user, string[] args)
+    private async Task DeleteConfirmation(Chat chat, UserEntity user, string[] args)
     {
         var roomId = args[0];
-        var room = user.AvailableRooms.First(x => roomId.Equals(x.Id.ToString()));
-
-        var userIds = room.Users.Select(x => x.Id).ToList();
-        var users = DB.Users
-            .Include(x => x.AvailableRooms)
-            .Include(x => x.SelectedRoom)
-            .Find(x => userIds.Contains(x.Id))
-            .ToList();
-
-        foreach (var u in users)
-        {
-            var deletedRoom = u.AvailableRooms.First(r => r.Id == room.Id);
-            u.AvailableRooms.Remove(deletedRoom);
-
-            if (u.SelectedRoom?.Id == room.Id)
-            {
-                u.SelectedRoom = default;
-                u.CurrentState = default;
-            }
-        }
-
-        DB.Rooms.Delete(room.Id);
-        DB.Users.Update(users);
-        UpdateUserState(user, default);
+        var room = DB.DeleteRoom(user, roomId);
 
         var notifyMessage = MessageBuilder.BuildDeleteRoomMessage(room);
         await NotifyService.NotifyEveryoneInRoom(room, notifyMessage);

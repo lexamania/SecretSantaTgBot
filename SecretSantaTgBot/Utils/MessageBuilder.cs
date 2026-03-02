@@ -2,7 +2,7 @@ using System.Text;
 
 using SecretSantaTgBot.Messages;
 using SecretSantaTgBot.Models;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 
 namespace SecretSantaTgBot.Utils;
 
@@ -24,7 +24,7 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildTargetMessage(PartyRoom room, Participant target)
+    public static string BuildTargetMessage(PartyRoomEntity room, ParticipantEntity target)
     {
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"{Msgs.RoomNumber} \"{room.Title}\"");
@@ -33,7 +33,7 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildUserInfoMessage(string header, Participant participant)
+    public static string BuildUserInfoMessage(string header, ParticipantEntity participant)
     {
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>{participant.RealName} - @{participant.Username}</b>");
@@ -50,7 +50,7 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildRoomInfoMessage(PartyRoom room)
+    public static string BuildRoomInfoMessage(PartyRoomEntity room)
     {
         var admin = room.Users.First(x => x.Id == room.Admin.Id);
         var participants = room.Users;
@@ -71,7 +71,7 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildRoomsInfoMessage(UserTg user)
+    public static string BuildRoomsInfoMessage(UserEntity user)
     {
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>{Msgs.RoomsList}</b>");
@@ -92,13 +92,13 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildLeaveMessage(Participant p)
+    public static string BuildLeaveMessage(ParticipantEntity p)
         => $"{p.RealName} (@{p.Username}) {Msgs.UserLeavedRoomForAll}";
 
     public static string BuildCreateRoomMessage(string roomId)
         => $"{Msgs.RoomCreated} {roomId}\n{BuildJoinLink(roomId)}";
 
-    public static string BuildDeleteRoomMessage(PartyRoom room)
+    public static string BuildDeleteRoomMessage(PartyRoomEntity room)
         => $"{room.Title} ({room.Id}) {Msgs.RoomDeleted}";
 
     public static string BuildJoinLink(string roomId)

@@ -1,5 +1,5 @@
 using SecretSantaTgBot.Services.MessageStates.Base;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -13,7 +13,7 @@ public class RoomCreateState(MessageBrokerService csm, string parentTitle)
 
     protected override string Message => Msgs.RoomCreationEnterTitle;
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         if (MessageParser.IsCommand(msg, out var command, out var tempArgs))
         {
@@ -40,31 +40,17 @@ public class RoomCreateState(MessageBrokerService csm, string parentTitle)
         return true;
     }
 
-    private Task SaveTitle(UserTg user, string title)
+    private Task SaveTitle(UserEntity user, string title)
     {
         UpdateUserState(user, NameParser.JoinArgs(Title, title));
         return NotifyService.SendMessage(user.Id, Msgs.RoomCreationEnterDescription);
     }
 
-    private Task CreateRoom(UserTg user, string title, string description)
+    private Task CreateRoom(UserEntity user, string title, string description)
     {
-        var room = new PartyRoom
-        {
-            Title = title!,
-            PartyDescription = description!,
-            Admin = user,
-            Users = [new()
-            {
-                Id = user.Id,
-                Username = user.Username,
-            }],
-        };
+        var room = DB.RoomDirectory.Create(user, title, description);
         user.AvailableRooms.Add(room);
-
-        DB.Rooms.Insert(room);
-        DB.Users.Update(user);
-
-        UpdateUserState(user, default);
+        DB.UserDirectory.UpdateWithClearState(user);
 
         var message = MessageBuilder.BuildCreateRoomMessage(room.Id.ToString());
         return NotifyService.SendMessage(user.Id, message);

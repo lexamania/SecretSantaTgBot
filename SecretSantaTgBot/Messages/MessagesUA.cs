@@ -36,9 +36,10 @@ public class MessagesUA : MessagesBase
     public override string RoomsList { get; } = "Список твоїх кімнат:";
     public override string RoomDescriptionUpdated { get; } = "Опис кімнати оновлено! 🥳";
 
+    public override string NeedAdminRights { get; } = "❌ Ви не адміністратор кімнати!";
+    public override string SecretSantaWasPlayed { get; } = "❌ Таємний Санта вже був розіграний!";
     public override string UserLeavedRoom { get; } = "🗿 Вас викреслено з участі! 🗿";
     public override string UserLeavedRoomForAll { get; } = "покинув кімнату! 🗿";
-    public override string NeedAdminRights { get; } = "❌ Ви не адміністратор кімнати!";
     public override string NotEnoughParticipants { get; } = "Недостатньо участників для розподілення!";
     public override string UserNewParticipation { get; } = "🥳 Розпочинаємо реєстрацію, введіть ваше ім'я:";
     public override string UserParticipationEnd { get; } = "🥳 Вас зареєстровано! 🥳";

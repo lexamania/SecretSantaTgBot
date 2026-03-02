@@ -1,5 +1,5 @@
 using SecretSantaTgBot.Models;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -16,7 +16,7 @@ public abstract class SimpleMessageStateBase : MessageStateBase
         Commands.Add(command.Command, command);
     }
 
-    public override Task StartState(UserTg user, string[] args)
+    public override Task StartState(UserEntity user, string[] args)
     {
         var strArgs = NameParser.JoinArgs(args);
         var state = NameParser.JoinArgs(Title, strArgs);
@@ -26,13 +26,13 @@ public abstract class SimpleMessageStateBase : MessageStateBase
         return NotifyService.SendMessage(user.Id, Message, buttons!);
     }
 
-    private async Task CommandStop(Chat chat, UserTg user, string[] args)
+    private async Task CommandStop(Chat chat, UserEntity user, string[] args)
     {
         UpdateUserState(user, default);
         await Csm.UpdateAfterStatusChanged(user);
     }
 
-    protected Task CallRequiredCommand(string command, Message msg, UserTg user, string[]? args)
+    protected Task CallRequiredCommand(string command, Message msg, UserEntity user, string[]? args)
     {
         var cmd = Commands!.GetValueOrDefault(command);
         return cmd == null 

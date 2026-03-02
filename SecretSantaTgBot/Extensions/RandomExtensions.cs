@@ -1,6 +1,6 @@
-namespace SecretSantaTgBot.Utils;
+namespace SecretSantaTgBot.Extensions;
 
-public static class RandomExtension
+public static class RandomExtensions
 {
     public static int[] GetShuffledUniqueIndexRange(int length)
     {

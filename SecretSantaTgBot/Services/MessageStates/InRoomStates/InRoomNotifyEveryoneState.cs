@@ -1,5 +1,5 @@
 using SecretSantaTgBot.Services.MessageStates.Base;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -12,13 +12,13 @@ public class InRoomNotifyEveryoneState(MessageBrokerService csm, string parentTi
     public const string TITLE = "in_room_notify";
     private string Message => Msgs.EnterInRoomMessage;
 
-    public override Task StartState(UserTg user, string[] args)
+    public override Task StartState(UserEntity user, string[] args)
     {
         UpdateUserState(user, Title);
         return NotifyService.SendMessage(user.Id, Message);
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         if (!MessageParser.IsMessage(msg, out var message))
         {

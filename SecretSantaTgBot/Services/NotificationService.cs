@@ -1,5 +1,5 @@
 using SecretSantaTgBot.Messages;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -64,7 +64,7 @@ public class NotificationService(TelegramBotClient bot)
     public Task SendErrorCommandMessage(long chatId, string innerMessage)
         => SendErrorMessage(chatId, $"{Msgs.CommandError}\n\n{innerMessage}");
 
-    public Task NotifyEveryoneInRoom(PartyRoom room, string message)
+    public Task NotifyEveryoneInRoom(PartyRoomEntity room, string message)
     {
         var users = room.Users.Select(u => u.Id).ToArray();
         return NotifyEveryone(users, message);

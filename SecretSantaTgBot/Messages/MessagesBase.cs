@@ -37,6 +37,7 @@ public abstract class MessagesBase
     public abstract string RoomDescriptionUpdated { get; }
 
     public abstract string NeedAdminRights { get; }
+    public abstract string SecretSantaWasPlayed { get; }
     public abstract string NotEnoughParticipants { get; }
     public abstract string UserNewParticipation { get; }
     public abstract string UserParticipationEnd { get; }

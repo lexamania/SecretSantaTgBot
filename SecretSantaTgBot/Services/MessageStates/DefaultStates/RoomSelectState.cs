@@ -1,6 +1,6 @@
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Services.MessageStates.InRoomStates;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -19,7 +19,7 @@ public class RoomSelectState : MessageStateBase
         _regState = new(csm, Title);
     }
 
-    public override Task StartState(UserTg user, string[] args)
+    public override Task StartState(UserEntity user, string[] args)
     {
         UpdateUserState(user, Title);
         var buttons = user.AvailableRooms
@@ -28,7 +28,7 @@ public class RoomSelectState : MessageStateBase
         return NotifyService.SendMessage(user.Id, Message, buttons!);
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         var states = NameParser.ParseStateArgs(user.CurrentState, Title);
         if (states.Length > 0 && states[0] == InRoomNameRegistrationState.TITLE)

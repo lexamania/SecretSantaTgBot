@@ -1,5 +1,6 @@
+using SecretSantaTgBot.Extensions;
 using SecretSantaTgBot.Services.MessageStates.Base;
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
@@ -12,7 +13,7 @@ public class InRoomNameRegistrationState(MessageBrokerService csm, string parent
     public const string TITLE = "registration";
     private string Message => Msgs.EnterRealName;
 
-    public override Task StartState(UserTg user, string[] args)
+    public override Task StartState(UserEntity user, string[] args)
     {
         var strArgs = NameParser.JoinArgs(args);
         var state = NameParser.JoinArgs(Title, strArgs);
@@ -21,7 +22,7 @@ public class InRoomNameRegistrationState(MessageBrokerService csm, string parent
         return NotifyService.SendMessage(user.Id, Message);
     }
 
-    public override async Task<bool> OnMessage(Message msg, UserTg user)
+    public override async Task<bool> OnMessage(Message msg, UserEntity user)
     {
         if (!MessageParser.IsMessage(msg, out var message))
         {
@@ -30,10 +31,10 @@ public class InRoomNameRegistrationState(MessageBrokerService csm, string parent
         }
 
         var room = user.SelectedRoom!;
-        var participant = room.Users.First(x => x.Id == user.Id);
+        var participant = user.GetAsParticipant(room)!;
         participant.RealName = message;
 
-        DB.Rooms.Update(room);
+        DB.RoomDirectory.Update(room);
         UpdateUserState(user, default);
 
         await NotifyService.SendMessage(msg.Chat.Id, Msgs.UserParticipationEnd);

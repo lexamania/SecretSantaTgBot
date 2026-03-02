@@ -1,10 +1,10 @@
-using SecretSantaTgBot.Storage.Models;
+using SecretSantaTgBot.Storage.Entities;
 
 using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Models;
 
-public delegate Task CommandCallback(Chat chat, UserTg user, string[] args);
+public delegate Task CommandCallback(Chat chat, UserEntity user, string[] args);
 
 public class CommandInfo(
     string name, 

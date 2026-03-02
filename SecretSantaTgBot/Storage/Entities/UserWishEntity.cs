@@ -1,6 +1,6 @@
-namespace SecretSantaTgBot.Storage.Models;
+namespace SecretSantaTgBot.Storage.Entities;
 
-public class UserWish
+public class UserWishEntity
 {
     public string? Message { get; set; }
     public List<string> Images { get; set; } = [];
