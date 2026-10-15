@@ -1,19 +1,23 @@
 using System.Text;
 
-using SecretSantaTgBot.Messages;
+using SecretSantaTgBot.Localization;
+using SecretSantaTgBot.Localization.Dictionaries;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage.Entities;
 
 namespace SecretSantaTgBot.Utils;
 
-public static class MessageBuilder
+public class MessageBuilder(
+    MessagesDictionaryDispatcher msgDspt,
+    BotConfiguration config)
 {
-    private static MessagesBase Msgs => EnvVariables.Messages;
+    // Todo: finish localization
+    private readonly IMessagesDictionary _msgs = msgDspt.Get("UA");
 
-    public static string BuildHelpMessage(IEnumerable<CommandInfo> commands, bool isAdmin)
+    public string BuildHelpMessage(IEnumerable<CommandModel> commands, bool isAdmin)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{Msgs.CommandBotMenu}</b>");
+        strBldr.AppendLine($"<b>{_msgs.CommandBotMenu}</b>");
 
         foreach (var command in commands.Where(x => x.ShowHelp 
                                                 && (x.Access == AccessRights.Default
@@ -24,16 +28,16 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildTargetMessage(PartyRoomEntity room, ParticipantEntity target)
+    public string BuildTargetMessage(PartyRoomEntity room, ParticipantEntity target)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"{Msgs.RoomNumber} \"{room.Title}\"");
-        strBldr.AppendLine(Msgs.SantaFinished);
-        strBldr.AppendLine($"{Msgs.UserTarget} {target.RealName} @{target.Username}");
+        strBldr.AppendLine($"{_msgs.RoomNumber} \"{room.Title}\"");
+        strBldr.AppendLine(_msgs.SantaFinished);
+        strBldr.AppendLine($"{_msgs.UserTarget} {target.RealName} @{target.Username}");
         return strBldr.ToString();
     }
 
-    public static string BuildUserInfoMessage(string header, ParticipantEntity participant)
+    public string BuildUserInfoMessage(string header, ParticipantEntity participant)
     {
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>{participant.RealName} - @{participant.Username}</b>");
@@ -50,7 +54,7 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildRoomInfoMessage(PartyRoomEntity room)
+    public string BuildRoomInfoMessage(PartyRoomEntity room)
     {
         var admin = room.Users.First(x => x.Id == room.Admin.Id);
         var participants = room.Users;
@@ -63,7 +67,7 @@ public static class MessageBuilder
         strBldr.AppendLine();
         strBldr.AppendLine($"{room.PartyDescription}");
         strBldr.AppendLine();
-        strBldr.AppendLine($"<b>{Msgs.ParticipantsList} ({participants.Count})</b>");
+        strBldr.AppendLine($"<b>{_msgs.ParticipantsList} ({participants.Count})</b>");
 
         foreach (var prt in participants)
             strBldr.AppendLine($" ► {prt.RealName} - @{prt.Username}");
@@ -71,10 +75,10 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildRoomsInfoMessage(UserEntity user)
+    public string BuildRoomsInfoMessage(UserEntity user)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{Msgs.RoomsList}</b>");
+        strBldr.AppendLine($"<b>{_msgs.RoomsList}</b>");
         strBldr.AppendLine();
 
         foreach (var room in user.AvailableRooms)
@@ -92,15 +96,15 @@ public static class MessageBuilder
         return strBldr.ToString();
     }
 
-    public static string BuildLeaveMessage(ParticipantEntity p)
-        => $"{p.RealName} (@{p.Username}) {Msgs.UserLeavedRoomForAll}";
+    public string BuildLeaveMessage(ParticipantEntity p)
+        => $"{p.RealName} (@{p.Username}) {_msgs.UserLeavedRoomForAll}";
 
-    public static string BuildCreateRoomMessage(string roomId)
-        => $"{Msgs.RoomCreated} {roomId}\n{BuildJoinLink(roomId)}";
+    public string BuildCreateRoomMessage(string roomId)
+        => $"{_msgs.RoomCreated} {roomId}\n{BuildJoinLink(roomId)}";
 
-    public static string BuildDeleteRoomMessage(PartyRoomEntity room)
-        => $"{room.Title} ({room.Id}) {Msgs.RoomDeleted}";
+    public string BuildDeleteRoomMessage(PartyRoomEntity room)
+        => $"{room.Title} ({room.Id}) {_msgs.RoomDeleted}";
 
-    public static string BuildJoinLink(string roomId)
-        => $"t.me/{EnvVariables.BotName}?start={roomId}";
+    public string BuildJoinLink(string roomId)
+        => $"t.me/{config.BotName}?start={roomId}";
 }

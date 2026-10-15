@@ -1,6 +1,7 @@
 using LiteDB;
 
 using SecretSantaTgBot.Extensions;
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage.Directories;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
@@ -14,9 +15,9 @@ public class SantaDatabase: IDisposable
     public UserDirectory UserDirectory { get; }
     public RoomDirectory RoomDirectory { get; }
 
-    public SantaDatabase()
+    public SantaDatabase(BotConfiguration config)
     {
-        var dbPath = EnvVariables.DBPath;
+        var dbPath = config.DBPath;
         DirectoryUtils.CreateDirectoryRecursively(Path.GetDirectoryName(dbPath)!);
 
         _database = new LiteDatabase(dbPath);
@@ -48,7 +49,7 @@ public class SantaDatabase: IDisposable
         return room;
     }
 
-    public void LeaveRoom(UserEntity user, PartyRoomEntity room)
+    public void RemoveUserFromRoom(UserEntity user, PartyRoomEntity room)
     {
         var deletedRoom = user.AvailableRooms.RemoveFirst(x => x.Id == room.Id);
         var deletedParticipant = room.Users.RemoveFirst(x => x.Id == user.Id);
@@ -57,7 +58,7 @@ public class SantaDatabase: IDisposable
         RoomDirectory.Update(room);
     }
 
-    public void JoinRoom(UserEntity user, PartyRoomEntity room)
+    public void AddUserToRoom(UserEntity user, PartyRoomEntity room)
     {
         user.AvailableRooms.Add(room);
         room.Users.Add(new()

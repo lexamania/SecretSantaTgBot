@@ -1,3 +1,4 @@
+using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
@@ -6,13 +7,14 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.Base;
 
+[RequiredService]
 public abstract class SimpleMessageStateBase : MessageStateBase
 {
     protected abstract string Message { get; }
 
     public SimpleMessageStateBase(ServiceContainer container, string title) : base(container, title)
     {
-        var command = new CommandInfo("/stop", Msgs.CommandStop, CommandStop);
+        var command = new CommandModel("/stop", Msgs.CommandStop, CommandStop);
         Commands.Add(command.Command, command);
     }
 

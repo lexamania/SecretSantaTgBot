@@ -1,4 +1,5 @@
-using SecretSantaTgBot.Messages;
+using SecretSantaTgBot.Attributes;
+using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Storage.Entities;
 
 using Telegram.Bot;
@@ -8,10 +9,12 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot.Services;
 
-public class NotificationService(TelegramBotClient bot)
+[RequiredService]
+public class NotificationService(
+    TelegramBotService telegramService, 
+    MessagesDictionaryDispatcher msgDspt)
 {
-    private readonly TelegramBotClient _bot = bot;
-    private static MessagesBase Msgs => EnvVariables.Messages;
+    private readonly TelegramBotClient _bot = telegramService.Bot;
 
     public Task SendMessage(long chatId, string message)
     {
@@ -58,11 +61,11 @@ public class NotificationService(TelegramBotClient bot)
 
 
 
-    public Task SendErrorCommandMessage(long chatId)
-        => SendErrorMessage(chatId, Msgs.CommandError);
+    public Task SendErrorCommandMessage(long chatId, string language="")
+        => SendErrorMessage(chatId, msgDspt.Get(language).CommandError);
 
-    public Task SendErrorCommandMessage(long chatId, string innerMessage)
-        => SendErrorMessage(chatId, $"{Msgs.CommandError}\n\n{innerMessage}");
+    public Task SendErrorCommandMessage(long chatId, string innerMessage, string language="")
+        => SendErrorMessage(chatId, $"{msgDspt.Get(language).CommandError}\n\n{innerMessage}");
 
     public Task NotifyEveryoneInRoom(PartyRoomEntity room, string message)
     {

@@ -1,38 +1,40 @@
-﻿using SecretSantaTgBot;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+using SecretSantaTgBot.Extensions;
+using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
+using SecretSantaTgBot.Utils;
 
-using Telegram.Bot;
+using Serilog;
 
-var botToken = EnvVariables.BotToken;
+var builder = Host.CreateApplicationBuilder(args);
 
-using var cts = new CancellationTokenSource();
-using var db = new SantaDatabase();
+builder.Services.AddSingleton<BotConfiguration>();
+builder.Services.AddSingleton<MessagesDictionaryDispatcher>();
+builder.Services.AddSingleton<SantaDatabase>();
+builder.Services.AddSingleton<MessageBuilder>();
 
-var bot = new TelegramBotClient(botToken, cancellationToken: cts.Token);
-var notifyService = new NotificationService(bot);
-var logger = new LocalLogger();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.File(
+        "logs/secret-santa-bot.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        outputTemplate:
+            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} " +
+            "[{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
-var container = new ServiceContainer(
-    Database: db,
-    Notification: notifyService,
-    Logger: logger
-);
+builder.Services.AddSerilog();
 
-var errorBroker = new ErrorBrokerService(container);
-var msgBroker = new MessageBrokerService(container);
-var queryBroker = new QueryBrokerService(container);
+builder.Services.AddHostedService<TelegramBotService>();
 
-bot.OnError += errorBroker.OnError;
-bot.OnMessage += msgBroker.OnMessage;
-bot.OnUpdate += queryBroker.OnUpdate;
+builder.Services.AddRequiredServices();
 
-var me = await bot.GetMe();
-EnvVariables.BotName = me.Username!;
+using var app = builder.Build();
+var config = app.Services.GetRequiredService<BotConfiguration>();
 
-Console.WriteLine($"@{me.Username} is running... Send STOP to terminate");
-
-while (Console.ReadLine() != "STOP") ;
-
-cts.Cancel(); // stop the bot
+await app.RunAsync(config.CancellationToken);

@@ -16,7 +16,7 @@ public class DefaultState : MessageStateBase
 
     public DefaultState(ServiceContainer container) : base(container, TITLE)
     {
-        var commands = new List<CommandInfo> {
+        var commands = new List<CommandModel> {
             new("/select_room", Msgs.CommandSelectRoom, CommandSelectRoom),
             new("/create_room", Msgs.CommandCreateRoom, CommandCreateRoom),
             new("/delete_room", Msgs.CommandDeleteRoom, CommandDeleteRoom),

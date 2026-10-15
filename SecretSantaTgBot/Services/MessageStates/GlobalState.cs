@@ -16,7 +16,7 @@ public class GlobalState : MessageStateBase
 
     public GlobalState(ServiceContainer container) : base(container, TITLE, setHelp: false)
     {
-        var commands = new List<CommandInfo> {
+        var commands = new List<CommandModel> {
             new("/start", "START", CommandStart)
         };
 
@@ -68,7 +68,7 @@ public class GlobalState : MessageStateBase
 
         if (!user.AvailableRooms.Any(x => x.Id == room.Id))
         {
-            Database.JoinRoom(user, room);
+            Database.AddUserToRoom(user, room);
             await Notification.SendMessage(user.Id, Msgs.UserNewParticipation);
         }
 

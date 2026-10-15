@@ -19,7 +19,7 @@ public class InRoomCommandState : MessageStateBase
 
     public InRoomCommandState(ServiceContainer container) : base(container, TITLE)
     {
-        var commands = new List<CommandInfo> {
+        var commands = new List<CommandModel> {
             new("/show_room_info", Msgs.CommandShowRoomInfo, CommandShowRoomInfo),
             new("/leave_room", Msgs.CommandLeaveRoom, CommandLeaveRoom)
             {
@@ -102,7 +102,7 @@ public class InRoomCommandState : MessageStateBase
         var room = user.SelectedRoom!;
         var participant = user.GetAsParticipant(room);
 
-        Database.LeaveRoom(user, room);
+        Database.RemoveUserFromRoom(user, room);
 
         var message = MessageBuilder.BuildLeaveMessage(participant);
         await Notification.NotifyEveryoneInRoom(room, message);

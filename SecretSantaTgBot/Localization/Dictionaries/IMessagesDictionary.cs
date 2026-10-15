@@ -1,6 +1,6 @@
-namespace SecretSantaTgBot.Messages;
+namespace SecretSantaTgBot.Localization.Dictionaries;
 
-public abstract class MessagesBase
+public interface IMessagesDictionary
 {
     public abstract string CommandError { get; }
     public abstract string CommandBotMenu { get; }

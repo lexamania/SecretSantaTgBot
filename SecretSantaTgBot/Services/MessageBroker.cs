@@ -1,4 +1,4 @@
-using SecretSantaTgBot.Models;
+using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Services.MessageStates;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Storage.Entities;
@@ -9,17 +9,14 @@ using Telegram.Bot.Types.Enums;
 
 namespace SecretSantaTgBot.Services;
 
-public class MessageBrokerService
+[RequiredService]
+public class MessageBroker
 {
-    private readonly ServiceContainer _container;
     private readonly GlobalState _globalState;
     private readonly Dictionary<string, MessageStateBase> _states;
 
-    public MessageBrokerService(ServiceContainer container)
+    public MessageBroker()
     {
-        container.MessageBroker = this;
-        _container = container;
-
         _globalState = new(container);
         _states = new()
         {

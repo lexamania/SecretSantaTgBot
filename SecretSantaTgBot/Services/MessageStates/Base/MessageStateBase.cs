@@ -1,4 +1,5 @@
-using SecretSantaTgBot.Messages;
+using SecretSantaTgBot.Attributes;
+using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Entities;
@@ -8,17 +9,18 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.Base;
 
+[RequiredService]
 public abstract class MessageStateBase
 {
     private readonly ServiceContainer _container;
 
     protected string Title { get; }
-    protected Dictionary<string, CommandInfo> Commands { get; } = [];
+    protected Dictionary<string, CommandModel> Commands { get; } = [];
 
-    protected MessageBrokerService MessageBroker => _container.MessageBroker!;
+    protected MessageBroker MessageBroker => _container.MessageBroker!;
     protected SantaDatabase Database => _container.Database;
     protected NotificationService Notification => _container.Notification;
-    protected static MessagesBase Msgs => EnvVariables.Messages;
+    protected static IMessagesDictionary Msgs => EnvVariables.Messages;
 
     public MessageStateBase(ServiceContainer container, string title, bool setHelp = true)
     {
