@@ -33,7 +33,7 @@ public class RoomDeleteState: MessageStateBase
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
-        var parsedStates = NameParser.ParseStateArgs(user.CurrentState, Title);
+        var parsedStates = StateUtil.ParseState(user.CurrentState, Title);
         if (parsedStates.Length > 0 && parsedStates[0] == DELETE_TITLE)
         {
             if (await _confirmationState.ProcessMessage(msg, user))

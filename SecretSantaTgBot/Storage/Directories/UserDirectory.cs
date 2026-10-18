@@ -49,8 +49,13 @@ public class UserDirectory(LiteDatabase db) : DirectoryBase<UserEntity>(db, "use
     public bool Update(UserEntity user) => Collection.Update(user);
     public void Update(IEnumerable<UserEntity> users) => Collection.Update(users);
 
-    public bool UpdateWithClearState(UserEntity user) => UpdateWithState(user, default);
-    public bool UpdateWithState(UserEntity user, string? state)
+    public bool UpdateWithClearState(UserEntity user)
+    {
+        user.CurrentState = default;
+        return Update(user);
+    }
+
+    public bool UpdateWithState(UserEntity user, string state)
     {
         user.CurrentState = state;
         return Update(user);

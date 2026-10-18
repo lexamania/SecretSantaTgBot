@@ -6,6 +6,7 @@ public class UserEntity
 {
     [BsonId] public long Id { get; set; }
     public string Username { get; set; }
+    public string Language { get; set; }
 
     [BsonRef("rooms")] public PartyRoomEntity? SelectedRoom { get; set; }
     [BsonRef("rooms")] public List<PartyRoomEntity> AvailableRooms { get; set; }

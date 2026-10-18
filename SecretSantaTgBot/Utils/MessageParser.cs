@@ -1,5 +1,3 @@
-using SecretSantaTgBot.Services.MessageStates.Base;
-
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -49,13 +47,5 @@ public static class MessageParser
         message = default;
         image = default;
         return false;
-    }
-
-    public static bool HasNewState(Dictionary<string, MessageStateBase> innerStates, string fullState, string currentState, out MessageStateBase? result)
-    {
-        result = default;
-
-        var states = NameParser.ParseStateArgs(fullState, currentState);
-        return states.Length != 0 && innerStates.TryGetValue(states[0], out result);
     }
 }

@@ -1,7 +1,7 @@
 using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Services;
-using SecretSantaTgBot.Services.Brokers;
+using SecretSantaTgBot.Services.MessageHandlers;
 using SecretSantaTgBot.Storage;
 
 namespace SecretSantaTgBot.Models;
@@ -13,5 +13,5 @@ public record MessageStateContext(
     LocalizationDispatcher LocalizationDispatcher,
     MessageBuilder MessageBuilder)
 {
-    public MessageBroker? MessageBroker { get; set; }
+    public GlobalMessageHandler? GlobalMessageHandler { get; set; }
 };

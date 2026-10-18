@@ -22,7 +22,7 @@ public class RoomCreateState(MessageStateContext context, string parentTitle)
             return true;
         }
 
-        var args = NameParser.ClearState(user.CurrentState, Title);
+        var args = StateUtil.ClearState(user.CurrentState, Title);
         var enterMessage = args is null || args.Length == 0
             ? Localization.RoomCreationEnterTitle
             : Localization.RoomCreationEnterDescription;
@@ -51,7 +51,7 @@ public class RoomCreateState(MessageStateContext context, string parentTitle)
     {
         var room = Database.RoomDirectory.Create(user, title, description);
         user.AvailableRooms.Add(room);
-        Database.UserDirectory.UpdateWithClearState(user);
+        ClearUserState(user);
 
         var message = MessageBuilder.BuildCreateRoomMessage(room.Id.ToString());
         return Notifications.SendMessage(user.Id, message);

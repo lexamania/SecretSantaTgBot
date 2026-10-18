@@ -16,7 +16,7 @@ public abstract class MessageStateBase
         this.Notifications = context.Notifications;
         this.Localization = context.LocalizationDispatcher.Get("UA");
         this.MessageBuilder = context.MessageBuilder;
-        this.MessageBroker = context.MessageBroker!;
+        this.MessageBroker = context.GlobalMessageHandler!;
 
         this.Title = title;
 
@@ -40,7 +40,7 @@ public abstract class MessageStateBase
         => Database.UserDirectory.UpdateWithState(user, state);
 
     protected void ClearUserState(UserEntity user)
-        => Database.UserDirectory.UpdateWithState(user, default);
+        => Database.UserDirectory.UpdateWithClearState(user);
 
     protected Task CommandHelp(Chat chat, UserEntity user, string[] args)
     {

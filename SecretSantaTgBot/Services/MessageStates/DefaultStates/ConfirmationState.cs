@@ -34,7 +34,7 @@ public class ConfirmationState(
 
         if (message!.Equals(Localization.ButtonYes, StringComparison.CurrentCultureIgnoreCase))
         {
-            var args = NameParser.ParseStateArgs(user.CurrentState, Title);
+            var args = StateUtil.ParseState(user.CurrentState, Title);
             ClearUserState(user);
             await _callback.Invoke(msg.Chat, user, args);
             return true;

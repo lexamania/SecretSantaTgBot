@@ -58,7 +58,7 @@ public class InRoomCommandState : MessageStateBase
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
-        if (MessageParser.HasNewState(_innerStates, user.CurrentState!, Title, out var innerState))
+        if (StateUtil.HasNewState(user.CurrentState!, Title, _innerStates, out var innerState))
         {
             if (await innerState!.ProcessMessage(msg, user))
                 return true;

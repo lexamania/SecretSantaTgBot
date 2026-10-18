@@ -31,7 +31,7 @@ public class RoomSelectState : MessageStateBase
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
-        var states = NameParser.ParseStateArgs(user.CurrentState, Title);
+        var states = StateUtil.ParseState(user.CurrentState, Title);
         if (states.Length > 0 && states[0] == InRoomNameRegistrationState.TITLE)
         {
             if (await _regState!.ProcessMessage(msg, user))
