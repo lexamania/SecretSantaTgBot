@@ -2,9 +2,9 @@ using SecretSantaTgBot.Attributes;
 
 using Telegram.Bot.Types;
 
-namespace SecretSantaTgBot.Services;
+namespace SecretSantaTgBot.Services.Brokers;
 
-[RequiredService]
+[RequiredService(InjectionType.Transient)]
 public class QueryBroker
 {
     public Task OnUpdate(Update update)

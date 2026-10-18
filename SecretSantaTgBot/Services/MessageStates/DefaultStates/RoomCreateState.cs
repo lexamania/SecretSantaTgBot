@@ -7,12 +7,12 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
-public class RoomCreateState(ServiceContainer container, string parentTitle)
-    : SimpleMessageStateBase(container, NameParser.JoinArgs(parentTitle, TITLE))
+public class RoomCreateState(MessageStateContext context, string parentTitle)
+    : ContiniousMessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "room_creation";
 
-    protected override string Message => Msgs.RoomCreationEnterTitle;
+    protected override string Message => Localization.RoomCreationEnterTitle;
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
@@ -24,12 +24,12 @@ public class RoomCreateState(ServiceContainer container, string parentTitle)
 
         var args = NameParser.ClearState(user.CurrentState, Title);
         var enterMessage = args is null || args.Length == 0
-            ? Msgs.RoomCreationEnterTitle
-            : Msgs.RoomCreationEnterDescription;
+            ? Localization.RoomCreationEnterTitle
+            : Localization.RoomCreationEnterDescription;
 
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await Notification.SendErrorCommandMessage(msg.Chat.Id, enterMessage);
+            await Notifications.SendErrorCommandMessage(msg.Chat.Id, enterMessage);
             return true;
         }
 
@@ -44,7 +44,7 @@ public class RoomCreateState(ServiceContainer container, string parentTitle)
     private Task SaveTitle(UserEntity user, string title)
     {
         UpdateUserState(user, NameParser.JoinArgs(Title, title));
-        return Notification.SendMessage(user.Id, Msgs.RoomCreationEnterDescription);
+        return Notifications.SendMessage(user.Id, Localization.RoomCreationEnterDescription);
     }
 
     private Task CreateRoom(UserEntity user, string title, string description)
@@ -54,6 +54,6 @@ public class RoomCreateState(ServiceContainer container, string parentTitle)
         Database.UserDirectory.UpdateWithClearState(user);
 
         var message = MessageBuilder.BuildCreateRoomMessage(room.Id.ToString());
-        return Notification.SendMessage(user.Id, message);
+        return Notifications.SendMessage(user.Id, message);
     }
 }

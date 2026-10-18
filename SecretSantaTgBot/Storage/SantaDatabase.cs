@@ -1,7 +1,7 @@
 using LiteDB;
 
+using SecretSantaTgBot.Configurations;
 using SecretSantaTgBot.Extensions;
-using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage.Directories;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;

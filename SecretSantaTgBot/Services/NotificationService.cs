@@ -9,16 +9,16 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot.Services;
 
-[RequiredService]
-public class NotificationService(
+[RequiredService(InjectionType.Singleton)]
+public sealed class NotificationService(
     TelegramBotService telegramService, 
-    MessagesDictionaryDispatcher msgDspt)
+    LocalizationDispatcher msgDspt)
 {
-    private readonly TelegramBotClient _bot = telegramService.Bot;
+    private TelegramBotClient Bot => telegramService.Bot;
 
     public Task SendMessage(long chatId, string message)
     {
-        return _bot.SendMessage(chatId,
+        return Bot.SendMessage(chatId,
             message,
             parseMode: ParseMode.Html,
             replyMarkup: new ReplyKeyboardRemove());
@@ -26,7 +26,7 @@ public class NotificationService(
 
     public Task SendMessage(long chatId, string message, ReplyMarkup buttons)
     {
-        return _bot.SendMessage(chatId,
+        return Bot.SendMessage(chatId,
             message,
             parseMode: ParseMode.Html,
             replyMarkup: buttons);
@@ -38,14 +38,14 @@ public class NotificationService(
             .Select(x => new InputMediaPhoto(x))
             .ToArray();
         fi.First().Caption = caption;
-        return _bot.SendMediaGroup(chatId, fi);
+        return Bot.SendMediaGroup(chatId, fi);
     }
 
     public Task SendErrorMessage(long chatId, string message)
-        => _bot.SendMessage(chatId, message, parseMode: ParseMode.Html);
+        => Bot.SendMessage(chatId, message, parseMode: ParseMode.Html);
 
     public Task SendNotifyMessage(long chatId, string message, bool disableNotification = false)
-        => _bot.SendMessage(chatId, message, parseMode: ParseMode.Html, disableNotification: disableNotification);
+        => Bot.SendMessage(chatId, message, parseMode: ParseMode.Html, disableNotification: disableNotification);
 
     public Task NotifyEveryone(long[] users, string message, bool disableNotification = false)
     {

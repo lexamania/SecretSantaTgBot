@@ -8,11 +8,11 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomNameRegistrationState(ServiceContainer container, string parentTitle)
-    : MessageStateBase(container, NameParser.JoinArgs(parentTitle, TITLE))
+public class InRoomNameRegistrationState(MessageStateContext context, string parentTitle)
+    : MessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "registration";
-    private string Message => Msgs.EnterRealName;
+    private string Message => Localization.EnterRealName;
 
     public override Task PrepareState(UserEntity user, string[] args)
     {
@@ -20,14 +20,14 @@ public class InRoomNameRegistrationState(ServiceContainer container, string pare
         var state = NameParser.JoinArgs(Title, strArgs);
         UpdateUserState(user, state);
 
-        return Notification.SendMessage(user.Id, Message);
+        return Notifications.SendMessage(user.Id, Message);
     }
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
+            await Notifications.SendErrorCommandMessage(msg.Chat.Id, Message);
             return true;
         }
 
@@ -36,9 +36,9 @@ public class InRoomNameRegistrationState(ServiceContainer container, string pare
         participant.RealName = message;
 
         Database.RoomDirectory.Update(room);
-        UpdateUserState(user, default);
+        ClearUserState(user);
 
-        await Notification.SendMessage(msg.Chat.Id, Msgs.UserParticipationEnd);
+        await Notifications.SendMessage(msg.Chat.Id, Localization.UserParticipationEnd);
         await MessageBroker.SendHelpMenu(user);
         return true;
     }

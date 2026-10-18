@@ -1,6 +1,6 @@
 namespace SecretSantaTgBot.Localization.Dictionaries;
 
-public class MessagesDictionaryUA : IMessagesDictionary
+public class LocalizationUA : ILocalization
 {
     public string CommandError { get; } = "❌ Не роспізнана команда! ❌";
     public string CommandBotMenu { get; } = "☃️ Меню Бота ☃️\n";

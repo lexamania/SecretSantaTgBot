@@ -17,31 +17,31 @@ public class InRoomCommandState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public InRoomCommandState(ServiceContainer container) : base(container, TITLE)
+    public InRoomCommandState(MessageStateContext context) : base(context, TITLE)
     {
         var commands = new List<CommandModel> {
-            new("/show_room_info", Msgs.CommandShowRoomInfo, CommandShowRoomInfo),
-            new("/leave_room", Msgs.CommandLeaveRoom, CommandLeaveRoom)
+            new("/show_room_info", Localization.CommandShowRoomInfo, CommandShowRoomInfo),
+            new("/leave_room", Localization.CommandLeaveRoom, CommandLeaveRoom)
             {
                 Access = AccessRights.NotForAdmin
             },
-            new("/show_me", Msgs.CommandShowMe, CommandShowMe),
-            new("/show_my_target", Msgs.CommandShowTarget, CommandShowTarget),
-            new("/start_wishes", Msgs.CommandStartWishes, CommandStartWishes),
-            new("/clear_wishes", Msgs.CommandClearWishes, CommandClearWishes),
-            new("/update_room_info", Msgs.CommandUpdateRoom, CommandUpdateRoom)
+            new("/show_me", Localization.CommandShowMe, CommandShowMe),
+            new("/show_my_target", Localization.CommandShowTarget, CommandShowTarget),
+            new("/start_wishes", Localization.CommandStartWishes, CommandStartWishes),
+            new("/clear_wishes", Localization.CommandClearWishes, CommandClearWishes),
+            new("/update_room_info", Localization.CommandUpdateRoom, CommandUpdateRoom)
             {
                 Access = AccessRights.Admin
             },
-            new("/notify_everyone", Msgs.CommandNotifyEveryone, CommandNotifyEveryone)
+            new("/notify_everyone", Localization.CommandNotifyEveryone, CommandNotifyEveryone)
             {
                 Access = AccessRights.Admin
             },
-            new("/start_santa", Msgs.CommandStartSanta, CommandStartSecretSanta)
+            new("/start_santa", Localization.CommandStartSanta, CommandStartSecretSanta)
             {
                 Access = AccessRights.Admin
             },
-            new("/back", Msgs.CommandBack, CommandBack),
+            new("/back", Localization.CommandBack, CommandBack),
         };
 
         foreach(var command in commands)
@@ -49,10 +49,10 @@ public class InRoomCommandState : MessageStateBase
 
         _innerStates = new()
         {
-            [InRoomWishesState.TITLE] = new InRoomWishesState(container, Title),
-            [InRoomUpdateState.TITLE] = new InRoomUpdateState(container, Title),
-            [InRoomNotifyEveryoneState.TITLE] = new InRoomNotifyEveryoneState(container, Title),
-            [LEAVE_TITLE] = new ConfirmationState(container, Title, LEAVE_TITLE, CommandLeaveRoomConfirmation),
+            [InRoomWishesState.TITLE] = new InRoomWishesState(context, Title),
+            [InRoomUpdateState.TITLE] = new InRoomUpdateState(context, Title),
+            [InRoomNotifyEveryoneState.TITLE] = new InRoomNotifyEveryoneState(context, Title),
+            [LEAVE_TITLE] = new ConfirmationState(context, Title, LEAVE_TITLE, CommandLeaveRoomConfirmation),
         };
     }
 
@@ -87,26 +87,26 @@ public class InRoomCommandState : MessageStateBase
     private Task CommandShowRoomInfo(Chat chat, UserEntity user, string[] args)
     {
         var message = MessageBuilder.BuildRoomInfoMessage(user.SelectedRoom!);
-        return Notification.SendMessage(chat.Id, message);
+        return Notifications.SendMessage(chat.Id, message);
     }
 
     private Task CommandLeaveRoom(Chat chat, UserEntity user, string[] args)
     {
         return !user.IsAdmin()
-            ? Notification.SendErrorMessage(chat.Id, Msgs.AdminCantLeaveRoom)
+            ? Notifications.SendErrorMessage(chat.Id, Localization.AdminCantLeaveRoom)
             : _innerStates[LEAVE_TITLE].PrepareState(user, args);
     }
 
     private async Task CommandLeaveRoomConfirmation(Chat chat, UserEntity user, string[] args)
     {
         var room = user.SelectedRoom!;
-        var participant = user.GetAsParticipant(room);
+        var participant = user.GetAsParticipant(room)!;
 
         Database.RemoveUserFromRoom(user, room);
 
         var message = MessageBuilder.BuildLeaveMessage(participant);
-        await Notification.NotifyEveryoneInRoom(room, message);
-        await Notification.SendMessage(chat.Id, Msgs.UserLeavedRoom);
+        await Notifications.NotifyEveryoneInRoom(room, message);
+        await Notifications.SendMessage(chat.Id, Localization.UserLeavedRoom);
     }
 
 
@@ -115,30 +115,30 @@ public class InRoomCommandState : MessageStateBase
     {
         var target = user.GetAsParticipant()!;
         return ShowUserInfo(user.Id, target,
-            Msgs.UserWishesList,
-            Msgs.UserHaveZeroWishes);
+            Localization.UserWishesList,
+            Localization.UserHaveZeroWishes);
     }
 
     private Task CommandShowTarget(Chat chat, UserEntity user, string[] args)
     {
         var me = user.GetAsParticipant()!;
         if (me.TargetUserId is null)
-            return Notification.SendErrorMessage(chat.Id, Msgs.SecretSantaStillOffline);
+            return Notifications.SendErrorMessage(chat.Id, Localization.SecretSantaStillOffline);
 
         var room = user.SelectedRoom!;
         var target = room.Users.First(x => x.Id == me.TargetUserId.Value);
         return ShowUserInfo(user.Id, target,
-            Msgs.TargetWishesList,
-            Msgs.TargetHaveZeroWishes);
+            Localization.TargetWishesList,
+            Localization.TargetHaveZeroWishes);
     }
 
     private async Task ShowUserInfo(long chatId, ParticipantEntity target, string header, string emptyMsg)
     {
         var message = MessageBuilder.BuildUserInfoMessage(header, target);
-        await Notification.SendMessage(chatId, message);
+        await Notifications.SendMessage(chatId, message);
 
         foreach (var wish in target.Wishes.Where(x => x.Images is { Count: > 0 }))
-            await Notification.SendImages(chatId, wish.Images, wish.Message);
+            await Notifications.SendImages(chatId, wish.Images, wish.Message);
     }
 
 
@@ -153,7 +153,7 @@ public class InRoomCommandState : MessageStateBase
         participant.Wishes.Clear();
         Database.RoomDirectory.Update(room);
 
-        return Notification.SendMessage(chat.Id, Msgs.UserWishesCleared);
+        return Notifications.SendMessage(chat.Id, Localization.UserWishesCleared);
     }
 
 
@@ -161,14 +161,14 @@ public class InRoomCommandState : MessageStateBase
     private Task CommandUpdateRoom(Chat chat, UserEntity user, string[] args)
     {
         return !user.IsAdmin()
-            ? Notification.SendErrorMessage(chat.Id, Msgs.NeedAdminRights)
+            ? Notifications.SendErrorMessage(chat.Id, Localization.NeedAdminRights)
             : _innerStates[InRoomUpdateState.TITLE].PrepareState(user, args);
     }
 
     private Task CommandNotifyEveryone(Chat chat, UserEntity user, string[] args)
     {
         return !user.IsAdmin()
-            ? Notification.SendErrorMessage(chat.Id, Msgs.NeedAdminRights)
+            ? Notifications.SendErrorMessage(chat.Id, Localization.NeedAdminRights)
             : _innerStates[InRoomNotifyEveryoneState.TITLE].PrepareState(user, args);
     }
 
@@ -177,14 +177,14 @@ public class InRoomCommandState : MessageStateBase
         var room = user.SelectedRoom!;
 
         if (!user.IsAdmin())
-            return Notification.SendErrorMessage(chat.Id, Msgs.NeedAdminRights);
+            return Notifications.SendErrorMessage(chat.Id, Localization.NeedAdminRights);
 
         if (room.IsPlayed)
-            return Notification.SendErrorMessage(chat.Id, Msgs.SecretSantaWasPlayed);
+            return Notifications.SendErrorMessage(chat.Id, Localization.SecretSantaWasPlayed);
 
         var participants = room.Users;
         if (participants.Count < 2)
-            return Notification.SendErrorMessage(chat.Id, Msgs.NotEnoughParticipants);
+            return Notifications.SendErrorMessage(chat.Id, Localization.NotEnoughParticipants);
 
         room.Users = ShuffleTargets(room.Users);
         room.IsPlayed = true;
@@ -215,6 +215,6 @@ public class InRoomCommandState : MessageStateBase
             result.Add((p.Id, message));
         }
 
-        return Notification.NotifyEveryone(result);
+        return Notifications.NotifyEveryone(result);
     }
 }

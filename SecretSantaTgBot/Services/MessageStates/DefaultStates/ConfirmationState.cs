@@ -8,14 +8,14 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
 public class ConfirmationState(
-    ServiceContainer container,
+    MessageStateContext context,
     string parentTitle,
     string title,
     CommandCallback callback)
-    : MessageStateBase(container, NameParser.JoinArgs(parentTitle, title))
+    : MessageStateBase(context, NameParser.JoinArgs(parentTitle, title))
 {
     private readonly CommandCallback _callback = callback;
-    private string Message => Msgs.AskConfirmation;
+    private string Message => Localization.AskConfirmation;
 
     public override Task PrepareState(UserEntity user, string[] args)
     {
@@ -23,8 +23,8 @@ public class ConfirmationState(
         var state = NameParser.JoinArgs(Title, strArgs);
         UpdateUserState(user, state);
 
-        var buttons = new string[] { Msgs.ButtonYes, Msgs.ButtonNo };
-        return Notification.SendMessage(user.Id, Message, buttons!);
+        var buttons = new string[] { Localization.ButtonYes, Localization.ButtonNo };
+        return Notifications.SendMessage(user.Id, Message, buttons!);
     }
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
@@ -32,22 +32,22 @@ public class ConfirmationState(
         if (!MessageParser.IsMessage(msg, out var message))
             return false;
 
-        if (message!.Equals(Msgs.ButtonYes, StringComparison.CurrentCultureIgnoreCase))
+        if (message!.Equals(Localization.ButtonYes, StringComparison.CurrentCultureIgnoreCase))
         {
             var args = NameParser.ParseStateArgs(user.CurrentState, Title);
-            UpdateUserState(user, default);
+            ClearUserState(user);
             await _callback.Invoke(msg.Chat, user, args);
             return true;
         }
 
-        if (message.Equals(Msgs.ButtonNo, StringComparison.CurrentCultureIgnoreCase))
+        if (message.Equals(Localization.ButtonNo, StringComparison.CurrentCultureIgnoreCase))
         {
-            UpdateUserState(user, default);
+            ClearUserState(user);
             await MessageBroker.SendHelpMenu(user);
             return true;
         }
 
-        await Notification.SendErrorCommandMessage(user.Id, Message);
+        await Notifications.SendErrorCommandMessage(user.Id, Message);
         return true;
     }
 }

@@ -1,46 +1,51 @@
-using SecretSantaTgBot.Attributes;
-using SecretSantaTgBot.Localization;
+using SecretSantaTgBot.Localization.Dictionaries;
 using SecretSantaTgBot.Models;
+using SecretSantaTgBot.Services.Brokers;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Entities;
-using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.Base;
 
-[RequiredService]
 public abstract class MessageStateBase
 {
-    private readonly ServiceContainer _container;
-
-    protected string Title { get; }
-    protected Dictionary<string, CommandModel> Commands { get; } = [];
-
-    protected MessageBroker MessageBroker => _container.MessageBroker!;
-    protected SantaDatabase Database => _container.Database;
-    protected NotificationService Notification => _container.Notification;
-    protected static IMessagesDictionary Msgs => EnvVariables.Messages;
-
-    public MessageStateBase(ServiceContainer container, string title, bool setHelp = true)
+    public MessageStateBase(MessageStateContext context, string title, bool setHelp = true)
     {
-        _container = container;
-        Title = title;
+        this.Database = context.Database;
+        this.Notifications = context.Notifications;
+        this.Localization = context.LocalizationDispatcher.Get("UA");
+        this.MessageBuilder = context.MessageBuilder;
+        this.MessageBroker = context.MessageBroker!;
+
+        this.Title = title;
 
         if (setHelp)
-            Commands.Add("/help", new("/help", Msgs.CommandHelp, CommandHelp));
+            Commands.Add("/help", new("/help", Localization.CommandHelp, CommandHelp));
     }
 
-    public virtual Task PrepareState(UserEntity user, string[] args) => Task.CompletedTask;
     public abstract Task<bool> ProcessMessage(Message msg, UserEntity user);
+    public virtual Task PrepareState(UserEntity user, string[] args) => Task.CompletedTask;
 
-    protected void UpdateUserState(UserEntity user, string? state)
+    protected string Title { get; init; }
+    protected Dictionary<string, CommandModel> Commands { get; } = [];
+
+    protected SantaDatabase Database { get; init; }
+    protected NotificationService Notifications { get; init; }
+    protected ILocalization Localization { get; init; }
+    protected MessageBuilder MessageBuilder { get; init; }
+    protected MessageBroker MessageBroker { get; init; }
+
+    protected void UpdateUserState(UserEntity user, string state)
         => Database.UserDirectory.UpdateWithState(user, state);
+
+    protected void ClearUserState(UserEntity user)
+        => Database.UserDirectory.UpdateWithState(user, default);
 
     protected Task CommandHelp(Chat chat, UserEntity user, string[] args)
     {
         var isAdmin = user.SelectedRoom?.Admin.Id == user.Id;
         var msg = MessageBuilder.BuildHelpMessage(Commands.Values, isAdmin);
-        return Notification.SendMessage(chat.Id, msg);
+        return Notifications.SendMessage(chat.Id, msg);
     }
 }

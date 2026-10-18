@@ -8,12 +8,12 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomWishesState(ServiceContainer container, string parentTitle)
-    : SimpleMessageStateBase(container, NameParser.JoinArgs(parentTitle, TITLE))
+public class InRoomWishesState(MessageStateContext context, string parentTitle)
+    : ContiniousMessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_wishes";
 
-    protected override string Message => Msgs.UserStartWishes;
+    protected override string Message => Localization.UserStartWishes;
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
@@ -30,7 +30,7 @@ public class InRoomWishesState(ServiceContainer container, string parentTitle)
         {
             participant.Wishes.Add(new() { Message = message, });
             Database.RoomDirectory.Update(room);
-            await Notification.SendMessage(user.Id, Msgs.UserWishAdded);
+            await Notifications.SendMessage(user.Id, Localization.UserWishAdded);
             return true;
         }
 
@@ -52,11 +52,11 @@ public class InRoomWishesState(ServiceContainer container, string parentTitle)
             }
 
             Database.RoomDirectory.Update(room);
-            await Notification.SendMessage(user.Id, Msgs.UserWishAdded);
+            await Notifications.SendMessage(user.Id, Localization.UserWishAdded);
             return true;
         }
 
-        await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
+        await Notifications.SendErrorCommandMessage(msg.Chat.Id, Message);
         return true;
     }
 }

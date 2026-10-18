@@ -1,51 +1,64 @@
+using Microsoft.Extensions.Logging;
+
 using SecretSantaTgBot.Attributes;
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates;
 using SecretSantaTgBot.Services.MessageStates.Base;
+using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace SecretSantaTgBot.Services;
+namespace SecretSantaTgBot.Services.Brokers;
 
-[RequiredService]
+[RequiredService(InjectionType.Singleton)]
 public class MessageBroker
 {
-    private readonly GlobalState _globalState;
-    private readonly Dictionary<string, MessageStateBase> _states;
-
-    public MessageBroker()
+    public MessageBroker(MessageStateContext context, ILogger<MessageBroker> logger)
     {
-        _globalState = new(container);
-        _states = new()
-        {
-            [DefaultState.TITLE] = new DefaultState(container),
-            [InRoomCommandState.TITLE] = new InRoomCommandState(container),
-        };
+        context.MessageBroker = this;
+
+        _logger = logger;
+        _database = context.Database;
+        _notifications = context.Notifications;
+
+
+        _globalState = new(context);
+
+        _states[DefaultState.TITLE] = new DefaultState(context);
+        _states[InRoomCommandState.TITLE] = new InRoomCommandState(context);
     }
+
+    private readonly ILogger<MessageBroker> _logger;
+    private readonly SantaDatabase _database;
+    private readonly NotificationService _notifications;
+
+    private readonly GlobalState _globalState;
+    private readonly Dictionary<string, MessageStateBase> _states = [];
 
     public async Task OnMessage(Message msg, UpdateType type)
     {
-        var user = _container.Database.UserDirectory.GetOrCreate(msg.Chat);
+        var user = _database.UserDirectory.GetOrCreate(msg.Chat);
 
         try
         {
             if (await CallMessage(msg, user))
             {
-                _container.Logger.LogMessage(msg);
+                _logger.LogInformation(msg.Text);
                 return;
             }
 
-            _container.Logger.LogUnrecognizedMessage(msg);
+            _logger.LogWarning(msg.Text);
         }
         catch (Exception ex)
         {
-            _container.Logger.LogError(ex);
+            _logger.LogError(ex, msg.Text);
         }
 
-        _container.Database.UserDirectory.UpdateWithClearState(user);
-        await _container.Notification.SendErrorCommandMessage(msg.Chat.Id);
+        _database.UserDirectory.UpdateWithClearState(user);
+        await _notifications.SendErrorCommandMessage(msg.Chat.Id);
         await SendHelpMenu(user);
     }
 

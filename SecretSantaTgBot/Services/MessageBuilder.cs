@@ -1,18 +1,21 @@
 using System.Text;
 
+using SecretSantaTgBot.Attributes;
+using SecretSantaTgBot.Configurations;
 using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Localization.Dictionaries;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage.Entities;
 
-namespace SecretSantaTgBot.Utils;
+namespace SecretSantaTgBot.Services;
 
+[RequiredService(InjectionType.Singleton)]
 public class MessageBuilder(
-    MessagesDictionaryDispatcher msgDspt,
+    LocalizationDispatcher msgDspt,
     BotConfiguration config)
 {
     // Todo: finish localization
-    private readonly IMessagesDictionary _msgs = msgDspt.Get("UA");
+    private readonly ILocalization _msgs = msgDspt.Get("UA");
 
     public string BuildHelpMessage(IEnumerable<CommandModel> commands, bool isAdmin)
     {

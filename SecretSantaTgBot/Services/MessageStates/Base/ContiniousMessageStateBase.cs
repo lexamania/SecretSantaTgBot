@@ -1,4 +1,3 @@
-using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
@@ -7,16 +6,14 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.Base;
 
-[RequiredService]
-public abstract class SimpleMessageStateBase : MessageStateBase
+public abstract class ContiniousMessageStateBase : MessageStateBase
 {
-    protected abstract string Message { get; }
-
-    public SimpleMessageStateBase(ServiceContainer container, string title) : base(container, title)
+    public ContiniousMessageStateBase(MessageStateContext context, string title) : base(context, title)
     {
-        var command = new CommandModel("/stop", Msgs.CommandStop, CommandStop);
+        var command = new CommandModel("/stop", Localization.CommandStop, CommandStop);
         Commands.Add(command.Command, command);
     }
+    protected abstract string Message { get; }
 
     public override Task PrepareState(UserEntity user, string[] args)
     {
@@ -26,12 +23,12 @@ public abstract class SimpleMessageStateBase : MessageStateBase
         UpdateUserState(user, state);
 
         var buttons = Commands.Select(x => x.Key).ToArray();
-        return Notification.SendMessage(user.Id, Message, buttons!);
+        return Notifications.SendMessage(user.Id, Message, buttons!);
     }
 
     private async Task CommandStop(Chat chat, UserEntity user, string[] args)
     {
-        UpdateUserState(user, default);
+        ClearUserState(user);
         await MessageBroker.SendHelpMenu(user);
     }
 
@@ -39,7 +36,7 @@ public abstract class SimpleMessageStateBase : MessageStateBase
     {
         var cmd = Commands!.GetValueOrDefault(command);
         return cmd == null 
-            ? Notification.SendErrorCommandMessage(msg.Chat.Id, Message)
+            ? Notifications.SendErrorCommandMessage(msg.Chat.Id, Message)
             : cmd.Callback.Invoke(msg.Chat, user, args!);
     }
 }

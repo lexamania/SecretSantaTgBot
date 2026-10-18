@@ -7,30 +7,30 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomNotifyEveryoneState(ServiceContainer container, string parentTitle)
-    : MessageStateBase(container, NameParser.JoinArgs(parentTitle, TITLE))
+public class InRoomNotifyEveryoneState(MessageStateContext context, string parentTitle)
+    : MessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_notify";
-    private string Message => Msgs.EnterInRoomMessage;
+    private string Message => Localization.EnterInRoomMessage;
 
     public override Task PrepareState(UserEntity user, string[] args)
     {
         UpdateUserState(user, Title);
-        return Notification.SendMessage(user.Id, Message);
+        return Notifications.SendMessage(user.Id, Message);
     }
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
+            await Notifications.SendErrorCommandMessage(msg.Chat.Id, Message);
             return true;
         }
 
-        await Notification.NotifyEveryoneInRoom(user.SelectedRoom!, message!);
-        await Notification.SendMessage(user.Id, Msgs.InRoomMessageSend);
+        await Notifications.NotifyEveryoneInRoom(user.SelectedRoom!, message!);
+        await Notifications.SendMessage(user.Id, Localization.InRoomMessageSend);
 
-        UpdateUserState(user, default);
+        ClearUserState(user);
         await MessageBroker.SendHelpMenu(user);
         return true;
     }

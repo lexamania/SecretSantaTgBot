@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace SecretSantaTgBot.Models;
+namespace SecretSantaTgBot.Configurations;
 
 public class BotConfiguration(IConfiguration config) : IDisposable
 {

@@ -2,16 +2,16 @@ using SecretSantaTgBot.Localization.Dictionaries;
 
 namespace SecretSantaTgBot.Localization;
 
-public class MessagesDictionaryDispatcher
+public class LocalizationDispatcher
 {
-    private readonly Dictionary<string, IMessagesDictionary> _messagesDictionary = [];
+    private readonly Dictionary<string, ILocalization> _messagesDictionary = [];
 
-    public MessagesDictionaryDispatcher()
+    public LocalizationDispatcher()
     {
-        _messagesDictionary["UA"] = new MessagesDictionaryUA();
+        _messagesDictionary["UA"] = new LocalizationUA();
     }
 
-    public IMessagesDictionary Get(string language)
+    public ILocalization Get(string language)
     {
         return _messagesDictionary.TryGetValue(language, out var messagesDictionary)
             ? messagesDictionary

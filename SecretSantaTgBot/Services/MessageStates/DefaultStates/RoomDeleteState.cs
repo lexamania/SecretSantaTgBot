@@ -12,13 +12,13 @@ public class RoomDeleteState: MessageStateBase
     public const string TITLE = "room_delete";
     private const string DELETE_TITLE = "delete_confirmation";
 
-    private string Message => Msgs.ChooseRoom;
+    private string Message => Localization.ChooseRoom;
     private readonly ConfirmationState _confirmationState;
 
-    public RoomDeleteState(ServiceContainer container, string parentTitle)
-        : base(container, NameParser.JoinArgs(parentTitle, TITLE))
+    public RoomDeleteState(MessageStateContext context, string parentTitle)
+        : base(context, NameParser.JoinArgs(parentTitle, TITLE))
     {
-        _confirmationState = new ConfirmationState(container, Title, DELETE_TITLE, DeleteConfirmation);
+        _confirmationState = new ConfirmationState(context, Title, DELETE_TITLE, DeleteConfirmation);
     }
 
     public override Task PrepareState(UserEntity user, string[] args)
@@ -28,7 +28,7 @@ public class RoomDeleteState: MessageStateBase
             .Where(x => x.Admin.Id == user.Id)
             .Select(x => $"{x.Title} {x.Id}")
             .ToArray();
-        return Notification.SendMessage(user.Id, Message, buttons!);
+        return Notifications.SendMessage(user.Id, Message, buttons!);
     }
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
@@ -45,7 +45,7 @@ public class RoomDeleteState: MessageStateBase
 
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
+            await Notifications.SendErrorCommandMessage(msg.Chat.Id, Message);
             return true;
         }
     
@@ -56,7 +56,7 @@ public class RoomDeleteState: MessageStateBase
         
         if (room is null)
         {
-            await Notification.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
+            await Notifications.SendErrorMessage(msg.Chat.Id, Localization.RoomDoesntExist);
             return true;
         }
 
@@ -70,7 +70,7 @@ public class RoomDeleteState: MessageStateBase
         var room = Database.DeleteRoom(user, roomId);
 
         var notifyMessage = MessageBuilder.BuildDeleteRoomMessage(room);
-        await Notification.NotifyEveryoneInRoom(room, notifyMessage);
+        await Notifications.NotifyEveryoneInRoom(room, notifyMessage);
         await MessageBroker.SendHelpMenu(user);
     }
 }

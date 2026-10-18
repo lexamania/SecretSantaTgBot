@@ -14,7 +14,7 @@ public class GlobalState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public GlobalState(ServiceContainer container) : base(container, TITLE, setHelp: false)
+    public GlobalState(MessageStateContext context) : base(context, TITLE, setHelp: false)
     {
         var commands = new List<CommandModel> {
             new("/start", "START", CommandStart)
@@ -25,7 +25,7 @@ public class GlobalState : MessageStateBase
 
         _innerStates = new()
         {
-            [RoomSelectState.TITLE] = new RoomSelectState(container, Title)
+            [RoomSelectState.TITLE] = new RoomSelectState(context, Title)
         };
     }
 
@@ -62,14 +62,14 @@ public class GlobalState : MessageStateBase
         if (!Guid.TryParse(args[0], out var roomId)
             || Database.RoomDirectory.GetById(roomId) is not { } room)
         {
-            await Notification.SendErrorMessage(chat.Id, Msgs.RoomDoesntExist);
+            await Notifications.SendErrorMessage(chat.Id, Localization.RoomDoesntExist);
             return;
         }
 
         if (!user.AvailableRooms.Any(x => x.Id == room.Id))
         {
             Database.AddUserToRoom(user, room);
-            await Notification.SendMessage(user.Id, Msgs.UserNewParticipation);
+            await Notifications.SendMessage(user.Id, Localization.UserNewParticipation);
         }
 
         var msg = new Message()

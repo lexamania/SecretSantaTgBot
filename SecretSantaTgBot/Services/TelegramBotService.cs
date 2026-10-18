@@ -1,52 +1,30 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
-using SecretSantaTgBot.Models;
+using SecretSantaTgBot.Attributes;
 
 using Telegram.Bot;
+using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services;
 
-public class TelegramBotService(
-    BotConfiguration config,
-    ILogger<TelegramBotService> logger,
-    IServiceProvider provider)
-    : BackgroundService
+[RequiredService(InjectionType.Singleton)]
+public class TelegramBotService
 {
     private TelegramBotClient? _bot;
 
     public TelegramBotClient Bot => _bot!;
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public void Initialize(
+        string botToken,
+        CancellationToken cancellationToken,
+        TelegramBotClient.OnMessageHandler onMessage,
+        TelegramBotClient.OnUpdateHandler onUpdate,
+        TelegramBotClient.OnErrorHandler onError)
     {
-        logger.LogInformation($"Telegram bot starting at {DateTime.UtcNow} (UTC)");
+        _bot = new(botToken, cancellationToken: cancellationToken);
 
-        _bot = new(config.BotToken, cancellationToken: config.CancellationToken);
-        
-        Initialize();
-
-        await VerifyConnection();
-
-        await Task.Delay(Timeout.Infinite, stoppingToken);
-
-        logger.LogInformation($"Telegram bot stopping at {DateTime.UtcNow} (UTC)");
+        _bot.OnError += onError;
+        _bot.OnMessage += onMessage;
+        _bot.OnUpdate += onUpdate;
     }
 
-    private void Initialize()
-    {
-        var errorBroker = provider.GetRequiredService<ErrorBrokerService>();
-        var msgBroker = provider.GetRequiredService<MessageBroker>();
-        var queryBroker = provider.GetRequiredService<QueryBroker>();
-
-        _bot!.OnError += errorBroker.OnError;
-        _bot.OnMessage += msgBroker.OnMessage;
-        _bot.OnUpdate += queryBroker.OnUpdate;
-    }
-
-    private async Task VerifyConnection()
-    {
-        var me = await _bot!.GetMe();
-        config.BotName = me.Username!;
-    }
+    public Task<User> VerifyBotInfo() => _bot!.GetMe();
 }

@@ -12,12 +12,12 @@ public class RoomSelectState : MessageStateBase
 {
     public const string TITLE = "room_selection";
     private readonly InRoomNameRegistrationState _regState;
-    private string Message => Msgs.ChooseRoom;
+    private string Message => Localization.ChooseRoom;
 
-    public RoomSelectState(ServiceContainer container, string parentTitle)
-        : base(container, NameParser.JoinArgs(parentTitle, TITLE))
+    public RoomSelectState(MessageStateContext context, string parentTitle)
+        : base(context, NameParser.JoinArgs(parentTitle, TITLE))
     {
-        _regState = new(container, Title);
+        _regState = new(context, Title);
     }
 
     public override Task PrepareState(UserEntity user, string[] args)
@@ -26,7 +26,7 @@ public class RoomSelectState : MessageStateBase
         var buttons = user.AvailableRooms
             .Select(x => $"{x.Title} {x.Id}")
             .ToArray();
-        return Notification.SendMessage(user.Id, Message, buttons!);
+        return Notifications.SendMessage(user.Id, Message, buttons!);
     }
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
@@ -43,7 +43,7 @@ public class RoomSelectState : MessageStateBase
 
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
+            await Notifications.SendErrorCommandMessage(msg.Chat.Id, Message);
             return true;
         }
 
@@ -52,12 +52,12 @@ public class RoomSelectState : MessageStateBase
 
         if (room is null)
         {
-            await Notification.SendErrorMessage(msg.Chat.Id, Msgs.RoomDoesntExist);
+            await Notifications.SendErrorMessage(msg.Chat.Id, Localization.RoomDoesntExist);
             return true;
         }
 
         user.SelectedRoom = room;
-        UpdateUserState(user, default);
+        ClearUserState(user);
 
         var participant = room.Users.First(u => u.Id == user.Id);
         if (participant.RealName is null)

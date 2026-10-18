@@ -7,12 +7,12 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomUpdateState(ServiceContainer container, string parentTitle)
-    : SimpleMessageStateBase(container, NameParser.JoinArgs(parentTitle, TITLE))
+public class InRoomUpdateState(MessageStateContext context, string parentTitle)
+    : ContiniousMessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_update";
 
-    protected override string Message => Msgs.RoomCreationEnterDescription;
+    protected override string Message => Localization.RoomCreationEnterDescription;
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
@@ -24,7 +24,7 @@ public class InRoomUpdateState(ServiceContainer container, string parentTitle)
 
         if (!MessageParser.IsMessage(msg, out var message))
         {
-            await Notification.SendErrorCommandMessage(msg.Chat.Id, Message);
+            await Notifications.SendErrorCommandMessage(msg.Chat.Id, Message);
             return true;
         }
 
@@ -32,8 +32,8 @@ public class InRoomUpdateState(ServiceContainer container, string parentTitle)
         room.PartyDescription = message!;
         Database.RoomDirectory.Update(room);
 
-        await Notification.SendMessage(user.Id, Msgs.RoomDescriptionUpdated);
-        UpdateUserState(user, default);
+        await Notifications.SendMessage(user.Id, Localization.RoomDescriptionUpdated);
+        ClearUserState(user);
         return true;
     }
 }

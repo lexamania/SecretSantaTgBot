@@ -1,6 +1,6 @@
 namespace SecretSantaTgBot.Localization.Dictionaries;
 
-public interface IMessagesDictionary
+public interface ILocalization
 {
     public abstract string CommandError { get; }
     public abstract string CommandBotMenu { get; }

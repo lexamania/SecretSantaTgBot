@@ -1,26 +1,24 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using SecretSantaTgBot.Configurations;
 using SecretSantaTgBot.Extensions;
 using SecretSantaTgBot.Localization;
-using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
-using SecretSantaTgBot.Utils;
 
 using Serilog;
 
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddSingleton<BotConfiguration>();
-builder.Services.AddSingleton<MessagesDictionaryDispatcher>();
+builder.Services.AddSingleton<LocalizationDispatcher>();
 builder.Services.AddSingleton<SantaDatabase>();
-builder.Services.AddSingleton<MessageBuilder>();
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.File(
-        "logs/secret-santa-bot.log",
+        "logs/secret-santa-bot-.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 30,
         outputTemplate:
@@ -30,9 +28,9 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Services.AddSerilog();
 
-builder.Services.AddHostedService<TelegramBotService>();
-
 builder.Services.AddRequiredServices();
+
+builder.Services.AddHostedService<HostedService>();
 
 using var app = builder.Build();
 var config = app.Services.GetRequiredService<BotConfiguration>();

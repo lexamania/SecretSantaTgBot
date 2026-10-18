@@ -8,7 +8,7 @@ public enum InjectionType
 }
 
 [AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
-public class RequiredServiceAttribute(InjectionType injectionType = InjectionType.Singleton) : Attribute
+public class RequiredServiceAttribute(InjectionType injectionType) : Attribute
 {
     public InjectionType InjectionType { get; init; } = injectionType;
 }
