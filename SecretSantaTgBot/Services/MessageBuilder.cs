@@ -4,7 +4,7 @@ using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Configurations;
 using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Localization.Dictionaries;
-using SecretSantaTgBot.Models;
+using SecretSantaTgBot.Models.Commands.Base;
 using SecretSantaTgBot.Storage.Entities;
 
 namespace SecretSantaTgBot.Services;
@@ -17,12 +17,12 @@ public class MessageBuilder(
     // Todo: finish localization
     private readonly ILocalization _msgs = msgDspt.Get("UA");
 
-    public string BuildHelpMessage(IEnumerable<CommandModel> commands, bool isAdmin)
+    public string BuildHelpMessage(IEnumerable<IBotCommand> commands, bool isAdmin)
     {
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>{_msgs.CommandBotMenu}</b>");
 
-        foreach (var command in commands.Where(x => x.ShowHelp 
+        foreach (var command in commands.Where(x => x.HasHelp 
                                                 && (x.Access == AccessRights.Default
                                                     || (x.Access == AccessRights.Admin && isAdmin)
                                                     || (x.Access == AccessRights.NotForAdmin && !isAdmin))))

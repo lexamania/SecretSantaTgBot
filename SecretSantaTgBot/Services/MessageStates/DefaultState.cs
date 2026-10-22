@@ -14,7 +14,7 @@ public class DefaultState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public DefaultState(MessageStateServiceContext context) : base(context, TITLE)
+    public DefaultState(ServicesContext context) : base(context, TITLE)
     {
         var commands = new List<CommandModel> {
             new("/select_room", Localization.CommandSelectRoom, CommandSelectRoom),

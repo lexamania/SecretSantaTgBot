@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomWishesState(MessageStateServiceContext context, string parentTitle)
+public class InRoomWishesState(ServicesContext context, string parentTitle)
     : ContiniousMessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_wishes";

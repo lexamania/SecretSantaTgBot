@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
-public class RoomCreateState(MessageStateServiceContext context, string parentTitle)
+public class RoomCreateState(ServicesContext context, string parentTitle)
     : ContiniousMessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "room_creation";

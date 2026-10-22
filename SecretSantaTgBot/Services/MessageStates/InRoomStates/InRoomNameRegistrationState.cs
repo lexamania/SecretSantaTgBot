@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomNameRegistrationState(MessageStateServiceContext context, string parentTitle)
+public class InRoomNameRegistrationState(ServicesContext context, string parentTitle)
     : MessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "registration";

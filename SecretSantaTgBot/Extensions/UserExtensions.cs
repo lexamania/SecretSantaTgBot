@@ -11,8 +11,8 @@ public static class UserExtensions
         => user.SelectedRoom?.Users.FirstOrDefault(x => x.Id == user.Id);
 
     public static bool IsAdmin(this UserEntity user)
-        => user.SelectedRoom?.Admin == user;
+        => user.SelectedRoom?.Admin.Id == user.Id;
 
     public static bool IsAdmin(this UserEntity user, PartyRoomEntity room)
-        => room.Admin == user;
+        => room.Admin.Id == user.Id;
 }

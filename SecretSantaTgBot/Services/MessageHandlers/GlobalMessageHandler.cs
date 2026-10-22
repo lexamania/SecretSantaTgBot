@@ -9,7 +9,7 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Services.MessageHandlers;
 
 [RequiredService(InjectionType.Singleton)]
-public class GlobalMessageHandler(MessageStateServiceContext context)
+public class GlobalMessageHandler(ServicesContext context)
 {
     private readonly GlobalState _globalState = new(context);
     private readonly Dictionary<string, MessageStateBase> _states = new()
@@ -20,7 +20,7 @@ public class GlobalMessageHandler(MessageStateServiceContext context)
 
     public async Task<bool> Handle(Message msg, UserEntity user)
     {
-        var userContext = new MessageStateUserContext(user, GetState(user))
+        var userContext = new BotCommandContext(user, GetState(user))
         {
             GlobalMessageHandler = this
         };

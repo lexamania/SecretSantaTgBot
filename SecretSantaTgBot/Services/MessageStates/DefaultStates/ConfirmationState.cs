@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
 public class ConfirmationState(
-    MessageStateServiceContext context,
+    ServicesContext context,
     string parentTitle,
     string title,
     CommandCallback callback)

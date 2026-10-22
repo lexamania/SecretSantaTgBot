@@ -15,7 +15,7 @@ public class RoomDeleteState: MessageStateBase
     private string Message => Localization.ChooseRoom;
     private readonly ConfirmationState _confirmationState;
 
-    public RoomDeleteState(MessageStateServiceContext context, string parentTitle)
+    public RoomDeleteState(ServicesContext context, string parentTitle)
         : base(context, NameParser.JoinArgs(parentTitle, TITLE))
     {
         _confirmationState = new ConfirmationState(context, StatePath, DELETE_TITLE, DeleteConfirmation);

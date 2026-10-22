@@ -8,7 +8,7 @@ namespace SecretSantaTgBot.Services.MessageStates.Base;
 
 public abstract class ContiniousMessageStateBase : MessageStateBase
 {
-    public ContiniousMessageStateBase(MessageStateServiceContext context, string title) : base(context, title)
+    public ContiniousMessageStateBase(ServicesContext context, string title) : base(context, title)
     {
         var command = new CommandModel("/stop", Localization.CommandStop, CommandStop);
         Commands.Add(command.Command, command);

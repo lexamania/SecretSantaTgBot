@@ -17,7 +17,7 @@ public class InRoomCommandState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public InRoomCommandState(MessageStateServiceContext context) : base(context, TITLE)
+    public InRoomCommandState(ServicesContext context) : base(context, TITLE)
     {
         var commands = new List<CommandModel> {
             new("/show_room_info", Localization.CommandShowRoomInfo, CommandShowRoomInfo),

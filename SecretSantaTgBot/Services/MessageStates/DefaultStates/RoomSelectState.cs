@@ -14,7 +14,7 @@ public class RoomSelectState : MessageStateBase
     private readonly InRoomNameRegistrationState _regState;
     private string Message => Localization.ChooseRoom;
 
-    public RoomSelectState(MessageStateServiceContext context, string parentTitle)
+    public RoomSelectState(ServicesContext context, string parentTitle)
         : base(context, NameParser.JoinArgs(parentTitle, TITLE))
     {
         _regState = new(context, StatePath);

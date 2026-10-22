@@ -14,7 +14,7 @@ public class GlobalState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public GlobalState(MessageStateServiceContext context) : base(context, TITLE, setHelp: false)
+    public GlobalState(ServicesContext context) : base(context, TITLE, setHelp: false)
     {
         var commands = new List<CommandModel> {
             new("/start", "START", CommandStart)
