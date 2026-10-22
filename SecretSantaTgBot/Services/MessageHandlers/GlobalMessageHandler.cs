@@ -3,35 +3,32 @@ using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.MessageStates;
 using SecretSantaTgBot.Services.MessageStates.Base;
 using SecretSantaTgBot.Storage.Entities;
-using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageHandlers;
 
 [RequiredService(InjectionType.Singleton)]
-public class GlobalMessageHandler
+public class GlobalMessageHandler(MessageStateServiceContext context)
 {
-    public GlobalMessageHandler(MessageStateContext context)
+    private readonly GlobalState _globalState = new(context);
+    private readonly Dictionary<string, MessageStateBase> _states = new()
     {
-        context.GlobalMessageHandler = this;
-
-        _globalState = new(context);
-
-        _states[DefaultState.TITLE] = new DefaultState(context);
-        _states[InRoomCommandState.TITLE] = new InRoomCommandState(context);
-    }
-
-    private readonly GlobalState _globalState;
-    private readonly Dictionary<string, MessageStateBase> _states = [];
+        [DefaultState.TITLE] = new DefaultState(context),
+        [InRoomCommandState.TITLE] = new InRoomCommandState(context)
+    };
 
     public async Task<bool> Handle(Message msg, UserEntity user)
     {
-        if (await _globalState.ProcessMessage(msg, user))
+        var userContext = new MessageStateUserContext(user, GetState(user))
+        {
+            GlobalMessageHandler = this
+        };
+
+        if (await _globalState.ProcessMessage(msg, userContext))
             return true;
 
-        var stateStr = GetCurrentState(user);
-        return _states.TryGetValue(stateStr, out var state)
+        return _states.TryGetValue(userContext.State.CurrentState, out var state)
             ? await state.ProcessMessage(msg, user)
             : false;
     }
@@ -51,10 +48,10 @@ public class GlobalMessageHandler
         return Handle(msg, user);
     }
 
-    private string GetCurrentState(UserEntity user)
+    private string GetState(UserEntity user)
     {
         if (user.CurrentState is not null)
-            return StateUtil.ParseState(user.CurrentState)[0];
+            return user.CurrentState;
 
         return user.SelectedRoom is null
             ? DefaultState.TITLE

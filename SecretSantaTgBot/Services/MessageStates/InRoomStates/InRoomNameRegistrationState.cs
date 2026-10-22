@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomNameRegistrationState(MessageStateContext context, string parentTitle)
+public class InRoomNameRegistrationState(MessageStateServiceContext context, string parentTitle)
     : MessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "registration";
@@ -17,7 +17,7 @@ public class InRoomNameRegistrationState(MessageStateContext context, string par
     public override Task PrepareState(UserEntity user, string[] args)
     {
         var strArgs = NameParser.JoinArgs(args);
-        var state = NameParser.JoinArgs(Title, strArgs);
+        var state = NameParser.JoinArgs(StatePath, strArgs);
         UpdateUserState(user, state);
 
         return Notifications.SendMessage(user.Id, Message);
@@ -39,7 +39,7 @@ public class InRoomNameRegistrationState(MessageStateContext context, string par
         ClearUserState(user);
 
         await Notifications.SendMessage(msg.Chat.Id, Localization.UserParticipationEnd);
-        await MessageBroker.SendHelpMenu(user);
+        await MessageHandler.SendHelpMenu(user);
         return true;
     }
 }

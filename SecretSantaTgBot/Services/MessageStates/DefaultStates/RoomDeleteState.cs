@@ -15,15 +15,15 @@ public class RoomDeleteState: MessageStateBase
     private string Message => Localization.ChooseRoom;
     private readonly ConfirmationState _confirmationState;
 
-    public RoomDeleteState(MessageStateContext context, string parentTitle)
+    public RoomDeleteState(MessageStateServiceContext context, string parentTitle)
         : base(context, NameParser.JoinArgs(parentTitle, TITLE))
     {
-        _confirmationState = new ConfirmationState(context, Title, DELETE_TITLE, DeleteConfirmation);
+        _confirmationState = new ConfirmationState(context, StatePath, DELETE_TITLE, DeleteConfirmation);
     }
 
     public override Task PrepareState(UserEntity user, string[] args)
     {
-        UpdateUserState(user, Title);
+        UpdateUserState(user, StatePath);
         var buttons = user.AvailableRooms
             .Where(x => x.Admin.Id == user.Id)
             .Select(x => $"{x.Title} {x.Id}")
@@ -33,7 +33,7 @@ public class RoomDeleteState: MessageStateBase
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
-        var parsedStates = StateUtil.ParseState(user.CurrentState, Title);
+        var parsedStates = StateUtil.ParseState(user.CurrentState, StatePath);
         if (parsedStates.Length > 0 && parsedStates[0] == DELETE_TITLE)
         {
             if (await _confirmationState.ProcessMessage(msg, user))
@@ -71,6 +71,6 @@ public class RoomDeleteState: MessageStateBase
 
         var notifyMessage = MessageBuilder.BuildDeleteRoomMessage(room);
         await Notifications.NotifyEveryoneInRoom(room, notifyMessage);
-        await MessageBroker.SendHelpMenu(user);
+        await MessageHandler.SendHelpMenu(user);
     }
 }

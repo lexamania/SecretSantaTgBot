@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
 public class ConfirmationState(
-    MessageStateContext context,
+    MessageStateServiceContext context,
     string parentTitle,
     string title,
     CommandCallback callback)
@@ -20,7 +20,7 @@ public class ConfirmationState(
     public override Task PrepareState(UserEntity user, string[] args)
     {
         var strArgs = NameParser.JoinArgs(args);
-        var state = NameParser.JoinArgs(Title, strArgs);
+        var state = NameParser.JoinArgs(StatePath, strArgs);
         UpdateUserState(user, state);
 
         var buttons = new string[] { Localization.ButtonYes, Localization.ButtonNo };
@@ -34,7 +34,7 @@ public class ConfirmationState(
 
         if (message!.Equals(Localization.ButtonYes, StringComparison.CurrentCultureIgnoreCase))
         {
-            var args = StateUtil.ParseState(user.CurrentState, Title);
+            var args = StateUtil.ParseState(user.CurrentState, StatePath);
             ClearUserState(user);
             await _callback.Invoke(msg.Chat, user, args);
             return true;
@@ -43,7 +43,7 @@ public class ConfirmationState(
         if (message.Equals(Localization.ButtonNo, StringComparison.CurrentCultureIgnoreCase))
         {
             ClearUserState(user);
-            await MessageBroker.SendHelpMenu(user);
+            await MessageHandler.SendHelpMenu(user);
             return true;
         }
 

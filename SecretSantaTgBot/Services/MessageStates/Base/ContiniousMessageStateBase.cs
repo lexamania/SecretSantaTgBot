@@ -8,7 +8,7 @@ namespace SecretSantaTgBot.Services.MessageStates.Base;
 
 public abstract class ContiniousMessageStateBase : MessageStateBase
 {
-    public ContiniousMessageStateBase(MessageStateContext context, string title) : base(context, title)
+    public ContiniousMessageStateBase(MessageStateServiceContext context, string title) : base(context, title)
     {
         var command = new CommandModel("/stop", Localization.CommandStop, CommandStop);
         Commands.Add(command.Command, command);
@@ -18,7 +18,7 @@ public abstract class ContiniousMessageStateBase : MessageStateBase
     public override Task PrepareState(UserEntity user, string[] args)
     {
         var strArgs = NameParser.JoinArgs(args);
-        var state = NameParser.JoinArgs(Title, strArgs);
+        var state = NameParser.JoinArgs(StatePath, strArgs);
         
         UpdateUserState(user, state);
 
@@ -29,7 +29,7 @@ public abstract class ContiniousMessageStateBase : MessageStateBase
     private async Task CommandStop(Chat chat, UserEntity user, string[] args)
     {
         ClearUserState(user);
-        await MessageBroker.SendHelpMenu(user);
+        await MessageHandler.SendHelpMenu(user);
     }
 
     protected Task CallRequiredCommand(string command, Message msg, UserEntity user, string[]? args)

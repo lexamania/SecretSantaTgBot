@@ -5,10 +5,23 @@ namespace SecretSantaTgBot.Utils;
 public static class StateUtil
 {
     private const char Separetor = '/';
+    private const char ArgsEnter = '?';
+    private const string ArgsSeparator = "&&";
 
     public static string JoinStates(params string[] states)
         => string.Join(Separetor, states);
 
+    public static Dictionary<string, string> ParseStateArgs(string state)
+        => state.Contains(ArgsEnter)
+            ? state.Split(ArgsEnter).Last()
+                .Split(ArgsSeparator)
+                .ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1])
+            : [];
+
+    public static string[] ParseStates(string state)
+        => [.. state
+            .Split(ArgsEnter).First()
+            .Split(Separetor).Where(x => x.Length > 0)];
     public static string[] ParseState(string state)
         => [.. state.Split(Separetor).Where(x => x.Length > 0)];
 

@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.DefaultStates;
 
-public class RoomCreateState(MessageStateContext context, string parentTitle)
+public class RoomCreateState(MessageStateServiceContext context, string parentTitle)
     : ContiniousMessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "room_creation";
@@ -22,7 +22,7 @@ public class RoomCreateState(MessageStateContext context, string parentTitle)
             return true;
         }
 
-        var args = StateUtil.ClearState(user.CurrentState, Title);
+        var args = StateUtil.ClearState(user.CurrentState, StatePath);
         var enterMessage = args is null || args.Length == 0
             ? Localization.RoomCreationEnterTitle
             : Localization.RoomCreationEnterDescription;
@@ -43,7 +43,7 @@ public class RoomCreateState(MessageStateContext context, string parentTitle)
 
     private Task SaveTitle(UserEntity user, string title)
     {
-        UpdateUserState(user, NameParser.JoinArgs(Title, title));
+        UpdateUserState(user, NameParser.JoinArgs(StatePath, title));
         return Notifications.SendMessage(user.Id, Localization.RoomCreationEnterDescription);
     }
 

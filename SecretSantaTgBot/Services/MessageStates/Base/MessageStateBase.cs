@@ -1,6 +1,7 @@
 using SecretSantaTgBot.Localization.Dictionaries;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Services.Brokers;
+using SecretSantaTgBot.Services.MessageHandlers;
 using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Entities;
 
@@ -10,15 +11,15 @@ namespace SecretSantaTgBot.Services.MessageStates.Base;
 
 public abstract class MessageStateBase
 {
-    public MessageStateBase(MessageStateContext context, string title, bool setHelp = true)
+    public MessageStateBase(MessageStateServiceContext context, string statePath, bool setHelp = true)
     {
         this.Database = context.Database;
         this.Notifications = context.Notifications;
         this.Localization = context.LocalizationDispatcher.Get("UA");
         this.MessageBuilder = context.MessageBuilder;
-        this.MessageBroker = context.GlobalMessageHandler!;
+        this.MessageHandler = context.GlobalMessageHandler!;
 
-        this.Title = title;
+        this.StatePath = statePath;
 
         if (setHelp)
             Commands.Add("/help", new("/help", Localization.CommandHelp, CommandHelp));
@@ -27,14 +28,14 @@ public abstract class MessageStateBase
     public abstract Task<bool> ProcessMessage(Message msg, UserEntity user);
     public virtual Task PrepareState(UserEntity user, string[] args) => Task.CompletedTask;
 
-    protected string Title { get; init; }
+    protected string StatePath { get; init; }
     protected Dictionary<string, CommandModel> Commands { get; } = [];
 
     protected SantaDatabase Database { get; init; }
     protected NotificationService Notifications { get; init; }
     protected ILocalization Localization { get; init; }
     protected MessageBuilder MessageBuilder { get; init; }
-    protected MessageBroker MessageBroker { get; init; }
+    protected GlobalMessageHandler MessageHandler { get; init; }
 
     protected void UpdateUserState(UserEntity user, string state)
         => Database.UserDirectory.UpdateWithState(user, state);

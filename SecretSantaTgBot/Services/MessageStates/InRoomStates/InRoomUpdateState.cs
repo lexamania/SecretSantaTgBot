@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomUpdateState(MessageStateContext context, string parentTitle)
+public class InRoomUpdateState(MessageStateServiceContext context, string parentTitle)
     : ContiniousMessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_update";

@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Services.MessageStates.InRoomStates;
 
-public class InRoomNotifyEveryoneState(MessageStateContext context, string parentTitle)
+public class InRoomNotifyEveryoneState(MessageStateServiceContext context, string parentTitle)
     : MessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
 {
     public const string TITLE = "in_room_notify";
@@ -15,7 +15,7 @@ public class InRoomNotifyEveryoneState(MessageStateContext context, string paren
 
     public override Task PrepareState(UserEntity user, string[] args)
     {
-        UpdateUserState(user, Title);
+        UpdateUserState(user, StatePath);
         return Notifications.SendMessage(user.Id, Message);
     }
 
@@ -31,7 +31,7 @@ public class InRoomNotifyEveryoneState(MessageStateContext context, string paren
         await Notifications.SendMessage(user.Id, Localization.InRoomMessageSend);
 
         ClearUserState(user);
-        await MessageBroker.SendHelpMenu(user);
+        await MessageHandler.SendHelpMenu(user);
         return true;
     }
 }

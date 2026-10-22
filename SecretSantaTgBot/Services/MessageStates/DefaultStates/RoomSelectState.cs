@@ -14,15 +14,15 @@ public class RoomSelectState : MessageStateBase
     private readonly InRoomNameRegistrationState _regState;
     private string Message => Localization.ChooseRoom;
 
-    public RoomSelectState(MessageStateContext context, string parentTitle)
+    public RoomSelectState(MessageStateServiceContext context, string parentTitle)
         : base(context, NameParser.JoinArgs(parentTitle, TITLE))
     {
-        _regState = new(context, Title);
+        _regState = new(context, StatePath);
     }
 
     public override Task PrepareState(UserEntity user, string[] args)
     {
-        UpdateUserState(user, Title);
+        UpdateUserState(user, StatePath);
         var buttons = user.AvailableRooms
             .Select(x => $"{x.Title} {x.Id}")
             .ToArray();
@@ -31,7 +31,7 @@ public class RoomSelectState : MessageStateBase
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
-        var states = StateUtil.ParseState(user.CurrentState, Title);
+        var states = StateUtil.ParseState(user.CurrentState, StatePath);
         if (states.Length > 0 && states[0] == InRoomNameRegistrationState.TITLE)
         {
             if (await _regState!.ProcessMessage(msg, user))
@@ -66,7 +66,7 @@ public class RoomSelectState : MessageStateBase
             return true;
         }
 
-        await MessageBroker.SendHelpMenu(user);
+        await MessageHandler.SendHelpMenu(user);
         return true;
     }
 }

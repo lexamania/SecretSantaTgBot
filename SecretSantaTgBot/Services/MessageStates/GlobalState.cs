@@ -14,7 +14,7 @@ public class GlobalState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public GlobalState(MessageStateContext context) : base(context, TITLE, setHelp: false)
+    public GlobalState(MessageStateServiceContext context) : base(context, TITLE, setHelp: false)
     {
         var commands = new List<CommandModel> {
             new("/start", "START", CommandStart)
@@ -25,13 +25,13 @@ public class GlobalState : MessageStateBase
 
         _innerStates = new()
         {
-            [RoomSelectState.TITLE] = new RoomSelectState(context, Title)
+            [RoomSelectState.TITLE] = new RoomSelectState(context, StatePath)
         };
     }
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
-        if (StateUtil.HasNewState(user.CurrentState!, Title, _innerStates, out var innerState))
+        if (StateUtil.HasNewState(user.CurrentState!, StatePath, _innerStates, out var innerState))
         {
             if (await innerState!.ProcessMessage(msg, user))
                 return true;

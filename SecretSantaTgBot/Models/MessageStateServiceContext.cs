@@ -7,7 +7,7 @@ using SecretSantaTgBot.Storage;
 namespace SecretSantaTgBot.Models;
 
 [RequiredService(InjectionType.Singleton)]
-public record MessageStateContext(
+public record MessageStateServiceContext(
     SantaDatabase Database,
     NotificationService Notifications,
     LocalizationDispatcher LocalizationDispatcher,

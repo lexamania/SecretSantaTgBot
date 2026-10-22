@@ -17,7 +17,7 @@ public class InRoomCommandState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public InRoomCommandState(MessageStateContext context) : base(context, TITLE)
+    public InRoomCommandState(MessageStateServiceContext context) : base(context, TITLE)
     {
         var commands = new List<CommandModel> {
             new("/show_room_info", Localization.CommandShowRoomInfo, CommandShowRoomInfo),
@@ -49,16 +49,16 @@ public class InRoomCommandState : MessageStateBase
 
         _innerStates = new()
         {
-            [InRoomWishesState.TITLE] = new InRoomWishesState(context, Title),
-            [InRoomUpdateState.TITLE] = new InRoomUpdateState(context, Title),
-            [InRoomNotifyEveryoneState.TITLE] = new InRoomNotifyEveryoneState(context, Title),
-            [LEAVE_TITLE] = new ConfirmationState(context, Title, LEAVE_TITLE, CommandLeaveRoomConfirmation),
+            [InRoomWishesState.TITLE] = new InRoomWishesState(context, StatePath),
+            [InRoomUpdateState.TITLE] = new InRoomUpdateState(context, StatePath),
+            [InRoomNotifyEveryoneState.TITLE] = new InRoomNotifyEveryoneState(context, StatePath),
+            [LEAVE_TITLE] = new ConfirmationState(context, StatePath, LEAVE_TITLE, CommandLeaveRoomConfirmation),
         };
     }
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
-        if (StateUtil.HasNewState(user.CurrentState!, Title, _innerStates, out var innerState))
+        if (StateUtil.HasNewState(user.CurrentState!, StatePath, _innerStates, out var innerState))
         {
             if (await innerState!.ProcessMessage(msg, user))
                 return true;
@@ -81,7 +81,7 @@ public class InRoomCommandState : MessageStateBase
     private Task CommandBack(Chat chat, UserEntity user, string[] args)
     {
         Database.UserDirectory.UpdateWithClearRoom(user);
-        return MessageBroker.SendHelpMenu(user);
+        return MessageHandler.SendHelpMenu(user);
     }
 
     private Task CommandShowRoomInfo(Chat chat, UserEntity user, string[] args)

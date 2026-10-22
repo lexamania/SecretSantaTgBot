@@ -14,7 +14,7 @@ public class DefaultState : MessageStateBase
 
     private readonly Dictionary<string, MessageStateBase> _innerStates;
 
-    public DefaultState(MessageStateContext context) : base(context, TITLE)
+    public DefaultState(MessageStateServiceContext context) : base(context, TITLE)
     {
         var commands = new List<CommandModel> {
             new("/select_room", Localization.CommandSelectRoom, CommandSelectRoom),
@@ -28,15 +28,15 @@ public class DefaultState : MessageStateBase
 
         _innerStates = new()
         {
-            [RoomSelectState.TITLE] = new RoomSelectState(context, Title),
-            [RoomDeleteState.TITLE] = new RoomDeleteState(context, Title),
-            [RoomCreateState.TITLE] = new RoomCreateState(context, Title),
+            [RoomSelectState.TITLE] = new RoomSelectState(context, StatePath),
+            [RoomDeleteState.TITLE] = new RoomDeleteState(context, StatePath),
+            [RoomCreateState.TITLE] = new RoomCreateState(context, StatePath),
         };
     }
 
     public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
     {
-        if (StateUtil.HasNewState(user.CurrentState!, Title, _innerStates, out var innerState))
+        if (StateUtil.HasNewState(user.CurrentState!, StatePath, _innerStates, out var innerState))
         {
             if (await innerState!.ProcessMessage(msg, user))
                 return true;
