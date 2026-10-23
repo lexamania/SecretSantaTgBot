@@ -1,0 +1,62 @@
+using SecretSantaTgBot.Extensions;
+using SecretSantaTgBot.Models;
+using SecretSantaTgBot.Models.MessageStates.Base;
+using SecretSantaTgBot.Storage.Entities;
+using SecretSantaTgBot.Utils;
+
+using Telegram.Bot.Types;
+
+namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
+
+public class InRoomWishesState(ServicesContext context, string parentTitle)
+    : ContiniousMessageStateBase(context, NameParser.JoinArgs(parentTitle, TITLE))
+{
+    public const string TITLE = "in_room_wishes";
+
+    protected override string Message => Localization.UserStartWishes;
+
+    public override async Task<bool> ProcessMessage(Message msg, UserEntity user)
+    {
+        var room = user.SelectedRoom!;
+        var participant = user.GetAsParticipant(room)!;
+
+        if (MessageParser.TryParseCommand(msg, out var command, out var args))
+        {
+            await CallRequiredCommand(command!, msg, user, args);
+            return true;
+        }
+
+        if (MessageParser.TryParseText(msg, out var message))
+        {
+            participant.Wishes.Add(new() { Message = message, });
+            Database.RoomDirectory.Update(room);
+            await Notifications.SendMessage(user.Id, Localization.UserWishAdded);
+            return true;
+        }
+
+        if (MessageParser.TryParseImage(msg, out var capture, out var image))
+        {
+            var lastWish = participant.Wishes.LastOrDefault();
+            if (msg.Caption is null && lastWish is not null && lastWish.Images.Count > 0)
+            {
+                lastWish.Images.Add(image!.FileId);
+            }
+            else
+            {
+                var wish = new UserWishEntity()
+                {
+                    Message = msg.Caption,
+                    Images = [image!.FileId]
+                };
+                participant.Wishes.Add(wish);
+            }
+
+            Database.RoomDirectory.Update(room);
+            await Notifications.SendMessage(user.Id, Localization.UserWishAdded);
+            return true;
+        }
+
+        await Notifications.SendErrorCommandMessage(msg.Chat.Id, Message);
+        return true;
+    }
+}

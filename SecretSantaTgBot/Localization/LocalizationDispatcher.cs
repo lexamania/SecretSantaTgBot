@@ -11,7 +11,7 @@ public class LocalizationDispatcher
         _messagesDictionary["UA"] = new LocalizationUA();
     }
 
-    public ILocalization Get(string language)
+    public ILocalization Get(string? language)
     {
         return _messagesDictionary.TryGetValue(language, out var messagesDictionary)
             ? messagesDictionary

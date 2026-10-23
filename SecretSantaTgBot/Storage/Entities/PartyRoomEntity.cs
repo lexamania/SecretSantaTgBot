@@ -9,5 +9,5 @@ public class PartyRoomEntity
     public string PartyDescription { get; set; }
     public bool IsPlayed { get; set; }
     [BsonRef("users")] public UserEntity Admin { get; set; }
-    public List<ParticipantEntity> Users { get; set; }
+    public List<ParticipantEntity> Participants { get; set; }
 }

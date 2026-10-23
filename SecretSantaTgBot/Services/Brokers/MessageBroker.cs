@@ -18,7 +18,7 @@ public class MessageBroker(
 {
     public async Task OnMessage(Message msg, UpdateType type)
     {
-        var user = database.UserDirectory.GetOrCreate(msg.Chat);
+        var user = database.Users.GetOrCreate(msg.Chat);
 
         try
         {
@@ -35,8 +35,8 @@ public class MessageBroker(
             logger.LogError(ex, msg.Text);
         }
 
-        database.UserDirectory.UpdateWithClearState(user);
+        database.Users.UpdateWithClearState(user);
         await notifications.SendErrorCommandMessage(msg.Chat.Id);
-        await globalHandler.SimulateHelpCommand(user);
+        await globalHandler.SendHelpMenu(user);
     }
 }

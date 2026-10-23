@@ -7,9 +7,8 @@ namespace SecretSantaTgBot.Models.Commands;
 public delegate Task BotCommandCallback(Chat chat, BotCommandContext context);
 public class CustomBotCommand(
     string command,
-    string description,
     BotCommandCallback callback
-    ) : BotCommand(command, description), IBotCommand
+    ) : BotCommand(command, command), IBotCommand
 {
     public bool HasHelp { get; init; } = true;
     public Base.AccessRights Access { get; init; } = Base.AccessRights.Default;

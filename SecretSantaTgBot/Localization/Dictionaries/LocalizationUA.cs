@@ -5,7 +5,7 @@ public class LocalizationUA : ILocalization
     public string CommandError { get; } = "❌ Не роспізнана команда! ❌";
     public string CommandBotMenu { get; } = "☃️ Меню Бота ☃️\n";
     public string CommandHelp { get; } = "сторінка з усіма командами";
-    public string CommandStop { get; } = "перейти до головного меню";
+    public string CommandBack { get; } = "перейти до головного меню";
 
     public string CommandUpdateRoom { get; } = "змінити опис кімнати";
     public string CommandLeaveRoom { get; } = "зупинити участь і покинути кімнату";
@@ -15,7 +15,7 @@ public class LocalizationUA : ILocalization
     public string CommandStopWishes { get; } = "зупинити додавати бажання";
     public string CommandClearWishes { get; } = "очистити список своїх бажань";
     public string CommandShowMe { get; } = "показати інформацію про мене";
-    public string CommandBack { get; } = "повернутися до списку кімнат";
+    public string CommandExit { get; } = "повернутися до списку кімнат";
 
     public string CommandCreateRoom { get; } = "створити нову кімнату";
     public string CommandSelectRoom { get; } = "перейти до кімнати";

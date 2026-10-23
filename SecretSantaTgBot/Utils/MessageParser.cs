@@ -5,11 +5,15 @@ namespace SecretSantaTgBot.Utils;
 
 public static class MessageParser
 {
-    public static bool IsCommand(Message msg, out string? command, out string[]? args)
+    public static string[] ParseButtonMessage(string text)
+        => [.. text.Split().Where(x => x.Length > 0)];
+
+    public static bool TryParseCommand(Message msg, out string? command, out string[]? args)
     {
-        if (msg.Type == MessageType.Text && msg.Text!.StartsWith('/'))
+        var text = msg.Text?.Trim();
+        if (msg.Type == MessageType.Text && text!.StartsWith('/'))
         {
-            var words = NameParser.ParseArgs(msg.Text!.Trim());
+            var words = text!.Split().Where(x => x.Length > 0).ToArray();
             command = words[0];
             args = words.Length > 1
                 ? words[1..]
@@ -23,11 +27,12 @@ public static class MessageParser
         return false;
     }
 
-    public static bool IsMessage(Message msg, out string? message)
+    public static bool TryParseText(Message msg, out string? message)
     {
-        if (msg.Type == MessageType.Text && !msg.Text!.StartsWith('/'))
+        var text = msg.Text?.Trim();
+        if (msg.Type == MessageType.Text && !text!.StartsWith('/'))
         {
-            message = msg.Text!.Trim();
+            message = text;
             return true;
         }
 
@@ -35,11 +40,11 @@ public static class MessageParser
         return false;
     }
 
-    public static bool IsImage(Message msg, out string? message, out PhotoSize? image)
+    public static bool TryParseImage(Message msg, out string? message, out PhotoSize? image)
     {
         if (msg.Type == MessageType.Photo)
         {
-            message = msg.Caption!.Trim();
+            message = msg.Caption?.Trim();
             image = msg.Photo!.First();
             return true;
         }

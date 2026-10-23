@@ -1,4 +1,4 @@
-using SecretSantaTgBot.Services.MessageStates.Base;
+using SecretSantaTgBot.Models.MessageStates.Base;
 
 namespace SecretSantaTgBot.Utils;
 

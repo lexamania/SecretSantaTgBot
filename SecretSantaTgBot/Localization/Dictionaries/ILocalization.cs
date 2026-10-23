@@ -5,7 +5,7 @@ public interface ILocalization
     public abstract string CommandError { get; }
     public abstract string CommandBotMenu { get; }
     public abstract string CommandHelp { get; }
-    public abstract string CommandStop { get; }
+    public abstract string CommandBack { get; }
 
     public abstract string CommandUpdateRoom { get; }
     public abstract string CommandLeaveRoom { get; }
@@ -15,7 +15,7 @@ public interface ILocalization
     public abstract string CommandStopWishes { get; }
     public abstract string CommandClearWishes { get; }
     public abstract string CommandShowMe { get; }
-    public abstract string CommandBack { get; }
+    public abstract string CommandExit { get; }
 
     public abstract string CommandCreateRoom { get; }
     public abstract string CommandSelectRoom { get; }

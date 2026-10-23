@@ -69,7 +69,7 @@ public sealed class NotificationService(
 
     public Task NotifyEveryoneInRoom(PartyRoomEntity room, string message)
     {
-        var users = room.Users.Select(u => u.Id).ToArray();
+        var users = room.Participants.Select(u => u.Id).ToArray();
         return NotifyEveryone(users, message);
     }
 }

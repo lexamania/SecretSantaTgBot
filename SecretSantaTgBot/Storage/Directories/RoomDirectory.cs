@@ -21,7 +21,7 @@ public class RoomDirectory(LiteDatabase db) : DirectoryBase<PartyRoomEntity>(db,
             Title = title,
             PartyDescription = description,
             Admin = user,
-            Users = [participant],
+            Participants = [participant],
         };
 
         Collection.Insert(room);

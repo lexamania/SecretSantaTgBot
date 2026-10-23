@@ -9,7 +9,7 @@ public class UserEntity
     public string? Language { get; set; }
 
     [BsonRef("rooms")] public PartyRoomEntity? SelectedRoom { get; set; }
-    [BsonRef("rooms")] public List<PartyRoomEntity> AvailableRooms { get; set; }
+    [BsonRef("rooms")] public List<PartyRoomEntity> AvailableRooms { get; set; } = [];
 
     public string? CurrentState { get; set; }
 }

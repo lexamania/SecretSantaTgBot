@@ -59,8 +59,8 @@ public class MessageBuilder(
 
     public string BuildRoomInfoMessage(PartyRoomEntity room)
     {
-        var admin = room.Users.First(x => x.Id == room.Admin.Id);
-        var participants = room.Users;
+        var admin = room.Participants.First(x => x.Id == room.Admin.Id);
+        var participants = room.Participants;
 
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>\"{room.Title}\"</b>");

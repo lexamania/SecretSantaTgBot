@@ -1,6 +1,6 @@
 using SecretSantaTgBot.Attributes;
-using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Services;
+using SecretSantaTgBot.Services.MessageHandlers;
 using SecretSantaTgBot.Storage;
 
 namespace SecretSantaTgBot.Models;
@@ -9,5 +9,5 @@ namespace SecretSantaTgBot.Models;
 public record ServicesContext(
     SantaDatabase Database,
     NotificationService Notifications,
-    LocalizationDispatcher LocalizationDispatcher,
-    MessageBuilder MessageBuilder);
+    MessageBuilder MessageBuilder,
+    CustomProcessHandler ProcessHandler);
