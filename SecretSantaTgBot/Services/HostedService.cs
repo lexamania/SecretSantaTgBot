@@ -11,8 +11,8 @@ public class HostedService(
     TelegramBotService telegramBot,
     BotConfiguration config,
     ILogger<TelegramBotService> logger,
-    IServiceProvider provider)
-    : BackgroundService
+    IServiceProvider provider
+    ) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

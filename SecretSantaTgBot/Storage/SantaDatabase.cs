@@ -12,8 +12,8 @@ public class SantaDatabase: IDisposable
 {
     private readonly LiteDatabase _database;
 
-    public UserDirectory UserDirectory { get; }
-    public RoomDirectory RoomDirectory { get; }
+    public UserDirectory Users { get; }
+    public RoomDirectory Rooms { get; }
 
     public SantaDatabase(BotConfiguration config)
     {
@@ -21,15 +21,15 @@ public class SantaDatabase: IDisposable
         DirectoryUtils.CreateDirectoryRecursively(Path.GetDirectoryName(dbPath)!);
 
         _database = new LiteDatabase(dbPath);
-        UserDirectory = new UserDirectory(_database);
-        RoomDirectory = new RoomDirectory(_database);
+        Users = new UserDirectory(_database);
+        Rooms = new RoomDirectory(_database);
     }
 
     public PartyRoomEntity DeleteRoom(UserEntity user, string roomId)
     {
         var room = user.AvailableRooms.First(x => roomId.Equals(x.Id.ToString()));
-        var userIds = room.Users.Select(x => x.Id).ToList();
-        var users = UserDirectory.GetByIds(userIds);
+        var userIds = room.Participants.Select(x => x.Id).ToList();
+        var users = Users.GetByIds(userIds);
 
         foreach (var u in users)
         {
@@ -43,8 +43,8 @@ public class SantaDatabase: IDisposable
             }
         }
 
-        RoomDirectory.Delete(room.Id);
-        UserDirectory.Update(users);
+        Rooms.Delete(room.Id);
+        Users.Update(users);
 
         return room;
     }
@@ -52,23 +52,23 @@ public class SantaDatabase: IDisposable
     public void RemoveUserFromRoom(UserEntity user, PartyRoomEntity room)
     {
         var deletedRoom = user.AvailableRooms.RemoveFirst(x => x.Id == room.Id);
-        var deletedParticipant = room.Users.RemoveFirst(x => x.Id == user.Id);
+        var deletedParticipant = room.Participants.RemoveFirst(x => x.Id == user.Id);
 
-        UserDirectory.UpdateWithClearRoom(user);
-        RoomDirectory.Update(room);
+        Users.UpdateWithRoomClearing(user);
+        Rooms.Update(room);
     }
 
     public void AddUserToRoom(UserEntity user, PartyRoomEntity room)
     {
         user.AvailableRooms.Add(room);
-        room.Users.Add(new()
+        room.Participants.Add(new()
         {
             Id = user.Id,
             Username = user.Username
         });
 
-        RoomDirectory.Update(room);
-        UserDirectory.Update(user);
+        Rooms.Update(room);
+        Users.Update(user);
     }
 
     public void Dispose()

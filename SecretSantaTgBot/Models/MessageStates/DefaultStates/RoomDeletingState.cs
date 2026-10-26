@@ -1,0 +1,69 @@
+using SecretSantaTgBot.Enums;
+using SecretSantaTgBot.Extensions;
+using SecretSantaTgBot.Models.Commands.Default;
+using SecretSantaTgBot.Models.MessageStates.Base;
+using SecretSantaTgBot.Models.MessageStates.Common;
+using SecretSantaTgBot.Utils;
+
+using Telegram.Bot.Types;
+
+namespace SecretSantaTgBot.Models.MessageStates.DefaultStates;
+
+public class RoomDeletingState : InternalMessageStateBase
+{
+    public RoomDeletingState(ServicesContext services)
+        : base(services, StatesList.RoomDeleting)
+    {
+        States[StatesList.Confirmation] = new ConfirmationState(
+            services,
+            StatesList.Confirmation,
+            new DeleteRoomConfirmationBotCommand(services));
+    }
+
+    protected override Task PrepareStateInternal(MessageContext context)
+    {
+        var buttons = context.User.GetAdminRooms()
+            .Select(MessageParser.GenerateRoomButton)
+            .ToArray();
+        return Services.Notifications.SendMessage(
+            context.User.Id,
+            context.Localization.ChooseRoom,
+            buttons!);
+    }
+
+    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
+    {
+        if (await Services.ProcessHandler.HandleStates(this, chat, context))
+            return true;
+
+        if (context.Message.Type == Messages.MessageType.Command)
+            return false;
+
+        if (context.Message.Type != Messages.MessageType.Text)
+        {
+            await Services.Notifications.SendErrorCommandMessage(
+                chat.Id,
+                context.Localization.ChooseRoom);
+            await PrepareState(context);
+            return true;
+        }
+
+        var roomId = MessageParser
+            .ParseButtonMessage(context.Message.TextMsg!.Text)
+            .Last();
+        var room = context.User.GetAvailableRoom(roomId);
+
+        if (room is null || !context.User.IsAdmin(room))
+        {
+            await Services.Notifications.SendErrorMessage(
+                chat.Id,
+                context.Localization.RoomDoesntExist);
+            await PrepareState(context);
+            return true;
+        }
+
+        context.State.StateObject.Arguments[StateArgsList.RoomId] = roomId;
+        await States[StatesList.Confirmation].PrepareState(context);
+        return true;
+    }
+}

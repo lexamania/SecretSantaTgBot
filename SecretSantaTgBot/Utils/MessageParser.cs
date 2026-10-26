@@ -1,4 +1,5 @@
-using SecretSantaTgBot.Services.MessageStates.Base;
+using SecretSantaTgBot.Models.MessageStates.Base;
+using SecretSantaTgBot.Storage.Entities;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -7,11 +8,21 @@ namespace SecretSantaTgBot.Utils;
 
 public static class MessageParser
 {
-    public static bool IsCommand(Message msg, out string? command, out string[]? args)
+    public static string GenerateRoomButton(PartyRoomEntity room)
+        => $"{room.Title} {room.Id}";
+
+    public static string[] ParseButtonMessage(string text)
+        => [.. text.Split().Where(x => x.Length > 0)];
+
+    public static string[] GetCommandsAsButtons(MessageStateBase state)
+        => [..state.ReadOnlyCommands.Keys];
+
+    public static bool TryParseCommand(Message msg, out string? command, out string[]? args)
     {
-        if (msg.Type == MessageType.Text && msg.Text!.StartsWith('/'))
+        var text = msg.Text?.Trim();
+        if (msg.Type == MessageType.Text && text!.StartsWith('/'))
         {
-            var words = NameParser.ParseArgs(msg.Text!.Trim());
+            var words = text!.Split().Where(x => x.Length > 0).ToArray();
             command = words[0];
             args = words.Length > 1
                 ? words[1..]
@@ -25,11 +36,12 @@ public static class MessageParser
         return false;
     }
 
-    public static bool IsMessage(Message msg, out string? message)
+    public static bool TryParseText(Message msg, out string? message)
     {
-        if (msg.Type == MessageType.Text && !msg.Text!.StartsWith('/'))
+        var text = msg.Text?.Trim();
+        if (msg.Type == MessageType.Text && !text!.StartsWith('/'))
         {
-            message = msg.Text!.Trim();
+            message = text;
             return true;
         }
 
@@ -37,11 +49,11 @@ public static class MessageParser
         return false;
     }
 
-    public static bool IsImage(Message msg, out string? message, out PhotoSize? image)
+    public static bool TryParseImage(Message msg, out string? message, out PhotoSize? image)
     {
         if (msg.Type == MessageType.Photo)
         {
-            message = msg.Caption!.Trim();
+            message = msg.Caption?.Trim();
             image = msg.Photo!.First();
             return true;
         }
@@ -49,13 +61,5 @@ public static class MessageParser
         message = default;
         image = default;
         return false;
-    }
-
-    public static bool HasNewState(Dictionary<string, MessageStateBase> innerStates, string fullState, string currentState, out MessageStateBase? result)
-    {
-        result = default;
-
-        var states = NameParser.ParseStateArgs(fullState, currentState);
-        return states.Length != 0 && innerStates.TryGetValue(states[0], out result);
     }
 }
