@@ -1,0 +1,11 @@
+{
+    "profiles": {
+        "SecretSantaTgBot": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "DEFAULT_LANGUAGE": "ua",
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        }
+    }
+}

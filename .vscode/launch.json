@@ -12,19 +12,13 @@
             "program": "${workspaceFolder}/SecretSantaTgBot/bin/Debug/net10.0/SecretSantaTgBot.dll",
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
-            "console": "internalConsole",
-            "env": {
-                "DOTNET_ENVIRONMENT": "Development"
-            }
+            "console": "internalConsole"
         },
         {
             "name": "C#: Launch & Debug",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
-            "env": {
-                "DOTNET_ENVIRONMENT": "Development"
-            }
+            "projectPath": "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj"
         },
     ]
 }
