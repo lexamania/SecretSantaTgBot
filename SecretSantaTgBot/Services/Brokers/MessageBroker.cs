@@ -19,6 +19,10 @@ public class MessageBroker(
 {
     public async Task OnMessage(Message msg, UpdateType type)
     {
+        var userId = msg.From?.Id;
+        var chatId = msg.Chat.Id;
+        Console.WriteLine($"userId: {userId}\nbotId:{chatId}");
+        
         var user = database.Users.GetOrCreate(msg.Chat);
 
         try

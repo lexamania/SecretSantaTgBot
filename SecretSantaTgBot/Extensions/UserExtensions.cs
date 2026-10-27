@@ -4,22 +4,28 @@ namespace SecretSantaTgBot.Extensions;
 
 public static class UserExtensions
 {
-    public static PartyRoomEntity? GetAvailableRoom(this UserEntity user, Guid roomId)
-        => user.AvailableRooms.FirstOrDefault(x => roomId.Equals(x.Id));
-    public static PartyRoomEntity? GetAvailableRoom(this UserEntity user, string roomId)
-        => user.AvailableRooms.FirstOrDefault(x => roomId.Equals(x.Id.ToString()));
+    extension(UserEntity user)
+    {
+        public IEnumerable<PartyRoomEntity> GetAdminRooms()
+            => user.AvailableRooms.Where(x => x.Admin.Id == user.Id);
 
-    public static IEnumerable<PartyRoomEntity> GetAdminRooms(this UserEntity user)
-        => user.AvailableRooms.Where(x => x.Admin.Id == user.Id);
+        public PartyRoomEntity? GetAvailableRoom(Guid roomId)
+            => user.AvailableRooms.FirstOrDefault(x => roomId.Equals(x.Id));
+        public PartyRoomEntity? GetAvailableRoom(string roomIdStr)
+            => Guid.TryParse(roomIdStr, out var roomId)
+                ? user.GetAvailableRoom(roomId)
+                : default;
 
-    public static ParticipantEntity? GetAsParticipant(this UserEntity user, PartyRoomEntity room)
-        => room.Participants.FirstOrDefault(x => x.Id == user.Id);
-    public static ParticipantEntity? GetAsParticipant(this UserEntity user)
-        => user.SelectedRoom?.Participants.FirstOrDefault(x => x.Id == user.Id);
+        public ParticipantEntity? GetAsParticipant(PartyRoomEntity room)
+            => room.Participants.FirstOrDefault(x => x.Id == user.Id);
+        public ParticipantEntity? GetAsParticipant()
+            => user.SelectedRoom is { } room
+                ? user.GetAsParticipant(room)
+                : default;
 
-
-    public static bool IsAdmin(this UserEntity user)
-        => user.SelectedRoom?.Admin.Id == user.Id;
-    public static bool IsAdmin(this UserEntity user, PartyRoomEntity room)
-        => room.Admin.Id == user.Id;
+        public bool IsAdmin(PartyRoomEntity room)
+            => room.Admin.Id == user.Id;
+        public bool IsAdmin()
+            => user.SelectedRoom is { } room && user.IsAdmin(room);
+    }
 }

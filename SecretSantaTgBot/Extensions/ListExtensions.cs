@@ -2,10 +2,13 @@ namespace SecretSantaTgBot.Extensions;
 
 public static class ListExtensions
 {
-    public static T RemoveFirst<T>(this List<T> items, Func<T, bool> predicate)
+    extension<T>(List<T> source)
     {
-        var item = items.First(predicate);
-        items.Remove(item);
-        return item;
+        public T RemoveFirst(Func<T, bool> predicate)
+        {
+            var item = source.First(predicate);
+            source.Remove(item);
+            return item;
+        }
     }
 }

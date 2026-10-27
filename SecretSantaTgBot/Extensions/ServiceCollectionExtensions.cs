@@ -8,24 +8,27 @@ namespace SecretSantaTgBot.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddRequiredServices(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        var types = typeof(Program).Assembly.GetTypes();
-
-        foreach (var type in types)
+        public IServiceCollection AddRequiredServices()
         {
-            var attribute = type.GetCustomAttributes<RequiredServiceAttribute>().FirstOrDefault();
-            if (attribute is null)
-                continue;
+            var types = typeof(Program).Assembly.GetTypes();
 
-            _ = attribute.InjectionType switch
+            foreach (var type in types)
             {
-                InjectionType.Transient => services.AddTransient(type),
-                InjectionType.Scoped => services.AddScoped(type),
-                InjectionType.Singleton or _ => services.AddSingleton(type),
-            };
-        }
+                var attribute = type.GetCustomAttributes<RequiredServiceAttribute>().FirstOrDefault();
+                if (attribute is null)
+                    continue;
 
-        return services;
+                _ = attribute.InjectionType switch
+                {
+                    InjectionType.Transient => services.AddTransient(type),
+                    InjectionType.Scoped => services.AddScoped(type),
+                    InjectionType.Singleton or _ => services.AddSingleton(type),
+                };
+            }
+
+            return services;
+        }
     }
 }

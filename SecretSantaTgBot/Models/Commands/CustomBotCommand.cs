@@ -11,7 +11,7 @@ public class CustomBotCommand(
     ) : BotCommand(command, command), IBotCommand
 {
     public bool HasHelp { get; init; } = true;
-    public Base.AccessRights Access { get; init; } = Base.AccessRights.Default;
+    public AccessRights Access { get; init; } = AccessRights.Default;
 
     public Task Execute(Chat chat, MessageContext context)
         => callback.Invoke(chat, context);
