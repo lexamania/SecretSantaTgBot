@@ -11,10 +11,6 @@ using Serilog;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddSingleton<BotConfiguration>();
-builder.Services.AddSingleton<LocalizationDispatcher>();
-builder.Services.AddSingleton<SantaDatabase>();
-
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.File(
@@ -27,6 +23,15 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Services.AddSerilog();
+
+builder.Services.AddLocalization(options =>
+{
+    options.ResourcesPath = "Resources";
+});
+
+builder.Services.AddSingleton<BotConfiguration>();
+builder.Services.AddSingleton<LocalizationDispatcher>();
+builder.Services.AddSingleton<SantaDatabase>();
 
 builder.Services.AddRequiredServices();
 

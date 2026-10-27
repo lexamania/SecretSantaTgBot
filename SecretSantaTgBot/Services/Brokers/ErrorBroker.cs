@@ -7,7 +7,7 @@ using Telegram.Bot.Polling;
 namespace SecretSantaTgBot.Services.Brokers;
 
 [RequiredService(InjectionType.Transient)]
-public class ErrorBrokerService(ILogger<ErrorBrokerService> logger)
+public class ErrorBroker(ILogger<ErrorBroker> logger)
 {
     public Task OnError(Exception exception, HandleErrorSource source)
     {
