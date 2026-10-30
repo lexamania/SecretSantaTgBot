@@ -1,4 +1,4 @@
-using SecretSantaTgBot.Models.Commands.Base;
+using SecretSantaTgBot.Enums;
 using SecretSantaTgBot.Models.MessageStates.Base;
 
 using Telegram.Bot.Types;
@@ -7,9 +7,8 @@ namespace SecretSantaTgBot.Models.MessageStates.Common;
 
 public class ConfirmationState(
     ServicesContext services,
-    string title,
-    IBotCommand command
-    ) : InternalMessageStateBase(services, title)
+    Func<Chat, MessageContext, Task> callback)
+    : MessageStateBase(services, StatesList.Confirmation)
 {
     protected override Task PrepareStateInternal(MessageContext context)
     {
@@ -18,7 +17,7 @@ public class ConfirmationState(
             context.Localization.ButtonNo
         };
         return Services.Notifications.SendMessage(
-            context.User.Id,
+            context.User.TelegramUserId,
             context.Localization.AskConfirmation,
             buttons!);
     }
@@ -30,7 +29,7 @@ public class ConfirmationState(
 
         if (CompareButton(context.Message.TextMsg!.Text, context.Localization.ButtonYes))
         {
-            await command.Execute(chat, context);
+            await callback.Invoke(chat, context);
             FinishState(context.User);
             return true;
         }
@@ -43,7 +42,7 @@ public class ConfirmationState(
         }
 
         await Services.Notifications.SendErrorCommandMessage(
-            context.User.Id,
+            context.User.TelegramUserId,
             context.Localization.AskConfirmation);
 
         return true;

@@ -9,10 +9,10 @@ namespace SecretSantaTgBot.Models.Commands.InRoom.Admin;
 
 public class NotifyEveryoneCommand(
     ServicesContext services,
-    NotifyEveryoneInRoomState notifyEveryoneState
-    ) : BotCommandBase(
-            BotCommandsList.NotifyEveryone,
-            access: AccessRights.Admin)
+    NotifyEveryoneInRoomState notifyEveryoneState)
+    : BotCommandBase(
+        BotCommandsList.NotifyEveryone,
+        access: AccessRights.Admin)
 {
     public override Task Execute(Chat chat, MessageContext context)
     {

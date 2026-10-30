@@ -7,7 +7,7 @@ public static class UserExtensions
     extension(UserEntity user)
     {
         public IEnumerable<PartyRoomEntity> GetAdminRooms()
-            => user.AvailableRooms.Where(x => x.Admin.Id == user.Id);
+            => user.AvailableRooms.Where(x => x.Admin.TelegramUserId == user.TelegramUserId);
 
         public PartyRoomEntity? GetAvailableRoom(Guid roomId)
             => user.AvailableRooms.FirstOrDefault(x => roomId.Equals(x.Id));
@@ -17,14 +17,14 @@ public static class UserExtensions
                 : default;
 
         public ParticipantEntity? GetAsParticipant(PartyRoomEntity room)
-            => room.Participants.FirstOrDefault(x => x.Id == user.Id);
+            => room.Participants.FirstOrDefault(x => x.TelegramUserId == user.TelegramUserId);
         public ParticipantEntity? GetAsParticipant()
             => user.SelectedRoom is { } room
                 ? user.GetAsParticipant(room)
                 : default;
 
         public bool IsAdmin(PartyRoomEntity room)
-            => room.Admin.Id == user.Id;
+            => room.Admin.TelegramUserId == user.TelegramUserId;
         public bool IsAdmin()
             => user.SelectedRoom is { } room && user.IsAdmin(room);
     }

@@ -16,20 +16,12 @@ public sealed class NotificationService(
 {
     private TelegramBotClient Bot => telegramService.Bot;
 
-    public Task SendMessage(long chatId, string message)
+    public Task SendMessage(long chatId, string message, ReplyMarkup? buttons = null)
     {
         return Bot.SendMessage(chatId,
             message,
             parseMode: ParseMode.Html,
-            replyMarkup: new ReplyKeyboardRemove());
-    }
-
-    public Task SendMessage(long chatId, string message, ReplyMarkup buttons)
-    {
-        return Bot.SendMessage(chatId,
-            message,
-            parseMode: ParseMode.Html,
-            replyMarkup: buttons);
+            replyMarkup: buttons ?? new ReplyKeyboardRemove());
     }
 
     public Task SendImages(long chatId, List<string> images, string? caption)
@@ -69,7 +61,7 @@ public sealed class NotificationService(
 
     public Task NotifyEveryoneInRoom(PartyRoomEntity room, string message)
     {
-        var users = room.Participants.Select(u => u.Id).ToArray();
+        var users = room.Participants.Select(u => u.TelegramUserId).ToArray();
         return NotifyEveryone(users, message);
     }
 }

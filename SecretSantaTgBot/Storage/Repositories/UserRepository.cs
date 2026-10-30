@@ -4,9 +4,9 @@ using SecretSantaTgBot.Storage.Entities;
 
 using Telegram.Bot.Types;
 
-namespace SecretSantaTgBot.Storage.Directories;
+namespace SecretSantaTgBot.Storage.Repositories;
 
-public class UserDirectory(LiteDatabase db) : DirectoryBase<UserEntity>(db, "users")
+public class UserRepository(LiteDatabase db) : DirectoryBase<UserEntity>(db, "users")
 {
     private ILiteCollection<UserEntity> FullUsers => Collection
             .Include(x => x.AvailableRooms)
@@ -16,7 +16,7 @@ public class UserDirectory(LiteDatabase db) : DirectoryBase<UserEntity>(db, "use
         => FullUsers.FindById(id);
 
     public List<UserEntity> GetByIds(IEnumerable<long> ids)
-        => [.. FullUsers.Find(x => ids.Contains(x.Id))];
+        => [.. FullUsers.Find(x => ids.Contains(x.TelegramUserId))];
 
     public UserEntity GetOrCreate(Chat chat)
     {
@@ -37,7 +37,7 @@ public class UserDirectory(LiteDatabase db) : DirectoryBase<UserEntity>(db, "use
     {
         var user = new UserEntity()
         {
-            Id = id,
+            TelegramUserId = id,
             Username = username,
             AvailableRooms = []
         };
@@ -49,28 +49,29 @@ public class UserDirectory(LiteDatabase db) : DirectoryBase<UserEntity>(db, "use
     public bool Update(UserEntity user) => Collection.Update(user);
     public void Update(IEnumerable<UserEntity> users) => Collection.Update(users);
 
-    public bool UpdateWithStateClearing(UserEntity user)
-    {
-        user.CurrentState = default;
-        return Update(user);
-    }
-
-    public bool UpdateWithRoomClearing(UserEntity user)
-    {
-        user.SelectedRoom = default;
-        user.CurrentState = default;
-        return Update(user);
-    }
-
-    public bool UpdateWithStateSetting(UserEntity user, string state)
+    public bool SetState(UserEntity user, string state)
     {
         user.CurrentState = state;
         return Update(user);
     }
 
-    public bool UpdateWithRoomSelection(UserEntity user, PartyRoomEntity room)
+    public bool ClearState(UserEntity user)
+    {
+        user.CurrentState = default;
+        return Update(user);
+    }
+
+    public bool EnterRoom(UserEntity user, PartyRoomEntity room)
     {
         user.SelectedRoom = room;
+        user.CurrentState = default;
+        return Update(user);
+    }
+
+    public bool ExitRoom(UserEntity user)
+    {
+        user.SelectedRoom = default;
+        user.CurrentState = default;
         return Update(user);
     }
 }

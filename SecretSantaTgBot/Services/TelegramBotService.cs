@@ -10,7 +10,7 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Services;
 
 [RequiredService(InjectionType.Singleton)]
-public class TelegramBotService (ServiceProvider provider)
+public class TelegramBotService (IServiceProvider provider)
 {
     private TelegramBotClient? _bot;
     public TelegramBotClient Bot => _bot!;

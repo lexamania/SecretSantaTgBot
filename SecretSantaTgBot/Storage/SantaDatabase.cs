@@ -2,7 +2,7 @@ using LiteDB;
 
 using SecretSantaTgBot.Configurations;
 using SecretSantaTgBot.Extensions;
-using SecretSantaTgBot.Storage.Directories;
+using SecretSantaTgBot.Storage.Repositories;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
@@ -12,8 +12,8 @@ public class SantaDatabase: IDisposable
 {
     private readonly LiteDatabase _database;
 
-    public UserDirectory Users { get; }
-    public RoomDirectory Rooms { get; }
+    public UserRepository Users { get; }
+    public RoomRepository Rooms { get; }
 
     public SantaDatabase(BotConfiguration config)
     {
@@ -21,14 +21,36 @@ public class SantaDatabase: IDisposable
         DirectoryUtils.CreateDirectoryRecursively(Path.GetDirectoryName(dbPath)!);
 
         _database = new LiteDatabase(dbPath);
-        Users = new UserDirectory(_database);
-        Rooms = new RoomDirectory(_database);
+        Users = new UserRepository(_database);
+        Rooms = new RoomRepository(_database);
     }
 
-    public PartyRoomEntity DeleteRoom(UserEntity user, string roomId)
+    public PartyRoomEntity CreateRoom(
+        UserEntity admin,
+        string title,
+        string description,
+        string adminInRoomName)
     {
-        var room = user.AvailableRooms.First(x => roomId.Equals(x.Id.ToString()));
-        var userIds = room.Participants.Select(x => x.Id).ToList();
+        var room = Rooms.Create(admin, title, description);
+
+        room.Participants.Add(new()
+        {
+            TargetUserId = admin.TelegramUserId,
+            Username = admin.Username,
+            InRoomName = adminInRoomName
+        });
+        admin.AvailableRooms.Add(room);
+
+        Users.Update(admin);
+        Rooms.Update(room);
+
+        return room;
+    }
+
+    public PartyRoomEntity DeleteRoom(UserEntity user, Guid roomId)
+    {
+        var room = user.AvailableRooms.First(x => roomId.Equals(x.Id));
+        var userIds = room.Participants.Select(x => x.TelegramUserId).ToList();
         var users = Users.GetByIds(userIds);
 
         foreach (var u in users)
@@ -49,26 +71,30 @@ public class SantaDatabase: IDisposable
         return room;
     }
 
-    public void RemoveUserFromRoom(UserEntity user, PartyRoomEntity room)
-    {
-        var deletedRoom = user.AvailableRooms.RemoveFirst(x => x.Id == room.Id);
-        var deletedParticipant = room.Participants.RemoveFirst(x => x.Id == user.Id);
-
-        Users.UpdateWithRoomClearing(user);
-        Rooms.Update(room);
-    }
-
-    public void AddUserToRoom(UserEntity user, PartyRoomEntity room)
+    public void AddUserToRoom(
+        UserEntity user,
+        PartyRoomEntity room,
+        string userInRoomName)
     {
         user.AvailableRooms.Add(room);
         room.Participants.Add(new()
         {
-            Id = user.Id,
-            Username = user.Username
+            TelegramUserId = user.TelegramUserId,
+            Username = user.Username,
+            InRoomName = userInRoomName
         });
 
         Rooms.Update(room);
         Users.Update(user);
+    }
+
+    public void RemoveUserFromRoom(UserEntity user, PartyRoomEntity room)
+    {
+        var deletedRoom = user.AvailableRooms.RemoveFirst(x => x.Id == room.Id);
+        var deletedParticipant = room.Participants.RemoveFirst(x => x.TelegramUserId == user.TelegramUserId);
+
+        Users.ExitRoom(user);
+        Rooms.Update(room);
     }
 
     public void Dispose()

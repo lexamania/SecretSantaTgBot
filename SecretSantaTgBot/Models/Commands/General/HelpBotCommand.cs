@@ -9,8 +9,8 @@ namespace SecretSantaTgBot.Models.Commands.General;
 
 public class HelpBotCommand(
     ServicesContext services,
-    MessageStateBase state
-    ) : BotCommandBase(BotCommandsList.Help)
+    MessageStateBase state)
+    : BotCommandBase(BotCommandsList.Help)
 {
     public override Task Execute(Chat chat, MessageContext context)
     {

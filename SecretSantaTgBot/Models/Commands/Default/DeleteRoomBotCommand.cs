@@ -9,8 +9,8 @@ namespace SecretSantaTgBot.Models.Commands.Default;
 
 public class DeleteRoomBotCommand(
     ServicesContext services,
-    RoomDeletingState deleteRoomState
-    ) : BotCommandBase(BotCommandsList.DeleteRoom)
+    RoomDeletingState deleteRoomState)
+    : BotCommandBase(BotCommandsList.DeleteRoom)
 {
     public override Task Execute(Chat chat, MessageContext context)
     {

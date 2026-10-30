@@ -8,8 +8,8 @@ namespace SecretSantaTgBot.Models.Commands.Default;
 
 public class SelectRoomBotCommand(
     ServicesContext services,
-    RoomSelectionState selectRoomState
-    ) : BotCommandBase(BotCommandsList.SelectRoom)
+    RoomSelectionState selectRoomState)
+    : BotCommandBase(BotCommandsList.SelectRoom)
 {
     public override Task Execute(Chat chat, MessageContext context)
     {

@@ -28,6 +28,6 @@ public class DefaultState : MessageStateBase
     }
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => await Services.ProcessHandler.HandleStates(this, chat, context) ||
+        => await Services.ProcessHandler.HandleState(this, chat, context) ||
             await Services.ProcessHandler.HandleCommand(this, chat, context);
 }

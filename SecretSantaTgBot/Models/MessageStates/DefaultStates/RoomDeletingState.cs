@@ -1,6 +1,5 @@
 using SecretSantaTgBot.Enums;
 using SecretSantaTgBot.Extensions;
-using SecretSantaTgBot.Models.Commands.Default;
 using SecretSantaTgBot.Models.MessageStates.Base;
 using SecretSantaTgBot.Models.MessageStates.Common;
 using SecretSantaTgBot.Utils;
@@ -9,61 +8,58 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Models.MessageStates.DefaultStates;
 
-public class RoomDeletingState : InternalMessageStateBase
+public class RoomDeletingState : MessageStateBase
 {
     public RoomDeletingState(ServicesContext services)
         : base(services, StatesList.RoomDeleting)
     {
-        States[StatesList.Confirmation] = new ConfirmationState(
+        var confirmDeleteState = new ConfirmationState(
             services,
-            StatesList.Confirmation,
-            new DeleteRoomConfirmationBotCommand(services));
+            DeleteRoom);
+        var selectRoomState = new EnterValueState(
+            services,
+            StatesList.EnterRoomAlias,
+            StateArgsList.RoomAlias,
+            context => context.Localization.ChooseRoom,
+            StateUtil.NextStateCallback(confirmDeleteState),
+            context => context.User.GetAdminRooms()
+                        .Select(MessageParser.GenerateRoomButton)
+                        .ToArray()!
+        );
+
+        States[selectRoomState.Title] = selectRoomState;
+        States[confirmDeleteState.Title] = confirmDeleteState;
     }
 
     protected override Task PrepareStateInternal(MessageContext context)
+        => States[StatesList.EnterRoomAlias].PrepareState(context);
+
+    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
+        => Services.ProcessHandler.HandleState(this, chat, context);
+
+    private Task DeleteRoom(Chat chat, MessageContext context)
     {
-        var buttons = context.User.GetAdminRooms()
-            .Select(MessageParser.GenerateRoomButton)
-            .ToArray();
-        return Services.Notifications.SendMessage(
-            context.User.Id,
-            context.Localization.ChooseRoom,
-            buttons!);
-    }
-
-    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
-    {
-        if (await Services.ProcessHandler.HandleStates(this, chat, context))
-            return true;
-
-        if (context.Message.Type == Messages.MessageType.Command)
-            return false;
-
-        if (context.Message.Type != Messages.MessageType.Text)
-        {
-            await Services.Notifications.SendErrorCommandMessage(
-                chat.Id,
-                context.Localization.ChooseRoom);
-            await PrepareState(context);
-            return true;
-        }
-
+        var roomAlias = context.State.StateObject.Arguments[StateArgsList.RoomAlias];
         var roomId = MessageParser
-            .ParseButtonMessage(context.Message.TextMsg!.Text)
+            .ParseButtonMessage(roomAlias)
             .Last();
         var room = context.User.GetAvailableRoom(roomId);
 
-        if (room is null || !context.User.IsAdmin(room))
+        FinishState(context.User);
+
+        if (room is { } && context.User.IsAdmin(room))
         {
-            await Services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.RoomDoesntExist);
-            await PrepareState(context);
-            return true;
+            Services.Database.DeleteRoom(context.User, room.Id);
+
+            var notifyMessage = Services.MessageBuilder.BuildDeleteRoomMessage(room);
+            return Task.WhenAll(
+                context.GlobalMessageHandler.SendHelpMenu(context.User),
+                Services.Notifications.NotifyEveryoneInRoom(room, notifyMessage));
         }
 
-        context.State.StateObject.Arguments[StateArgsList.RoomId] = roomId;
-        await States[StatesList.Confirmation].PrepareState(context);
-        return true;
+        return Services.Notifications.SendErrorMessage(
+            chat.Id,
+            context.Localization.RoomDoesntExist);
+
     }
 }

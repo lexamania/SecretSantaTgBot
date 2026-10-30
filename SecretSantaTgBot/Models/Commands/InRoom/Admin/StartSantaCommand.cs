@@ -22,7 +22,7 @@ public class StartSantaCommand(ServicesContext services)
                 chat.Id,
                 context.Localization.NeedAdminRights);
 
-        if (room.IsPlayed)
+        if (room.SantaPlayed)
             return services.Notifications.SendErrorMessage(
                 chat.Id,
                 context.Localization.SecretSantaWasPlayed);
@@ -34,7 +34,7 @@ public class StartSantaCommand(ServicesContext services)
                 context.Localization.NotEnoughParticipants);
 
         room.Participants = ShuffleTargets(room.Participants);
-        room.IsPlayed = true;
+        room.SantaPlayed = true;
         services.Database.Rooms.Update(room);
 
         return NotifyEveryoneTheirTarget(room);
@@ -46,7 +46,7 @@ public class StartSantaCommand(ServicesContext services)
         var targetListIds = RandomUtility.GetShuffledUniqueIndexRange(pArray.Length);
 
         for (int i = 0; i < pArray.Length; ++i)
-            pArray[i].TargetUserId = pArray[targetListIds[i]].Id;
+            pArray[i].TargetUserId = pArray[targetListIds[i]].TelegramUserId;
 
         return participants;
     }
@@ -57,9 +57,9 @@ public class StartSantaCommand(ServicesContext services)
 
         foreach (var p in room.Participants)
         {
-            var target = room.Participants.First(x => x.Id == p.TargetUserId);
+            var target = room.Participants.First(x => x.TelegramUserId == p.TargetUserId);
             var message = services.MessageBuilder.BuildTargetMessage(room, target);
-            result.Add((p.Id, message));
+            result.Add((p.TelegramUserId, message));
         }
 
         return services.Notifications.NotifyEveryone(result);

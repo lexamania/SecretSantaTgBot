@@ -1,6 +1,6 @@
 using LiteDB;
 
-namespace SecretSantaTgBot.Storage.Directories;
+namespace SecretSantaTgBot.Storage.Repositories;
 
 public class DirectoryBase<T>(LiteDatabase database, string collectionName)
 {

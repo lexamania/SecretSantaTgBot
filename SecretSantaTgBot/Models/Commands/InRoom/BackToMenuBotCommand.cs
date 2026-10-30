@@ -10,7 +10,7 @@ public class BackToMenuBotCommand(ServicesContext services)
 {
     public override Task Execute(Chat chat, MessageContext context)
     {
-        services.Database.Users.UpdateWithRoomClearing(context.User);
+        services.Database.Users.ExitRoom(context.User);
         return context.GlobalMessageHandler.SendHelpMenu(context.User);
     }
 }

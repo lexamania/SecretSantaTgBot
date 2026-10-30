@@ -8,12 +8,18 @@ namespace SecretSantaTgBot.Models.MessageStates;
 
 public class GlobalState : MessageStateBase
 {
-    public GlobalState(ServicesContext services, DefaultState defaultState)
+    public GlobalState(ServicesContext services)
         : base(services, StatesList.Global)
     {
+        var defaultState = new DefaultState(services);
+
+        States[StatesList.Default] = defaultState;
+        States[StatesList.InRoom] = new InRoomState(services);
+
         Commands[BotCommandsList.Start] = new StartBotCommand(services, defaultState);
     }
 
-    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => Services.ProcessHandler.HandleCommand(this, chat, context);
+    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
+        => await Services.ProcessHandler.HandleCommand(this, chat, context)
+        || await Services.ProcessHandler.HandleGlobalState(this, chat, context);
 }

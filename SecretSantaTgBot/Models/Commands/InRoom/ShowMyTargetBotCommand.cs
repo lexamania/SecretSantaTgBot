@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Models.Commands.InRoom;
 
 public class ShowMyTargetBotCommand(ServicesContext services)
-    : BotCommandBase(BotCommandsList.ShowRoomInfo)
+    : BotCommandBase(BotCommandsList.ShowMyTarget)
 {
     public override async Task Execute(Chat chat, MessageContext context)
     {
@@ -21,7 +21,7 @@ public class ShowMyTargetBotCommand(ServicesContext services)
         }
 
         var room = context.User.SelectedRoom!;
-        var target = room.Participants.First(x => x.Id == me.TargetUserId.Value);
+        var target = room.Participants.First(x => x.TelegramUserId == me.TargetUserId.Value);
             
         var message = services.MessageBuilder.BuildUserInfoMessage(
             context.Localization.TargetWishesList,
@@ -29,7 +29,7 @@ public class ShowMyTargetBotCommand(ServicesContext services)
 
         await services.Notifications.SendMessage(chat.Id, message);
 
-        foreach (var wish in target.Wishes.Where(x => x.Images is { Count: > 0 }))
-            await services.Notifications.SendImages(chat.Id, wish.Images, wish.Message);
+        foreach (var wish in target.Wishes.Where(x => x.ImageIds is { Count: > 0 }))
+            await services.Notifications.SendImages(chat.Id, wish.ImageIds, wish.Message);
     }
 }

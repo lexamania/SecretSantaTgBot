@@ -9,8 +9,8 @@ namespace SecretSantaTgBot.Models.Commands.InRoom.Admin;
 
 public class UpdateRoomCommand(
     ServicesContext services,
-    ModifyRoomState roomUpdateState
-    ) : BotCommandBase(
+    ModifyRoomState roomUpdateState)
+    : BotCommandBase(
         BotCommandsList.UpdateRoom,
         access: AccessRights.Admin)
 {

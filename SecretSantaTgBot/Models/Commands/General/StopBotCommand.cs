@@ -10,7 +10,7 @@ public class StopBotCommand(ServicesContext services)
 {
     public override Task Execute(Chat chat, MessageContext context)
     {
-        services.Database.Users.UpdateWithStateClearing(context.User);
+        services.Database.Users.ClearState(context.User);
         return context.GlobalMessageHandler.SendHelpMenu(context.User);
     }
 }

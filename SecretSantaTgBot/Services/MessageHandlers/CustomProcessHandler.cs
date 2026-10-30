@@ -10,7 +10,20 @@ namespace SecretSantaTgBot.Services.MessageHandlers;
 [RequiredService(InjectionType.Singleton)]
 public class CustomProcessHandler
 {
-    public async Task<bool> HandleStates(MessageStateBase msgState, Chat chat, MessageContext context)
+    public async Task<bool> HandleGlobalState(MessageStateBase msgState, Chat chat, MessageContext context)
+    {
+        if (context.State.CurrentState is { } strState)
+        {
+            if (msgState.ReadOnlyStates.TryGetValue(strState, out var state))
+            {
+                if (await state.ProcessMessage(chat, context))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+    public async Task<bool> HandleState(MessageStateBase msgState, Chat chat, MessageContext context)
     {
         if (context.State.NextState is { } strState)
         {

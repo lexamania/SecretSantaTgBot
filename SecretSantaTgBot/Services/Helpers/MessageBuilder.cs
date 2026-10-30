@@ -36,21 +36,21 @@ public class MessageBuilder(
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"{_msgs.RoomNumber} \"{room.Title}\"");
         strBldr.AppendLine(_msgs.SantaFinished);
-        strBldr.AppendLine($"{_msgs.UserTarget} {target.RealName} @{target.Username}");
+        strBldr.AppendLine($"{_msgs.UserTarget} {target.InRoomName} @{target.Username}");
         return strBldr.ToString();
     }
 
     public string BuildUserInfoMessage(string header, ParticipantEntity participant)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{participant.RealName} - @{participant.Username}</b>");
+        strBldr.AppendLine($"<b>{participant.InRoomName} - @{participant.Username}</b>");
 
         if (participant.Wishes.Count > 0)
         {
             strBldr.AppendLine();
             strBldr.AppendLine($"<b>{header}</b>");
 
-            foreach (var wish in participant.Wishes.Where(x => x.Images is not { Count: > 0 }))
+            foreach (var wish in participant.Wishes.Where(x => x.ImageIds is not { Count: > 0 }))
                 strBldr.AppendLine($" ► {wish.Message}");            
         }
 
@@ -59,21 +59,21 @@ public class MessageBuilder(
 
     public string BuildRoomInfoMessage(PartyRoomEntity room)
     {
-        var admin = room.Participants.First(x => x.Id == room.Admin.Id);
+        var admin = room.Participants.First(x => x.TelegramUserId == room.Admin.TelegramUserId);
         var participants = room.Participants;
 
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>\"{room.Title}\"</b>");
         strBldr.AppendLine();
         strBldr.AppendLine($"<b>room link: </b>{BuildJoinLink(room.Id.ToString())}");
-        strBldr.AppendLine($"admin: {admin.RealName} - @{admin.Username}");
+        strBldr.AppendLine($"admin: {admin.InRoomName} - @{admin.Username}");
         strBldr.AppendLine();
-        strBldr.AppendLine($"{room.PartyDescription}");
+        strBldr.AppendLine($"{room.Description}");
         strBldr.AppendLine();
         strBldr.AppendLine($"<b>{_msgs.ParticipantsList} ({participants.Count})</b>");
 
         foreach (var prt in participants)
-            strBldr.AppendLine($" ► {prt.RealName} - @{prt.Username}");
+            strBldr.AppendLine($" ► {prt.InRoomName} - @{prt.Username}");
 
         return strBldr.ToString();
     }
@@ -86,12 +86,12 @@ public class MessageBuilder(
 
         foreach (var room in user.AvailableRooms)
         {
-            var adminText = room.Admin.Id == user.Id
+            var adminText = room.Admin.TelegramUserId == user.TelegramUserId
                 ? " - admin"
                 : string.Empty;
 
             strBldr.AppendLine($" ► <b>{room.Title}{adminText}</b>");
-            strBldr.AppendLine($"{room.PartyDescription}");
+            strBldr.AppendLine($"{room.Description}");
             strBldr.AppendLine($"{BuildJoinLink(room.Id.ToString())}");
             strBldr.AppendLine();
         }
@@ -100,7 +100,7 @@ public class MessageBuilder(
     }
 
     public string BuildLeaveMessage(ParticipantEntity p)
-        => $"{p.RealName} (@{p.Username}) {_msgs.UserLeavedRoomForAll}";
+        => $"{p.InRoomName} (@{p.Username}) {_msgs.UserLeavedRoomForAll}";
 
     public string BuildCreateRoomMessage(string roomId)
         => $"{_msgs.RoomCreated} {roomId}\n{BuildJoinLink(roomId)}";

@@ -6,8 +6,8 @@ namespace SecretSantaTgBot.Storage.Entities;
 
 public class UserEntity
 {
-    [BsonId] public long Id { get; set; }
-    public string Username { get; set; }
+    [BsonId] public long TelegramUserId { get; set; }
+    public string? Username { get; set; }
     public string Language { get; set; } = LocalizationDispatcher.DEFAULT_LANG;
 
     [BsonRef("rooms")] public PartyRoomEntity? SelectedRoom { get; set; }

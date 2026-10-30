@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Models.Commands.Default;
 
 public class CreateRoomBotCommand(RoomCreationState createRoomState)
-    : BotCommandBase(BotCommandsList.Back)
+    : BotCommandBase(BotCommandsList.CreateRoom)
 {
     public override Task Execute(Chat chat, MessageContext context)
         => createRoomState.PrepareState(context);

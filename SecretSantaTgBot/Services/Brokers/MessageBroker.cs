@@ -19,10 +19,6 @@ public class MessageBroker(
 {
     public async Task OnMessage(Message msg, UpdateType type)
     {
-        var userId = msg.From?.Id;
-        var chatId = msg.Chat.Id;
-        Console.WriteLine($"userId: {userId}\nbotId:{chatId}");
-        
         var user = database.Users.GetOrCreate(msg.Chat);
 
         try
@@ -40,7 +36,7 @@ public class MessageBroker(
             logger.LogError(ex, msg.Text);
         }
 
-        database.Users.UpdateWithStateClearing(user);
+        database.Users.ClearState(user);
         await notifications.SendErrorCommandMessage(msg.Chat.Id);
         await globalHandler.SendHelpMenu(user);
     }

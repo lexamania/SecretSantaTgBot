@@ -9,19 +9,18 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 
-public class WishAddingState: InternalMessageStateBase
+public class WishAddingState : MessageStateBase
 {
     public WishAddingState(ServicesContext services)
         : base(services, StatesList.AddWishes)
     {
-        Commands[BotCommandsList.Help] = new HelpBotCommand(services, this);
         Commands[BotCommandsList.Stop] = new StopBotCommand(services);
     }
 
     protected override Task PrepareStateInternal(MessageContext context)
     {
         return Services.Notifications.SendMessage(
-            context.User.Id,
+            context.User.TelegramUserId,
             context.Localization.UserStartWishes,
             MessageParser.GetCommandsAsButtons(this)!);
     }
@@ -35,50 +34,47 @@ public class WishAddingState: InternalMessageStateBase
         var participant = user.GetAsParticipant()!;
         var room = user.SelectedRoom!;
 
-        if (context.Message.Type == Messages.MessageType.Text)
+        switch (context.Message.Type)
         {
-            participant.Wishes.Add(new() { Message = context.Message.TextMsg!.Text });
-            await FinalizeWishAdding(room, context);
-            return true;
-        }
+            case Messages.MessageType.Text:
+                participant.Wishes.Add(new() { Message = context.Message.TextMsg!.Text });
+                await FinalizeWishAdding(room, context);
+                return true;
+            case Messages.MessageType.Image:
+                var imageObj = context.Message.ImageMsg!;
+                var lastWish = participant.Wishes.LastOrDefault();
 
-        if (context.Message.Type == Messages.MessageType.Image)
-        {
-            var imageObj = context.Message.ImageMsg!;
-            var lastWish = participant.Wishes.LastOrDefault();
-
-            if (imageObj.Text is null 
-                && lastWish is not null
-                && lastWish.Images.Count > 0)
-            {
-                lastWish.Images.Add(imageObj.ImageId);
-            }
-            else
-            {
-                var wish = new UserWishEntity()
+                if (imageObj.Text is null
+                    && lastWish is not null
+                    && lastWish.ImageIds.Count > 0)
                 {
-                    Message = imageObj.Text,
-                    Images = [imageObj.ImageId]
-                };
-                participant.Wishes.Add(wish);
-            }
+                    lastWish.ImageIds.Add(imageObj.ImageId);
+                }
+                else
+                {
+                    var wish = new UserWishEntity()
+                    {
+                        Message = imageObj.Text,
+                        ImageIds = [imageObj.ImageId]
+                    };
+                    participant.Wishes.Add(wish);
+                }
 
-            await FinalizeWishAdding(room, context);
-            return true;
+                await FinalizeWishAdding(room, context);
+                return true;
+            default:
+                await Services.Notifications.SendErrorCommandMessage(chat.Id);
+                await PrepareState(context);
+                return true;
         }
-    
-        await Services.Notifications.SendErrorCommandMessage(
-            chat.Id,
-            context.Localization.UserStartWishes);
-        await PrepareState(context);
-        return true;
     }
 
-    private Task FinalizeWishAdding(PartyRoomEntity room, MessageContext context)
+    private async Task FinalizeWishAdding(PartyRoomEntity room, MessageContext context)
     {
         Services.Database.Rooms.Update(room);
-        return Services.Notifications.SendMessage(
-            context.User.Id,
+        await Services.Notifications.SendMessage(
+            context.User.TelegramUserId,
             context.Localization.UserWishAdded);
+        await PrepareState(context);
     }
 }

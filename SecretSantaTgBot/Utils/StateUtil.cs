@@ -1,7 +1,10 @@
 using System.Text;
 
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Models.Commands.Base;
 using SecretSantaTgBot.Models.MessageStates.Base;
+
+using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Utils;
 
@@ -60,4 +63,8 @@ public static class StateUtil
 
         return (states, args);
     }
+
+
+    public static Func<Chat, MessageContext, Task> NextStateCallback(MessageStateBase nextState)
+        => (chat, context) => nextState.PrepareState(context);
 }

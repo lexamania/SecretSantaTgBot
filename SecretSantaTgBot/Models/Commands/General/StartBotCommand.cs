@@ -11,8 +11,8 @@ namespace SecretSantaTgBot.Models.Commands.General;
 
 public class StartBotCommand(
     ServicesContext services,
-    DefaultState defaultState
-    ) : BotCommandBase(BotCommandsList.Start)
+    DefaultState defaultState)
+    : BotCommandBase(BotCommandsList.Start)
 {
     public override async Task Execute(Chat chat, MessageContext context)
     {
@@ -21,6 +21,7 @@ public class StartBotCommand(
 
         if (args.Length == 0)
         {
+            services.Database.Users.ClearState(context.User);
             await context.GlobalMessageHandler.SendHelpMenu(context.User);
             return;
         }
@@ -48,8 +49,12 @@ public class StartBotCommand(
 
     private Task RedirectToRoom(Chat chat, MessageContext context, PartyRoomEntity room)
     {
-        var state = StateUtil.JoinStates(StatesList.Default, StatesList.RoomSelection);
-        services.Database.Users.UpdateWithStateSetting(context.User, state);
+        var state = StateUtil.JoinStates(
+            StatesList.Default,
+            StatesList.RoomSelection,
+            StatesList.EnterRoomAlias);
+        services.Database.Users.SetState(context.User, state);
+        context.State.ReplaceState(state.ToString());
 
         return context.GlobalMessageHandler.Handle(
             new Message()
