@@ -117,8 +117,214 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="test" xml:space="preserve">
-    <value>test</value>
+  <data name="cmd_help" xml:space="preserve">
+    <value>сторінка з усіма командами</value>
+    <comment/>
+  </data>
+  <data name="cmd_stop" xml:space="preserve">
+    <value>перейти до головного меню</value>
+    <comment/>
+  </data>
+  <data name="cmd_create_room" xml:space="preserve">
+    <value>створити нову кімнату</value>
+    <comment/>
+  </data>
+  <data name="cmd_select_room" xml:space="preserve">
+    <value>перейти до кімнати</value>
+    <comment/>
+  </data>
+  <data name="cmd_delete_room" xml:space="preserve">
+    <value>видалити кімнату</value>
+    <comment/>
+  </data>
+  <data name="cmd_show_rooms" xml:space="preserve">
+    <value>показати список моїх кімнат</value>
+    <comment/>
+  </data>
+  <data name="cmd_modify_room" xml:space="preserve">
+    <value>змінити опис кімнати</value>
+    <comment/>
+  </data>
+  <data name="cmd_leave_room" xml:space="preserve">
+    <value>зупинити участь і покинути кімнату</value>
+    <comment/>
+  </data>
+  <data name="cmd_show_room_info" xml:space="preserve">
+    <value>показати інформацію по кімнаті</value>
+    <comment/>
+  </data>
+  <data name="cmd_show_me" xml:space="preserve">
+    <value>показати інформацію про мене</value>
+    <comment/>
+  </data>
+  <data name="cmd_show_target" xml:space="preserve">
+    <value>показати мою ціль на Таємного Санту</value>
+    <comment/>
+  </data>
+  <data name="cmd_add_wishes" xml:space="preserve">
+    <value>додати свої бажання</value>
+    <comment/>
+  </data>
+  <data name="cmd_clear_wishes" xml:space="preserve">
+    <value>очистити список своїх бажань</value>
+    <comment/>
+  </data>
+  <data name="cmd_back_to_menu" xml:space="preserve">
+    <value>повернутися до списку кімнат</value>
+    <comment/>
+  </data>
+  <data name="cmd_start_santa" xml:space="preserve">
+    <value>крутити барабан на Санту</value>
+    <comment/>
+  </data>
+  <data name="cmd_notify_everyone" xml:space="preserve">
+    <value>оповістити кожного в кімнаті</value>
+    <comment/>
+  </data>
+  <data name="msg_menu" xml:space="preserve">
+    <value>☃️ Меню Бота ☃️</value>
+    <comment/>
+  </data>
+  <data name="msg_err_command" xml:space="preserve">
+    <value>❌ Не роспізнана команда! ❌</value>
+    <comment/>
+  </data>
+  <data name="msg_enter_title" xml:space="preserve">
+    <value>Введіть назву кімнати:</value>
+    <comment/>
+  </data>
+  <data name="msg_enter_description" xml:space="preserve">
+    <value>Введіть опис івенту:</value>
+    <comment/>
+  </data>
+  <data name="msg_enter_name" xml:space="preserve">
+    <value>Введіть ваше ім'я:</value>
+    <comment/>
+  </data>
+  <data name="msg_room_created" xml:space="preserve">
+    <value>Кімната створена! 🥳</value>
+    <comment/>
+  </data>
+  <data name="msg_room_link" xml:space="preserve">
+    <value>Посилання до кімнати:</value>
+    <comment/>
+  </data>
+  <data name="msg_room_modifyed" xml:space="preserve">
+    <value>Опис кімнати оновлено! 🥳</value>
+    <comment/>
+  </data>
+  <data name="msg_choose_room" xml:space="preserve">
+    <value>Виберіть кімнату:</value>
+    <comment/>
+  </data>
+  <data name="msg_rooms_list" xml:space="preserve">
+    <value>Список твоїх кімнат:</value>
+    <comment/>
+  </data>
+  <data name="msg_room_deleted" xml:space="preserve">
+    <value>Кімнату видалено! 🥳</value>
+    <comment/>
+  </data>
+  <data name="msg_err_zero_rooms" xml:space="preserve">
+    <value>В тебе немає кімнат!</value>
+    <comment/>
+  </data>
+  <data name="msg_err_room_doesnt_exist" xml:space="preserve">
+    <value>❌ Кімнати з таким кодом не знайдено!</value>
+    <comment/>
+  </data>
+  <data name="msg_user_target" xml:space="preserve">
+    <value>🎅 Ваша ціль:</value>
+    <comment/>
+  </data>
+  <data name="msg_wishes_list" xml:space="preserve">
+    <value>🎁 Список бажань 🎁</value>
+    <comment/>
+  </data>
+  <data name="msg_err_santa_is_still_offline" xml:space="preserve">
+    <value>🛎 Розподілення Санти ще не розпочалося! 🛎</value>
+    <comment/>
+  </data>
+  <data name="msg_user_add_wishes" xml:space="preserve">
+    <value>🎁 &lt;b&gt;Почніть додавати ваші побажання.&lt;/b&gt; 🎁
+
+    &lt;b&gt;&lt;u&gt;Правила&lt;/u&gt;&lt;/b&gt;:
+    1. Можете всі побажання відправити текстом за 1 повідомлення
+    2. Можете відправити текст з прикріпленними картинками
+    3. Чи просто самі картинки
+    4. Для завершення виберіть команду /stop чи будь-яку іншу</value>
+    <comment/>
+  </data>
+  <data name="msg_user_wish_is_added" xml:space="preserve">
+    <value>🎁 Побажання додано! 🥳
+    
+    Продовжіть додавати побажання чи завершіть зараз /stop</value>
+    <comment/>
+  </data>
+  <data name="msg_err_need_admin_rights" xml:space="preserve">
+    <value>❌ Ви не адміністратор кімнати!</value>
+    <comment/>
+  </data>
+  <data name="msg_err_admin_cant_leave_room" xml:space="preserve">
+    <value>Ви як адміністратор не можете покинути цю кімнату!
+    Якщо треба ви можете видалити її з основного меню.</value>
+    <comment/>
+  </data>
+  <data name="msg_user_start_registration" xml:space="preserve">
+    <value>🥳 Розпочинаємо реєстрацію!</value>
+    <comment/>
+  </data>
+  <data name="msg_user_registered" xml:space="preserve">
+    <value>🥳 Вас зареєстровано! 🥳</value>
+    <comment/>
+  </data>
+  <data name="msg_participants_list" xml:space="preserve">
+    <value>🎅 Список учасників:</value>
+    <comment/>
+  </data>
+  <data name="msg_start_santa" xml:space="preserve">
+    <value>Розпочинаємо крутити барабан на Санту🎰!</value>
+    <comment/>
+  </data>
+  <data name="msg_ntf_santa_finished" xml:space="preserve">
+    <value>Вибір Санти завершився.
+    Перейдіть в кімнату аби подивитися хто став вашою ціллю 🥳</value>
+    <comment/>
+  </data>
+  <data name="msg_err_santa_not_enough_participants" xml:space="preserve">
+    <value>Недостатньо участників для розподілення!</value>
+    <comment/>
+  </data>
+  <data name="msg_err_santa_was_played" xml:space="preserve">
+    <value>❌ Таємний Санта вже був розіграний!</value>
+    <comment/>
+  </data>
+  <data name="msg_user_left_room" xml:space="preserve">
+    <value>🗿 Вас викреслено з участі! 🗿</value>
+    <comment/>
+  </data>
+  <data name="msg_ntf_user_left_room" xml:space="preserve">
+    <value>покинув кімнату! 🗿</value>
+    <comment/>
+  </data>
+  <data name="msg_enter_message" xml:space="preserve">
+    <value>Введіть повідомлення:</value>
+    <comment/>
+  </data>
+  <data name="msg_message_is_sent" xml:space="preserve">
+    <value>Повідомлення відправлено!</value>
+    <comment/>
+  </data>
+  <data name="msg_message_ask_confirmation" xml:space="preserve">
+    <value>Ви впевнені? (Так/Ні)</value>
+    <comment/>
+  </data>
+  <data name="btn_yes" xml:space="preserve">
+    <value>Так</value>
+    <comment/>
+  </data>
+  <data name="btn_no" xml:space="preserve">
+    <value>Ні</value>
     <comment/>
   </data>
 </root>
