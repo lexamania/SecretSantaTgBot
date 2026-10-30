@@ -14,5 +14,4 @@ public class MessageContext(Message msg, UserEntity user, string state)
     public MessageModel Message { get; } = new(msg);
 
     public required GlobalMessageHandler GlobalMessageHandler { get; init; }
-    public required ILocalization Localization { get; init; }
 }

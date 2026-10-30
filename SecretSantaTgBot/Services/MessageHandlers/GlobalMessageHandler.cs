@@ -1,8 +1,10 @@
+using Microsoft.Extensions.DependencyInjection;
+
 using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Enums;
-using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Models.MessageStates;
+using SecretSantaTgBot.Services.Helpers;
 using SecretSantaTgBot.Storage.Entities;
 
 using Telegram.Bot.Types;
@@ -11,20 +13,22 @@ namespace SecretSantaTgBot.Services.MessageHandlers;
 
 [RequiredService(InjectionType.Singleton)]
 public class GlobalMessageHandler(
-    ServicesContext services,
-    LocalizationDispatcher localizationDispatcher)
+    IServiceProvider provider,
+    LocalizationService localizationService)
 {
-    private readonly GlobalState _globalState = new(services);
+    private GlobalState? _globalState = default;
 
-    public Task<bool> Handle(Message msg, UserEntity user)
+    public async Task<bool> Handle(Message msg, UserEntity user)
     {
+        _globalState ??= new(provider.GetRequiredService<ServicesContext>());
+        var language = user.Language;
         var userContext = new MessageContext(msg, user, ReadState(user))
         {
-            GlobalMessageHandler = this,
-            Localization = localizationDispatcher.Get(user.Language)
+            GlobalMessageHandler = this
         };
 
-        return _globalState.ProcessMessage(msg.Chat, userContext);
+        using (localizationService.UseCulture(language))
+            return await _globalState.ProcessMessage(msg.Chat, userContext);
     }
 
     public Task SendHelpMenu(UserEntity user)
