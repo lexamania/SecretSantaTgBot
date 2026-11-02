@@ -18,20 +18,20 @@ public class StartSantaCommand(ServicesContext services)
         var room = context.User.SelectedRoom!;
 
         if (!context.User.IsAdmin())
-            return services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.NeedAdminRights);
+            return services.Notifications.SendNeedAdminRights(chat.Id);
 
         if (room.SantaPlayed)
-            return services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.SecretSantaWasPlayed);
+        {
+            return services.Notifications.SendMessageByKey(
+                chat.Id, BotContent.Messages.ErrSantaWasPlayed);
+        }
 
         var participants = room.Participants;
         if (participants.Count < 2)
-            return services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.NotEnoughParticipants);
+        {
+            return services.Notifications.SendMessageByKey(
+                chat.Id, BotContent.Messages.ErrSantaNotEnoughParticipants);
+        }
 
         room.Participants = ShuffleTargets(room.Participants);
         room.SantaPlayed = true;
@@ -53,15 +53,15 @@ public class StartSantaCommand(ServicesContext services)
 
     private Task NotifyEveryoneTheirTarget(PartyRoomEntity room)
     {
-        var result = new List<(long Id, string Msg)>();
+        var tasks = new List<Task>();
 
         foreach (var p in room.Participants)
         {
             var target = room.Participants.First(x => x.TelegramUserId == p.TargetUserId);
-            var message = services.MessageBuilder.BuildTargetMessage(room, target);
-            result.Add((p.TelegramUserId, message));
+            var message = services.MessageBuilder.BuildSantaFinished(room, target);
+            tasks.Add(services.Notifications.SendStagedMessage(p.TelegramUserId, message));
         }
 
-        return services.Notifications.NotifyEveryone(result);
+        return Task.WhenAll(tasks);
     }
 }

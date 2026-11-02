@@ -17,9 +17,9 @@ public class NotifyEveryoneInRoomState : MessageStateBase
 
     protected override Task PrepareStateInternal(MessageContext context)
     {
-        return Services.Notifications.SendMessage(
+        return Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
-            context.Localization.EnterInRoomMessage,
+            BotContent.Messages.EnterMessage,
             MessageParser.GetCommandsAsButtons(this)!);
     }
 
@@ -30,8 +30,7 @@ public class NotifyEveryoneInRoomState : MessageStateBase
 
         if (context.Message.Type != Messages.MessageType.Text)
         {
-            await Services.Notifications.SendErrorCommandMessage(chat.Id);
-            await PrepareState(context);
+            await Services.Notifications.SendWrongText(chat.Id);
             return true;
         }
 
@@ -40,9 +39,9 @@ public class NotifyEveryoneInRoomState : MessageStateBase
             Services.Notifications.NotifyEveryoneInRoom(
                 context.User.SelectedRoom!,
                 context.Message.TextMsg!.Text),
-            Services.Notifications.SendMessage(
+            Services.Notifications.SendMessageByKey(
                 context.User.TelegramUserId,
-                context.Localization.InRoomMessageSend)
+                BotContent.Messages.MessageIsSent)
         );
 
         return true;

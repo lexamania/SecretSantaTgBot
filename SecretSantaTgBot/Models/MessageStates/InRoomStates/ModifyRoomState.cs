@@ -17,7 +17,7 @@ public class ModifyRoomState : MessageStateBase
             services,
             StatesList.EnterDescription,
             StateArgsList.Description,
-            context => context.Localization.RoomCreationEnterDescription,
+            BotContent.Messages.EnterDescription,
             ModifyRoom,
             context => MessageParser.GetCommandsAsButtons(this)!
         );
@@ -25,8 +25,8 @@ public class ModifyRoomState : MessageStateBase
             services,
             StatesList.EnterTitle,
             StateArgsList.Title,
-            context => context.Localization.RoomCreationEnterTitle,
-            (_, context) => enterDescriptionState.PrepareState(context),
+            BotContent.Messages.EnterTitle,
+            StateUtil.NextStateCallback(enterDescriptionState),
             context => MessageParser.GetCommandsAsButtons(this)!
         );
 
@@ -51,8 +51,7 @@ public class ModifyRoomState : MessageStateBase
         Services.Database.Rooms.Update(room);
 
         FinishState(context.User);
-        return Services.Notifications.SendMessage(
-            context.User.TelegramUserId,
-            context.Localization.RoomDescriptionUpdated);
+        return Services.Notifications.SendMessageByKey(
+            context.User.TelegramUserId, BotContent.Messages.RoomModifyed);
     }
 }

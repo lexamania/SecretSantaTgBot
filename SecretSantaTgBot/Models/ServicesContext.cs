@@ -8,6 +8,7 @@ namespace SecretSantaTgBot.Models;
 [RequiredService(InjectionType.Singleton)]
 public record ServicesContext(
     SantaDatabase Database,
-    NotificationService Notifications,
     MessageBuilder MessageBuilder,
-    CustomProcessHandler ProcessHandler);
+    NotificationService Notifications,
+    CustomProcessHandler ProcessHandler,
+    GlobalMessageHandler GlobalMessageHandler);

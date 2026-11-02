@@ -11,13 +11,11 @@ public class BotConfiguration(IConfiguration config) : IDisposable
 
     public string BotToken { get; } = 
         config.GetRequiredValue<string>("BOT_TOKEN");
+
     public string? BotName { get; set; }
 
     public string DBPath { get; } =
         Path.Join(AppContext.BaseDirectory, "Data", "Storage.db");
-
-    public string DefaultLanguage { get; } =
-        config.GetRequiredValue<string>("DEFAULT_LANGUAGE");
 
     public void Dispose()
     {

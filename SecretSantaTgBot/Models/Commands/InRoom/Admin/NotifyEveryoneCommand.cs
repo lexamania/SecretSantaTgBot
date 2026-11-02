@@ -18,8 +18,6 @@ public class NotifyEveryoneCommand(
     {
         return context.User.IsAdmin()
             ? notifyEveryoneState.PrepareState(context)
-            : services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.NeedAdminRights);
+            : services.Notifications.SendNeedAdminRights(chat.Id);
     }
 }

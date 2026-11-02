@@ -11,7 +11,7 @@ public class ShowRoomBotCommand(ServicesContext services)
     public override Task Execute(Chat chat, MessageContext context)
     {
         var message = services.MessageBuilder
-            .BuildRoomInfoMessage(context.User.SelectedRoom!);
+            .BuildRoomInfo(context.User.SelectedRoom!);
         return services.Notifications.SendMessage(chat.Id, message);
     }
 }

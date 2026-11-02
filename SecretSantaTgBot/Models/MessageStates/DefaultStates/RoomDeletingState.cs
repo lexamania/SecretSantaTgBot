@@ -20,7 +20,7 @@ public class RoomDeletingState : MessageStateBase
             services,
             StatesList.EnterRoomAlias,
             StateArgsList.RoomAlias,
-            context => context.Localization.ChooseRoom,
+            BotContent.Messages.ChooseRoom,
             StateUtil.NextStateCallback(confirmDeleteState),
             context => context.User.GetAdminRooms()
                         .Select(MessageParser.GenerateRoomButton)
@@ -49,17 +49,15 @@ public class RoomDeletingState : MessageStateBase
 
         if (room is { } && context.User.IsAdmin(room))
         {
+            var notifyMessage = Services.MessageBuilder.BuildDeleteRoom(room);
             Services.Database.DeleteRoom(context.User, room.Id);
 
-            var notifyMessage = Services.MessageBuilder.BuildDeleteRoomMessage(room);
             return Task.WhenAll(
-                context.GlobalMessageHandler.SendHelpMenu(context.User),
+                Services.GlobalMessageHandler.SendHelpMenu(context.User),
                 Services.Notifications.NotifyEveryoneInRoom(room, notifyMessage));
         }
 
-        return Services.Notifications.SendErrorMessage(
-            chat.Id,
-            context.Localization.RoomDoesntExist);
-
+        return Services.Notifications.SendStagedMessageByKey(
+            chat.Id, BotContent.Messages.ErrRoomDoesntExist);
     }
 }

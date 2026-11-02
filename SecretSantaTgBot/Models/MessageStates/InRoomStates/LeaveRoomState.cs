@@ -13,8 +13,7 @@ public class LeaveRoomState : MessageStateBase
         : base(services, StatesList.RoomLeaving)
     {
         States[StatesList.Confirmation] = new ConfirmationState(
-            services,
-            LeaveRoom);
+            services, LeaveRoom);
     }
 
     protected override Task PrepareStateInternal(MessageContext context)
@@ -30,13 +29,12 @@ public class LeaveRoomState : MessageStateBase
 
         Services.Database.RemoveUserFromRoom(context.User, room);
 
-        var message = Services.MessageBuilder.BuildLeaveMessage(participant);
+        var message = Services.MessageBuilder.BuildLeave(participant);
 
         return Task.WhenAll(
-            Services.Notifications.NotifyEveryoneInRoom(room, message),
-            Services.Notifications.SendMessage(
-                chat.Id,
-                context.Localization.UserLeavedRoom)
+            Services.Notifications.SendMessageByKey(
+                chat.Id, BotContent.Messages.UserLeftRoom),
+            Services.Notifications.NotifyEveryoneInRoom(room, message)
         );
     }
 }

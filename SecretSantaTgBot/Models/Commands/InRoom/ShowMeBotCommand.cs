@@ -11,15 +11,12 @@ public class ShowMeBotCommand(ServicesContext services)
 {
     public override async Task Execute(Chat chat, MessageContext context)
     {
-        var target = context.User.GetAsParticipant()!;
+        var participant = context.User.GetAsParticipant()!;
 
-        var message = services.MessageBuilder.BuildUserInfoMessage(
-            context.Localization.UserWishesList,
-            target);
-
+        var message = services.MessageBuilder.BuildUserInfo(participant);
         await services.Notifications.SendMessage(chat.Id, message);
 
-        foreach (var wish in target.Wishes.Where(x => x.ImageIds is { Count: > 0 }))
+        foreach (var wish in participant.Wishes.Where(x => x.ImageIds is { Count: > 0 }))
             await services.Notifications.SendImages(chat.Id, wish.ImageIds, wish.Message);
     }
 }

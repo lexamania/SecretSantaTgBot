@@ -1,9 +1,11 @@
 using System.Text;
 
+using Microsoft.Extensions.Localization;
+
 using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Configurations;
-using SecretSantaTgBot.Localization;
-using SecretSantaTgBot.Localization.Dictionaries;
+using SecretSantaTgBot.Enums;
+using SecretSantaTgBot.Extensions;
 using SecretSantaTgBot.Models.Commands.Base;
 using SecretSantaTgBot.Storage.Entities;
 
@@ -11,44 +13,45 @@ namespace SecretSantaTgBot.Services.Helpers;
 
 [RequiredService(InjectionType.Singleton)]
 public class MessageBuilder(
-    LocalizationDispatcher msgDspt,
+    IStringLocalizer<BotContent> texts,
     BotConfiguration config)
 {
-    // Todo: finish localization
-    private readonly ILocalization _msgs = msgDspt.Get();
+    public string GetByKey(string textKey)
+        => texts[textKey];
 
     public string BuildHelpMessage(IEnumerable<IBotCommand> commands, bool isAdmin)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{_msgs.CommandBotMenu}</b>");
+        strBldr.AppendLine($"<b>{texts[BotContent.Messages.Menu]}</b>");
+        strBldr.AppendLine();
 
-        foreach (var command in commands.Where(x => x.HasHelp 
-                                                && (x.Access == AccessRights.Default
-                                                    || (x.Access == AccessRights.Admin && isAdmin)
-                                                    || (x.Access == AccessRights.NotForAdmin && !isAdmin))))
-            strBldr.AppendLine($"{command.Command} - {command.Description}");
+        foreach (var command in commands.Where(x => x.Access.HasAccess(isAdmin)))
+            strBldr.AppendLine($"{command.Command} - {texts[BotCommandsList.Descriptions.GetKey(command.Command)!]}");
 
         return strBldr.ToString();
     }
 
-    public string BuildTargetMessage(PartyRoomEntity room, ParticipantEntity target)
+    public string BuildSantaFinished(PartyRoomEntity room, ParticipantEntity target)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"{_msgs.RoomNumber} \"{room.Title}\"");
-        strBldr.AppendLine(_msgs.SantaFinished);
-        strBldr.AppendLine($"{_msgs.UserTarget} {target.InRoomName} @{target.Username}");
+        strBldr.AppendLine($"<b>{room.Title}</b>");
+        strBldr.AppendLine(texts[BotContent.Messages.NtfSantaFinished]);
+        strBldr.AppendLine($"{BuildTargetInfo(target)}");
         return strBldr.ToString();
     }
 
-    public string BuildUserInfoMessage(string header, ParticipantEntity participant)
+    public string BuildTargetInfo(ParticipantEntity participant)
+        => $"{texts[BotContent.Messages.UserTarget]}\n{BuildUserInfo(participant)}";
+
+    public string BuildUserInfo(ParticipantEntity participant)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{participant.InRoomName} - @{participant.Username}</b>");
+        strBldr.AppendLine($"<b>{GetUserName(participant)}</b>");
 
         if (participant.Wishes.Count > 0)
         {
             strBldr.AppendLine();
-            strBldr.AppendLine($"<b>{header}</b>");
+            strBldr.AppendLine($"<b>{texts[BotContent.Messages.WishesList]}</b>");
 
             foreach (var wish in participant.Wishes.Where(x => x.ImageIds is not { Count: > 0 }))
                 strBldr.AppendLine($" ► {wish.Message}");            
@@ -57,7 +60,7 @@ public class MessageBuilder(
         return strBldr.ToString();
     }
 
-    public string BuildRoomInfoMessage(PartyRoomEntity room)
+    public string BuildRoomInfo(PartyRoomEntity room)
     {
         var admin = room.Participants.First(x => x.TelegramUserId == room.Admin.TelegramUserId);
         var participants = room.Participants;
@@ -65,49 +68,59 @@ public class MessageBuilder(
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>\"{room.Title}\"</b>");
         strBldr.AppendLine();
-        strBldr.AppendLine($"<b>room link: </b>{BuildJoinLink(room.Id.ToString())}");
-        strBldr.AppendLine($"admin: {admin.InRoomName} - @{admin.Username}");
-        strBldr.AppendLine();
         strBldr.AppendLine($"{room.Description}");
         strBldr.AppendLine();
-        strBldr.AppendLine($"<b>{_msgs.ParticipantsList} ({participants.Count})</b>");
+        strBldr.AppendLine($"{texts[BotContent.Messages.RoomAdmin]}: {GetUserName(admin)}");
+        strBldr.AppendLine($"<b>{texts[BotContent.Messages.RoomLink]}</b> {GetJoinLink(room.Id.ToString())}");
+        strBldr.AppendLine();
+        strBldr.AppendLine($"<b>{texts[BotContent.Messages.ParticipantsList]} ({participants.Count}):</b>");
 
         foreach (var prt in participants)
-            strBldr.AppendLine($" ► {prt.InRoomName} - @{prt.Username}");
+            strBldr.AppendLine($" ► {GetUserName(prt)}");
 
         return strBldr.ToString();
     }
 
-    public string BuildRoomsInfoMessage(UserEntity user)
+    public string BuildRoomsList(UserEntity user)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{_msgs.RoomsList}</b>");
+        strBldr.AppendLine($"<b>{texts[BotContent.Messages.RoomsList]}</b>");
         strBldr.AppendLine();
 
         foreach (var room in user.AvailableRooms)
         {
-            var adminText = room.Admin.TelegramUserId == user.TelegramUserId
-                ? " - admin"
+            var adminText = user.IsAdmin(room)
+                ? $" - {texts[BotContent.Messages.RoomAdmin]}"
                 : string.Empty;
 
-            strBldr.AppendLine($" ► <b>{room.Title}{adminText}</b>");
+            strBldr.AppendLine($" ► <b>{room.Title}</b>{adminText}");
             strBldr.AppendLine($"{room.Description}");
-            strBldr.AppendLine($"{BuildJoinLink(room.Id.ToString())}");
+            strBldr.AppendLine($"{texts[BotContent.Messages.RoomLink]} {GetJoinLink(room.Id.ToString())}");
             strBldr.AppendLine();
         }
 
         return strBldr.ToString();
     }
 
-    public string BuildLeaveMessage(ParticipantEntity p)
-        => $"{p.InRoomName} (@{p.Username}) {_msgs.UserLeavedRoomForAll}";
+    public string BuildCreateRoom(string roomId)
+        => $"{texts[BotContent.Messages.RoomCreated]}\n\n{texts[BotContent.Messages.RoomLink]} {GetJoinLink(roomId)}";
 
-    public string BuildCreateRoomMessage(string roomId)
-        => $"{_msgs.RoomCreated} {roomId}\n{BuildJoinLink(roomId)}";
+    public string BuildLeave(ParticipantEntity p)
+        => $"{GetUserName(p)} {texts[BotContent.Messages.NtfUserLeftRoom]}";
 
-    public string BuildDeleteRoomMessage(PartyRoomEntity room)
-        => $"{room.Title} ({room.Id}) {_msgs.RoomDeleted}";
+    public string BuildDeleteRoom(PartyRoomEntity room)
+        => $"<b>{room.Title}</b> {texts[BotContent.Messages.RoomDeleted]}";
 
-    public string BuildJoinLink(string roomId)
+    public string BuildNewParticipant(PartyRoomEntity room, ParticipantEntity participant)
+        => $"{GetUserName(participant)} {texts[BotContent.Messages.NewParticipant]} <b>{room.Title}</b>";
+
+
+
+    private string GetJoinLink(string roomId)
         => $"t.me/{config.BotName}?start={roomId}";
+
+    private string GetUserName(ParticipantEntity p)
+        => p.Username is not null
+            ? $"{p.InRoomName} (@{p.Username})"
+            : p.InRoomName;
 }

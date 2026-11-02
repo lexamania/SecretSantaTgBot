@@ -8,7 +8,7 @@ public class UserEntity
 {
     [BsonId] public long TelegramUserId { get; set; }
     public string? Username { get; set; }
-    public string Language { get; set; } = LocalizationDispatcher.DEFAULT_LANG;
+    public string? PrefferedLanguage { get; set; }
 
     [BsonRef("rooms")] public PartyRoomEntity? SelectedRoom { get; set; }
     [BsonRef("rooms")] public List<PartyRoomEntity> AvailableRooms { get; set; } = [];

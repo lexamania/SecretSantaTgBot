@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Models.Commands.InRoom;
 
 public class StartWishesBotCommand(WishAddingState addWishesState)
-    : BotCommandBase(BotCommandsList.StartWishes)
+    : BotCommandBase(BotCommandsList.AddWishes)
 {
     public override Task Execute(Chat chat, MessageContext context)
         => addWishesState.PrepareState(context);

@@ -11,10 +11,9 @@ public enum AccessRights
 
 public interface IBotCommand
 {
-    public abstract Task Execute(Chat chat, MessageContext context);
-
     public string Command { get; }
     public string Description { get; }
-    public bool HasHelp { get; }
     public AccessRights Access { get; }
+
+    public abstract Task Execute(Chat chat, MessageContext context);
 }

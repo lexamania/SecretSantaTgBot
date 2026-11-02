@@ -15,29 +15,45 @@ public class MessageBroker(
     SantaDatabase database,
     NotificationService notifications,
     GlobalMessageHandler globalHandler,
+    UserLanguageService userLanguageService,
+    LocalizationService localizationService,
     ILogger<MessageBroker> logger)
 {
     public async Task OnMessage(Message msg, UpdateType type)
     {
-        var user = database.Users.GetOrCreate(msg.Chat);
+        var user = msg.From is not null
+            ? database.Users.GetOrCreate(msg.From.Id, msg.From.Username, msg.From.LanguageCode)
+            : database.Users.GetOrCreate(msg.Chat.Id, msg.Chat.Username);
 
-        try
+        var language = userLanguageService.GetLanguage(user);
+        using (localizationService.UseCulture(language))
         {
-            if (await globalHandler.Handle(msg, user))
+            try
             {
-                logger.LogInformation(msg.Text);
-                return;
+                if (await globalHandler.Handle(msg, user))
+                    return;
+
+                logger.LogError(
+                    "Message wasn't handled!",
+                    msg.Type,
+                    msg.Text,
+                    user.CurrentState,
+                    user.SelectedRoom);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "SERVER ERROR",
+                    msg.Type,
+                    msg.Text,
+                    user.CurrentState,
+                    user.SelectedRoom);
             }
 
-            logger.LogWarning(msg.Text);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, msg.Text);
-        }
+            database.Users.ClearState(user);
 
-        database.Users.ClearState(user);
-        await notifications.SendErrorCommandMessage(msg.Chat.Id);
-        await globalHandler.SendHelpMenu(user);
+            await notifications.SendMessageByKey(
+                msg.Chat.Id, BotContent.Messages.ErrServer);
+            await globalHandler.SendHelpMenu(user);
+        }
     }
 }

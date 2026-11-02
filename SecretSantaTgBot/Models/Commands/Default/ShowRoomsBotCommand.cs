@@ -14,10 +14,11 @@ public class ShowRoomsBotCommand(ServicesContext services)
 
         if (user.AvailableRooms is { Count: > 0 })
         {
-            var message = services.MessageBuilder.BuildRoomsInfoMessage(user);
-            return services.Notifications.SendMessage(chat.Id, message);
+            var message = services.MessageBuilder.BuildRoomsList(user);
+            return services.Notifications.SendStagedMessage(chat.Id, message);
         }
 
-        return services.Notifications.SendErrorMessage(chat.Id, context.Localization.ZeroRooms);
+        return services.Notifications.SendMessageByKey(
+            chat.Id, BotContent.Messages.ErrZeroRooms);
     }
 }

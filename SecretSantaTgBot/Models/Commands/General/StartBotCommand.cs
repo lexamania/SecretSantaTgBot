@@ -22,15 +22,14 @@ public class StartBotCommand(
         if (args.Length == 0)
         {
             services.Database.Users.ClearState(context.User);
-            await context.GlobalMessageHandler.SendHelpMenu(context.User);
+            await services.GlobalMessageHandler.SendHelpMenu(context.User);
             return;
         }
 
         if (!TryGetRoom(args[0], out var room))
         {
-            await services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.RoomDoesntExist);
+            await services.Notifications.SendStagedMessageByKey(
+                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
             return;
         }
 
@@ -56,7 +55,7 @@ public class StartBotCommand(
         services.Database.Users.SetState(context.User, state);
         context.State.ReplaceState(state.ToString());
 
-        return context.GlobalMessageHandler.Handle(
+        return services.GlobalMessageHandler.Handle(
             new Message()
             {
                 Chat = chat,

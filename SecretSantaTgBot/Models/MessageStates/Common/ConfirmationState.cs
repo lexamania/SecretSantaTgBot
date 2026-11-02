@@ -13,38 +13,39 @@ public class ConfirmationState(
     protected override Task PrepareStateInternal(MessageContext context)
     {
         var buttons = new string[] {
-            context.Localization.ButtonYes,
-            context.Localization.ButtonNo
+            Services.MessageBuilder.GetByKey(BotContent.Buttons.Yes),
+            Services.MessageBuilder.GetByKey(BotContent.Buttons.No)
         };
-        return Services.Notifications.SendMessage(
+        return Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
-            context.Localization.AskConfirmation,
+            BotContent.Messages.MessageAskConfirmation,
             buttons!);
     }
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
-        if (context.Message.Type != Messages.MessageType.Text)
-            return false;
-
-        if (CompareButton(context.Message.TextMsg!.Text, context.Localization.ButtonYes))
+        if (context.Message.Type == Messages.MessageType.Text)
         {
-            await callback.Invoke(chat, context);
-            FinishState(context.User);
-            return true;
+            if (CompareButton(
+                context.Message.TextMsg!.Text,
+                Services.MessageBuilder.GetByKey(BotContent.Buttons.Yes)))
+            {
+                await callback.Invoke(chat, context);
+                FinishState(context.User);
+                return true;
+            }
+
+            if (CompareButton(
+                context.Message.TextMsg!.Text,
+                Services.MessageBuilder.GetByKey(BotContent.Buttons.No)))
+            {
+                FinishState(context.User);
+                await Services.GlobalMessageHandler.SendHelpMenu(context.User);
+                return true;
+            }
         }
 
-        if (CompareButton(context.Message.TextMsg!.Text, context.Localization.ButtonNo))
-        {
-            FinishState(context.User);
-            await context.GlobalMessageHandler.SendHelpMenu(context.User);
-            return true;
-        }
-
-        await Services.Notifications.SendErrorCommandMessage(
-            context.User.TelegramUserId,
-            context.Localization.AskConfirmation);
-
+        await Services.Notifications.SendWrongText(context.User.TelegramUserId);
         return true;
     }
 

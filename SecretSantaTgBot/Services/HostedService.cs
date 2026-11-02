@@ -15,7 +15,7 @@ public class HostedService(
     {
         logger.LogInformation($"Telegram bot starting at {DateTime.UtcNow} (UTC)");
 
-        telegramBot.Initialize();
+        await telegramBot.Initialize();
         
         var botInfo = await telegramBot.VerifyBotInfo();
         config.BotName = botInfo.Username;

@@ -16,8 +16,7 @@ public class DeleteRoomBotCommand(
     {
         return context.User.GetAdminRooms().Count() > 0
             ? deleteRoomState.PrepareState(context)
-            : services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.ZeroRooms);
+            : services.Notifications.SendMessageByKey(
+                chat.Id, BotContent.Messages.ErrZeroRooms);
     }
 }

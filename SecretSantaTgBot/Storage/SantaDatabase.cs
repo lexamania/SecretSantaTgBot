@@ -32,18 +32,7 @@ public class SantaDatabase: IDisposable
         string adminInRoomName)
     {
         var room = Rooms.Create(admin, title, description);
-
-        room.Participants.Add(new()
-        {
-            TargetUserId = admin.TelegramUserId,
-            Username = admin.Username,
-            InRoomName = adminInRoomName
-        });
-        admin.AvailableRooms.Add(room);
-
-        Users.Update(admin);
-        Rooms.Update(room);
-
+        AddUserToRoom(admin, room, adminInRoomName);
         return room;
     }
 

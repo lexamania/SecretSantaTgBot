@@ -17,7 +17,7 @@ public class RoomSelectionState : MessageStateBase
             services,
             StatesList.EnterRoomAlias,
             StateArgsList.RoomAlias,
-            context => context.Localization.ChooseRoom,
+            BotContent.Messages.ChooseRoom,
             SelectRoom,
             context => context.User.AvailableRooms
                         .Select(MessageParser.GenerateRoomButton)
@@ -42,13 +42,12 @@ public class RoomSelectionState : MessageStateBase
         if (room is null)
         {
             await PrepareState(context);
-            await Services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.RoomDoesntExist);
+            await Services.Notifications.SendStagedMessageByKey(
+                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
             return;
         }
 
         Services.Database.Users.EnterRoom(context.User, room);
-        await context.GlobalMessageHandler.SendHelpMenu(context.User);
+        await Services.GlobalMessageHandler.SendHelpMenu(context.User);
     }
 }

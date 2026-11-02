@@ -1,4 +1,5 @@
 using SecretSantaTgBot.Enums;
+using SecretSantaTgBot.Extensions;
 using SecretSantaTgBot.Models.Commands.General;
 using SecretSantaTgBot.Models.MessageStates.Base;
 using SecretSantaTgBot.Models.MessageStates.Common;
@@ -18,7 +19,7 @@ public class InRoomRegistrationState : MessageStateBase
             services,
             StatesList.EnterInRoomName,
             StateArgsList.Name,
-            context => context.Localization.EnterRealName,
+            BotContent.Messages.EnterName,
             Registration,
             context => MessageParser.GetCommandsAsButtons(this)!);
 
@@ -32,37 +33,31 @@ public class InRoomRegistrationState : MessageStateBase
         => await Services.ProcessHandler.HandleState(this, chat, context)
         || await Services.ProcessHandler.HandleCommand(this, chat, context);
     
-    private Task Registration(Chat chat, MessageContext context)
+    private async Task Registration(Chat chat, MessageContext context)
     {
-        var user = context.User;
         var roomId = context.State.StateObject.Arguments[StateArgsList.RoomId];
         var userName = context.State.StateObject.Arguments[StateArgsList.Name];
 
         if (!TryGetRoom(roomId, out var room))
         {
-            FinishState(user);
-            return Services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.RoomDoesntExist);
+            FinishState(context.User);
+            await Services.Notifications.SendMessageByKey(
+                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+            return;
         }
 
         Services.Database.AddUserToRoom(context.User, room!, userName);
-        FinishState(context.User);
+        Services.Database.Users.EnterRoom(context.User, room!);
 
-        return Task.WhenAll(
-            NotifyUser(chat.Id, context),
-            Services.Notifications.SendMessage(
-                chat.Id,
-                context.Localization.UserNewParticipation)
-        );
-    }
-        
-    private async Task NotifyUser(long chatId, MessageContext context)
-    {
-        await Services.Notifications.SendMessage(
-                chatId,
-                context.Localization.UserParticipationEnd);
-        await context.GlobalMessageHandler.SendHelpMenu(context.User);
+        var participant = context.User.GetAsParticipant(room!)!;
+
+        await Services.Notifications.SendMessageByKey(
+            chat.Id, BotContent.Messages.UserRegistered);
+        await Services.GlobalMessageHandler.SendHelpMenu(context.User);
+
+        await Services.Notifications.NotifyEveryoneInRoom(room!,
+                Services.MessageBuilder.BuildNewParticipant(room!, participant),
+                [participant.TelegramUserId]);
     }
 
     private bool TryGetRoom(string strRoomId, out PartyRoomEntity? room)

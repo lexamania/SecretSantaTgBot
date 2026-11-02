@@ -9,15 +9,15 @@ public class EnterValueState(
     ServicesContext services,
     string title,
     string valueKey,
-    Func<MessageContext, string> enterMessage,
+    string messageKey,
     Func<Chat, MessageContext, Task> postProcess,
     Func<MessageContext, ReplyMarkup>? buttons = default)
     : MessageStateBase(services, title)
 {
     protected override Task PrepareStateInternal(MessageContext context)
-        => Services.Notifications.SendMessage(
+        => Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
-            enterMessage.Invoke(context),
+            messageKey,
             buttons?.Invoke(context));
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
@@ -27,8 +27,7 @@ public class EnterValueState(
 
         if (context.Message.Type != Messages.MessageType.Text)
         {
-            await Services.Notifications.SendErrorCommandMessage(chat.Id);
-            await PrepareState(context);
+            await Services.Notifications.SendWrongText(chat.Id);
             return true;
         }
 

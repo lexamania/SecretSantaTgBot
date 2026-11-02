@@ -19,9 +19,9 @@ public class WishAddingState : MessageStateBase
 
     protected override Task PrepareStateInternal(MessageContext context)
     {
-        return Services.Notifications.SendMessage(
+        return Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
-            context.Localization.UserStartWishes,
+            BotContent.Messages.UserAddWishes,
             MessageParser.GetCommandsAsButtons(this)!);
     }
 
@@ -63,7 +63,7 @@ public class WishAddingState : MessageStateBase
                 await FinalizeWishAdding(room, context);
                 return true;
             default:
-                await Services.Notifications.SendErrorCommandMessage(chat.Id);
+                await Services.Notifications.SendWrongText(chat.Id);
                 await PrepareState(context);
                 return true;
         }
@@ -72,9 +72,9 @@ public class WishAddingState : MessageStateBase
     private async Task FinalizeWishAdding(PartyRoomEntity room, MessageContext context)
     {
         Services.Database.Rooms.Update(room);
-        await Services.Notifications.SendMessage(
+        await Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
-            context.Localization.UserWishAdded);
+            BotContent.Messages.UserWishIsAdded);
         await PrepareState(context);
     }
 }

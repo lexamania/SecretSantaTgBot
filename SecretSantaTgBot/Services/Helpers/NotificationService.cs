@@ -1,5 +1,4 @@
 using SecretSantaTgBot.Attributes;
-using SecretSantaTgBot.Localization;
 using SecretSantaTgBot.Storage.Entities;
 
 using Telegram.Bot;
@@ -12,18 +11,43 @@ namespace SecretSantaTgBot.Services.Helpers;
 [RequiredService(InjectionType.Singleton)]
 public sealed class NotificationService(
     TelegramBotService telegramService, 
-    LocalizationDispatcher msgDspt)
+    MessageBuilder msgBuilder)
 {
-    private TelegramBotClient Bot => telegramService.Bot;
+    private TelegramBotClient Bot => telegramService.Bot!;
 
-    public Task SendMessage(long chatId, string message, ReplyMarkup? buttons = null)
+    /// <summary>
+    /// Send message with keyboard removing
+    /// </summary>
+    public Task SendMessage(long chatId, string message)
     {
         return Bot.SendMessage(chatId,
             message,
             parseMode: ParseMode.Html,
-            replyMarkup: buttons ?? new ReplyKeyboardRemove());
+            replyMarkup: new ReplyKeyboardRemove());
     }
 
+    /// <inheritdoc cref="SendMessage"/>
+    public Task SendMessageByKey(long chatId, string key)
+        => SendMessage(chatId, msgBuilder.GetByKey(key));
+
+    /// <summary>
+    /// Send message with new keyboard or save old
+    /// </summary>
+    public Task SendStagedMessage(long chatId, string message, ReplyMarkup? buttons = null)
+    {
+        return Bot.SendMessage(chatId,
+            message,
+            parseMode: ParseMode.Html,
+            replyMarkup: buttons);
+    }
+
+    /// <inheritdoc cref="SendStagedMessage"/>
+    public Task SendStagedMessageByKey(long chatId, string key, ReplyMarkup? buttons = null)
+        => SendStagedMessage(chatId, msgBuilder.GetByKey(key), buttons);
+
+    /// <summary>
+    /// Send group of images with caption as one message
+    /// </summary>
     public Task SendImages(long chatId, List<string> images, string? caption)
     {
         var fi = images
@@ -33,35 +57,27 @@ public sealed class NotificationService(
         return Bot.SendMediaGroup(chatId, fi);
     }
 
-    public Task SendErrorMessage(long chatId, string message)
-        => Bot.SendMessage(chatId, message, parseMode: ParseMode.Html);
-
-    public Task SendNotifyMessage(long chatId, string message, bool disableNotification = false)
-        => Bot.SendMessage(chatId, message, parseMode: ParseMode.Html, disableNotification: disableNotification);
-
-    public Task NotifyEveryone(long[] users, string message, bool disableNotification = false)
+    /// <summary>
+    /// Send message to list of users
+    /// </summary>
+    public Task NotifyEveryone(long[] users, string message)
     {
-        var tasks = users.Select(u => SendNotifyMessage(u, message, disableNotification)).ToArray();
-        return Task.WhenAll(tasks);
-    }
-
-    public Task NotifyEveryone(List<(long Id, string Msg)> messages, bool disableNotification = false)
-    {
-        var tasks = messages.Select(msg => SendNotifyMessage(msg.Id, msg.Msg, disableNotification));
+        var tasks = users.Select(u => SendStagedMessage(u, message)).ToArray();
         return Task.WhenAll(tasks);
     }
 
 
 
-    public Task SendErrorCommandMessage(long chatId)
-        => SendErrorMessage(chatId, msgDspt.Get().CommandError);
+    public Task SendNeedAdminRights(long chatId)
+        => SendStagedMessageByKey(chatId, BotContent.Messages.ErrNeedAdminRights);
 
-    public Task SendErrorCommandMessage(long chatId, string innerMessage)
-        => SendErrorMessage(chatId, $"{msgDspt.Get().CommandError}\n\n{innerMessage}");
+    public Task SendWrongText(long chatId)
+        => SendStagedMessageByKey(chatId, BotContent.Messages.ErrText);
 
-    public Task NotifyEveryoneInRoom(PartyRoomEntity room, string message)
+    public Task NotifyEveryoneInRoom(PartyRoomEntity room, string message, long[]? excluded = default)
     {
-        var users = room.Participants.Select(u => u.TelegramUserId).ToArray();
+        excluded ??= [];
+        var users = room.Participants.Select(u => u.TelegramUserId).Where(x => !excluded.Contains(x)).ToArray();
         return NotifyEveryone(users, message);
     }
 }

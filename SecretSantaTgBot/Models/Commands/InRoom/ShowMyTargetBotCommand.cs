@@ -12,21 +12,18 @@ public class ShowMyTargetBotCommand(ServicesContext services)
     public override async Task Execute(Chat chat, MessageContext context)
     {
         var me = context.User.GetAsParticipant()!;
+
         if (me.TargetUserId is null)
         {
-            await services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.SecretSantaStillOffline);
+            await services.Notifications.SendStagedMessageByKey(
+                chat.Id, BotContent.Messages.ErrSantaIsStillOffline);
             return;
         }
 
         var room = context.User.SelectedRoom!;
         var target = room.Participants.First(x => x.TelegramUserId == me.TargetUserId.Value);
             
-        var message = services.MessageBuilder.BuildUserInfoMessage(
-            context.Localization.TargetWishesList,
-            target);
-
+        var message = services.MessageBuilder.BuildTargetInfo(target);
         await services.Notifications.SendMessage(chat.Id, message);
 
         foreach (var wish in target.Wishes.Where(x => x.ImageIds is { Count: > 0 }))

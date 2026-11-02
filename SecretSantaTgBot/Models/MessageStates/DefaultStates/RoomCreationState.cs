@@ -17,21 +17,21 @@ public class RoomCreationState : MessageStateBase
             services,
             StatesList.EnterInRoomName,
             StateArgsList.Name,
-            context => context.Localization.EnterRealName,
+            BotContent.Messages.EnterName,
             Registration,
             context => MessageParser.GetCommandsAsButtons(this)!);
         var enterDescriptionState = new EnterValueState(
             services,
             StatesList.EnterDescription,
             StateArgsList.Description,
-            context => context.Localization.RoomCreationEnterDescription,
+            BotContent.Messages.EnterDescription,
             StateUtil.NextStateCallback(enterNameState),
             context => MessageParser.GetCommandsAsButtons(this)!);
         var enterTitleState = new EnterValueState(
             services,
             StatesList.EnterTitle,
             StateArgsList.Title,
-            context => context.Localization.RoomCreationEnterTitle,
+            BotContent.Messages.EnterTitle,
             StateUtil.NextStateCallback(enterDescriptionState),
             context => MessageParser.GetCommandsAsButtons(this)!);
 
@@ -59,7 +59,7 @@ public class RoomCreationState : MessageStateBase
         var room = Services.Database.CreateRoom(user, title, description, adminName);
         FinishState(user);
 
-        var message = Services.MessageBuilder.BuildCreateRoomMessage(room.Id.ToString());
+        var message = Services.MessageBuilder.BuildCreateRoom(room.Id.ToString());
         return Services.Notifications.SendMessage(user.TelegramUserId, message);
     }
 }

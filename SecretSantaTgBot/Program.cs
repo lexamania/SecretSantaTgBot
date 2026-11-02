@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Globalization;
+
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using SecretSantaTgBot.Configurations;
@@ -8,6 +10,10 @@ using SecretSantaTgBot.Services;
 using SecretSantaTgBot.Storage;
 
 using Serilog;
+
+CultureInfo.DefaultThreadCurrentCulture =
+CultureInfo.DefaultThreadCurrentUICulture =
+    CultureInfo.GetCultureInfo("uk");
 
 var builder = Host.CreateApplicationBuilder(args);
 

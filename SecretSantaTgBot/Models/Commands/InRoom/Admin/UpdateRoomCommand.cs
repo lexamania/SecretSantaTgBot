@@ -11,15 +11,13 @@ public class UpdateRoomCommand(
     ServicesContext services,
     ModifyRoomState roomUpdateState)
     : BotCommandBase(
-        BotCommandsList.UpdateRoom,
+        BotCommandsList.ModifyRoom,
         access: AccessRights.Admin)
 {
     public override Task Execute(Chat chat, MessageContext context)
     {
         return context.User.IsAdmin()
             ? roomUpdateState.PrepareState(context)
-            : services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.NeedAdminRights);
+            : services.Notifications.SendNeedAdminRights(chat.Id);
     }
 }

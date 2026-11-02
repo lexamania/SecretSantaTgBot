@@ -27,9 +27,9 @@ public class InRoomState : MessageStateBase
         Commands[BotCommandsList.ShowRoomInfo] = new ShowRoomBotCommand(services);
         Commands[BotCommandsList.ShowMe] = new ShowMeBotCommand(services);
         Commands[BotCommandsList.ShowMyTarget] = new ShowMyTargetBotCommand(services);
-        Commands[BotCommandsList.UpdateRoom] = new UpdateRoomCommand(services, roomUpdateState);
+        Commands[BotCommandsList.ModifyRoom] = new UpdateRoomCommand(services, roomUpdateState);
         Commands[BotCommandsList.LeaveRoom] = new LeaveRoomBotCommand(services, roomLeaveState);
-        Commands[BotCommandsList.StartWishes] = new StartWishesBotCommand(addWishesState);
+        Commands[BotCommandsList.AddWishes] = new StartWishesBotCommand(addWishesState);
         Commands[BotCommandsList.ClearWishes] = new ClearWishesBotCommand(services);
         Commands[BotCommandsList.NotifyEveryone] = new NotifyEveryoneCommand(services, notifyEveryoneState);
         Commands[BotCommandsList.StartSanta] = new StartSantaCommand(services);

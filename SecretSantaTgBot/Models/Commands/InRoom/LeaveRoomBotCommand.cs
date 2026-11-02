@@ -18,8 +18,7 @@ public class LeaveRoomBotCommand(
     {
         return !context.User.IsAdmin()
             ? leaveRoomState.PrepareState(context)
-            : services.Notifications.SendErrorMessage(
-                chat.Id,
-                context.Localization.AdminCantLeaveRoom);
+            : services.Notifications.SendMessageByKey(
+                chat.Id, BotContent.Messages.ErrAdminCantLeaveRoom);
     }
 }

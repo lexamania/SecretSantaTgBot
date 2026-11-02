@@ -1,8 +1,7 @@
 using LiteDB;
 
 using SecretSantaTgBot.Storage.Entities;
-
-using Telegram.Bot.Types;
+using SecretSantaTgBot.Utils;
 
 namespace SecretSantaTgBot.Storage.Repositories;
 
@@ -12,37 +11,38 @@ public class UserRepository(LiteDatabase db) : DirectoryBase<UserEntity>(db, "us
             .Include(x => x.AvailableRooms)
             .Include(x => x.SelectedRoom);
 
-    public UserEntity GetById(long id)
-        => FullUsers.FindById(id);
-
     public List<UserEntity> GetByIds(IEnumerable<long> ids)
         => [.. FullUsers.Find(x => ids.Contains(x.TelegramUserId))];
 
-    public UserEntity GetOrCreate(Chat chat)
+    public UserEntity GetOrCreate(long id, string? username, string? language = null)
     {
-        var user = GetById(chat.Id);
-        if (user is null)
-            return Create(chat.Id, chat.Username!);
+        var user = FullUsers.FindById(id);
 
-        if (user.Username != chat.Username)
+        if (user is null)
         {
-            user.Username = chat.Username!;
+            user = new UserEntity()
+            {
+                TelegramUserId = id,
+                Username = username,
+                PrefferedLanguage = LanguageUtil.ConvertLanguageToSystem(language),
+                AvailableRooms = []
+            };
+
+            Collection.Insert(user);
+        }
+
+        if (username is not null && user.Username?.Equals(username) != true)
+        {
+            user.Username = username;
             Update(user);
         }
 
-        return user;
-    }
-
-    public UserEntity Create(long id, string username)
-    {
-        var user = new UserEntity()
+        if (user.PrefferedLanguage is null && language is not null)
         {
-            TelegramUserId = id,
-            Username = username,
-            AvailableRooms = []
-        };
+            user.PrefferedLanguage = language;
+            Update(user);
+        }
 
-        Collection.Insert(user);
         return user;
     }
 
