@@ -29,9 +29,8 @@ public class InRoomRegistrationState : MessageStateBase
     protected override Task PrepareStateInternal(MessageContext context)
         => States[StatesList.EnterInRoomName].PrepareState(context);
 
-    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => await Services.ProcessHandler.HandleState(this, chat, context)
-        || await Services.ProcessHandler.HandleCommand(this, chat, context);
+    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
+        => Services.ProcessHandler.HandleCommand(this, chat, context);
     
     private async Task Registration(Chat chat, MessageContext context)
     {

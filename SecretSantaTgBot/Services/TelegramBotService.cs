@@ -6,7 +6,6 @@ using SecretSantaTgBot.Configurations;
 using SecretSantaTgBot.Enums;
 using SecretSantaTgBot.Services.Brokers;
 using SecretSantaTgBot.Services.Helpers;
-using SecretSantaTgBot.Services.MessageHandlers;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -77,5 +76,4 @@ public class TelegramBotService(
             Description = texts[BotContent.Commands.Stop].Value
         }
     ];
-
 }

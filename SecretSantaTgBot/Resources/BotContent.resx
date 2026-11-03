@@ -63,7 +63,7 @@
     <comment/>
   </data>
   <data name="cmd_help" xml:space="preserve">
-    <value>сторінка з усіма командами</value>
+    <value>список команд</value>
     <comment/>
   </data>
   <data name="cmd_stop" xml:space="preserve">
@@ -83,7 +83,7 @@
     <comment/>
   </data>
   <data name="cmd_show_rooms" xml:space="preserve">
-    <value>показати список моїх кімнат</value>
+    <value>список моїх кімнат</value>
     <comment/>
   </data>
   <data name="cmd_modify_room" xml:space="preserve">
@@ -95,23 +95,23 @@
     <comment/>
   </data>
   <data name="cmd_show_room_info" xml:space="preserve">
-    <value>показати інформацію по кімнаті</value>
+    <value>інформація по кімнаті</value>
     <comment/>
   </data>
   <data name="cmd_show_me" xml:space="preserve">
-    <value>показати інформацію про мене</value>
+    <value>інформація про мене</value>
     <comment/>
   </data>
   <data name="cmd_show_target" xml:space="preserve">
-    <value>показати мою ціль на Таємного Санту</value>
+    <value>моя ціль на Таємного Санту</value>
     <comment/>
   </data>
   <data name="cmd_add_wishes" xml:space="preserve">
-    <value>додати свої бажання</value>
+    <value>додати бажання</value>
     <comment/>
   </data>
   <data name="cmd_clear_wishes" xml:space="preserve">
-    <value>очистити список своїх бажань</value>
+    <value>очистити список бажань</value>
     <comment/>
   </data>
   <data name="cmd_back_to_menu" xml:space="preserve">

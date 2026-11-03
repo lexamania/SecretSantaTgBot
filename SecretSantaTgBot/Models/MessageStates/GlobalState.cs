@@ -1,4 +1,5 @@
 using SecretSantaTgBot.Enums;
+using SecretSantaTgBot.Models.Commands.Base;
 using SecretSantaTgBot.Models.Commands.General;
 using SecretSantaTgBot.Models.MessageStates.Base;
 
@@ -20,6 +21,47 @@ public class GlobalState : MessageStateBase
     }
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => await Services.ProcessHandler.HandleCommand(this, chat, context)
-        || await Services.ProcessHandler.HandleGlobalState(this, chat, context);
+    {
+        if (context.Message.Type == Messages.MessageType.Command)
+        {
+            if (Commands.TryGetValue(
+                    context.Message.CommandMsg!.Command,
+                    out var command))
+            {
+                await command.Execute(chat, context);
+                return true;
+            }
+        }
+
+        if (TryGetMessageState(this, context.State, out var state))
+        {
+            if (await state.ProcessMessage(chat, context))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool TryGetMessageState(
+        MessageStateBase parrentState,
+        StateModel stateModel,
+        out MessageStateBase state)
+    {
+        if (!parrentState.ReadOnlyStates.TryGetValue(
+                stateModel.CurrentState,
+                out var currentState))
+        {
+            state = null;
+            return false;
+        }
+
+        if (stateModel.NextState is null)
+        {
+            state = currentState;
+            return true;
+        }
+        
+        stateModel.MoveToNextState();
+        return TryGetMessageState(currentState, stateModel, out state);
+    }
 }

@@ -18,7 +18,7 @@ public class RoomSelectionState : MessageStateBase
             StatesList.EnterRoomAlias,
             StateArgsList.RoomAlias,
             BotContent.Messages.ChooseRoom,
-            SelectRoom,
+            ProcessMessage,
             context => context.User.AvailableRooms
                         .Select(MessageParser.GenerateRoomButton)
                         .ToArray()!
@@ -28,10 +28,7 @@ public class RoomSelectionState : MessageStateBase
     protected override Task PrepareStateInternal(MessageContext context)
         => States[StatesList.EnterRoomAlias].PrepareState(context);
 
-    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => Services.ProcessHandler.HandleState(this, chat, context);
-
-    private async Task SelectRoom(Chat chat, MessageContext context)
+    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
         var roomAlias = context.State.StateObject.Arguments[StateArgsList.RoomAlias];
         var roomId = MessageParser
@@ -41,13 +38,16 @@ public class RoomSelectionState : MessageStateBase
 
         if (room is null)
         {
-            await PrepareState(context);
             await Services.Notifications.SendStagedMessageByKey(
                 chat.Id, BotContent.Messages.ErrRoomDoesntExist);
-            return;
+            await PrepareState(context);
+        }
+        else
+        {
+            Services.Database.Users.EnterRoom(context.User, room);
+            await Services.GlobalMessageHandler.SendHelpMenu(context.User);
         }
 
-        Services.Database.Users.EnterRoom(context.User, room);
-        await Services.GlobalMessageHandler.SendHelpMenu(context.User);
+        return true;
     }
 }

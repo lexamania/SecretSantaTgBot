@@ -14,8 +14,7 @@ public class RoomDeletingState : MessageStateBase
         : base(services, StatesList.RoomDeleting)
     {
         var confirmDeleteState = new ConfirmationState(
-            services,
-            DeleteRoom);
+            services, ProcessMessage);
         var selectRoomState = new EnterValueState(
             services,
             StatesList.EnterRoomAlias,
@@ -34,10 +33,7 @@ public class RoomDeletingState : MessageStateBase
     protected override Task PrepareStateInternal(MessageContext context)
         => States[StatesList.EnterRoomAlias].PrepareState(context);
 
-    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => Services.ProcessHandler.HandleState(this, chat, context);
-
-    private Task DeleteRoom(Chat chat, MessageContext context)
+    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
         var roomAlias = context.State.StateObject.Arguments[StateArgsList.RoomAlias];
         var roomId = MessageParser
@@ -52,12 +48,16 @@ public class RoomDeletingState : MessageStateBase
             var notifyMessage = Services.MessageBuilder.BuildDeleteRoom(room);
             Services.Database.DeleteRoom(context.User, room.Id);
 
-            return Task.WhenAll(
+            await Task.WhenAll(
                 Services.GlobalMessageHandler.SendHelpMenu(context.User),
                 Services.Notifications.NotifyEveryoneInRoom(room, notifyMessage));
         }
+        else
+        {
+            await Services.Notifications.SendStagedMessageByKey(
+                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+        }
 
-        return Services.Notifications.SendStagedMessageByKey(
-            chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+        return true;
     }
 }

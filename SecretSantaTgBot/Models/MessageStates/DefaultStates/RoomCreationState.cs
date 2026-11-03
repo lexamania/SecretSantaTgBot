@@ -45,9 +45,8 @@ public class RoomCreationState : MessageStateBase
     protected override Task PrepareStateInternal(MessageContext context)
         => States[StatesList.EnterTitle].PrepareState(context);
 
-    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => await Services.ProcessHandler.HandleState(this, chat, context)
-        || await Services.ProcessHandler.HandleCommand(this, chat, context);
+    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
+        => Services.ProcessHandler.HandleCommand(this, chat, context);
 
     private Task Registration(Chat chat, MessageContext context)
     {

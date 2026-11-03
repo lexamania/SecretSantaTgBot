@@ -36,7 +36,6 @@ public class InRoomState : MessageStateBase
         Commands[BotCommandsList.Back] = new BackToMenuBotCommand(services);
     }
 
-    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => await Services.ProcessHandler.HandleState(this, chat, context)
-        || await Services.ProcessHandler.HandleCommand(this, chat, context);
+    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
+        => Services.ProcessHandler.HandleCommand(this, chat, context);
 }
