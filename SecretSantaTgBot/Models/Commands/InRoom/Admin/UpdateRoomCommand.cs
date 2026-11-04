@@ -17,7 +17,7 @@ public class UpdateRoomCommand(
     public override Task Execute(Chat chat, MessageContext context)
     {
         return context.User.IsAdmin()
-            ? roomUpdateState.PrepareState(context)
+            ? roomUpdateState.StartState(chat, context)
             : services.Notifications.SendNeedAdminRights(chat.Id);
     }
 }

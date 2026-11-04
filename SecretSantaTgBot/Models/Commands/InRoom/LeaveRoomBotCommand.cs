@@ -17,7 +17,7 @@ public class LeaveRoomBotCommand(
     public override Task Execute(Chat chat, MessageContext context)
     {
         return !context.User.IsAdmin()
-            ? leaveRoomState.PrepareState(context)
+            ? leaveRoomState.StartState(chat, context)
             : services.Notifications.SendMessageByKey(
                 chat.Id, BotContent.Messages.ErrAdminCantLeaveRoom);
     }

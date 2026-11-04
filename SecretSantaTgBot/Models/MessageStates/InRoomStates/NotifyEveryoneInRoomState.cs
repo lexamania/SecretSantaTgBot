@@ -9,23 +9,25 @@ namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 
 public class NotifyEveryoneInRoomState : MessageStateBase
 {
-    public NotifyEveryoneInRoomState(ServicesContext services)
-        : base(services, StatesList.NotifyEveryone)
+    public NotifyEveryoneInRoomState(
+        MessageStateBase parrent,
+        ServicesContext services)
+        : base(StatesList.NotifyEveryone, parrent, services)
     {
         Commands[BotCommandsList.Stop] = new StopBotCommand(services);
     }
 
-    protected override Task PrepareStateInternal(MessageContext context)
+    public override Task SendWelcomeMessage(Chat chat, MessageContext context)
     {
         return Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
             BotContent.Messages.EnterMessage,
-            MessageParser.GetCommandsAsButtons(this)!);
+            ButtonUtil.GetCommandsAsButtons(this)!);
     }
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
-        if (await Services.ProcessHandler.HandleCommand(this, chat, context))
+        if (await Services.CustomHandler.HandleCommand(this, chat, context))
             return true;
 
         if (context.Message.Type != Messages.MessageType.Text)
@@ -34,16 +36,15 @@ public class NotifyEveryoneInRoomState : MessageStateBase
             return true;
         }
 
-        FinishState(context.User);
-        await Task.WhenAll(
-            Services.Notifications.NotifyEveryoneInRoom(
-                context.User.SelectedRoom!,
-                context.Message.TextMsg!.Text),
-            Services.Notifications.SendMessageByKey(
-                context.User.TelegramUserId,
-                BotContent.Messages.MessageIsSent)
-        );
+        await Services.Notifications.NotifyEveryoneInRoom(
+            context.User,
+            context.User.SelectedRoom!,
+            context.Message.TextMsg!.Text);
+        await Services.Notifications.SendMessageByKey(
+            context.User.TelegramUserId,
+            BotContent.Messages.MessageIsSent);
 
+        await Services.GlobalHandler.ExitState(chat, context.User, false);
         return true;
     }
 }

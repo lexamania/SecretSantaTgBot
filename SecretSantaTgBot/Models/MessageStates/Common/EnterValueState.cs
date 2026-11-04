@@ -1,29 +1,50 @@
+using SecretSantaTgBot.Enums;
+using SecretSantaTgBot.Models.Commands.General;
 using SecretSantaTgBot.Models.MessageStates.Base;
+using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace SecretSantaTgBot.Models.MessageStates.Common;
 
-public class EnterValueState(
-    ServicesContext services,
-    string title,
-    string valueKey,
-    string messageKey,
-    Func<Chat, MessageContext, Task> postProcess,
-    Func<MessageContext, ReplyMarkup>? buttons = default)
-    : MessageStateBase(services, title)
+public class EnterValueState : MessageStateBase
 {
-    protected override Task PrepareStateInternal(MessageContext context)
+    public delegate Task ProcessHandler(Chat chat, MessageContext context);
+    public delegate string[] ButtonsGenerator(MessageContext context);
+
+    public EnterValueState(
+        MessageStateBase parrent,
+        ServicesContext services,
+        string title,
+        string valueKey,
+        string messageKey,
+        ProcessHandler handler,
+        ButtonsGenerator? buttons = default)
+        : base(title, parrent, services)
+    {
+        _valueKey = valueKey;
+        _messageKey = messageKey;
+        _postProcess = handler;
+        _buttons = buttons;
+
+        Commands[BotCommandsList.Stop] = new StopBotCommand(services);
+    }
+
+    private readonly string _valueKey;
+    private readonly string _messageKey;
+    private readonly ProcessHandler _postProcess;
+    private readonly ButtonsGenerator? _buttons;
+
+    public override Task SendWelcomeMessage(Chat chat, MessageContext context)
         => Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
-            messageKey,
-            buttons?.Invoke(context));
+            _messageKey,
+            GetButtons(context));
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
-        if (context.Message.Type == Messages.MessageType.Command)
-            return false;
+        if (await Services.CustomHandler.HandleCommand(this, chat, context))
+            return true;
 
         if (context.Message.Type != Messages.MessageType.Text)
         {
@@ -31,13 +52,19 @@ public class EnterValueState(
             return true;
         }
 
-        var stateObj = context.State.StateObject;
-        stateObj.Arguments[valueKey] = context.Message.TextMsg!.Text;
-        stateObj.States.RemoveAt(stateObj.States.Count - 1);
+        context.State.Arguments[_valueKey] = context.Message.TextMsg!.Text;
+        Services.Database.Users.SetState(context.User, context.State);
 
-        Services.Database.Users.SetState(context.User, stateObj.ToString());
-
-        await postProcess(chat, context);
+        await _postProcess.Invoke(chat, context);
         return true;
+    }
+
+    private string[] GetButtons(MessageContext context)
+    {
+        var cmdBtns = ButtonUtil.GetCommandsAsButtons(this);
+        var btns = _buttons?.Invoke(context) ?? [];
+        return _buttons is null
+            ? cmdBtns
+            : [..btns, ..cmdBtns];
     }
 }

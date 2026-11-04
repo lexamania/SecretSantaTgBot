@@ -11,6 +11,6 @@ public class BackToMenuBotCommand(ServicesContext services)
     public override Task Execute(Chat chat, MessageContext context)
     {
         services.Database.Users.ExitRoom(context.User);
-        return services.GlobalMessageHandler.SendHelpMenu(context.User);
+        return services.GlobalHandler.ExitState(chat, context.User);
     }
 }

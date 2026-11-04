@@ -17,6 +17,6 @@ public class HelpBotCommand(
         var msg = services.MessageBuilder.BuildHelpMessage(
             state.ReadOnlyCommands.Values,
             context.User.IsAdmin());
-        return services.Notifications.SendStagedMessage(chat.Id, msg);
+        return services.Notifications.SendMessage(chat.Id, msg);
     }
 }

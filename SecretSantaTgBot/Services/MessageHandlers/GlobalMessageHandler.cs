@@ -4,6 +4,7 @@ using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Enums;
 using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Models.MessageStates;
+using SecretSantaTgBot.Storage;
 using SecretSantaTgBot.Storage.Entities;
 
 using Telegram.Bot.Types;
@@ -13,39 +14,41 @@ namespace SecretSantaTgBot.Services.MessageHandlers;
 [RequiredService(InjectionType.Singleton)]
 public class GlobalMessageHandler(IServiceProvider provider)
 {
-    private readonly Lazy<GlobalState> _globalState = new(() => 
+    private readonly Lazy<GlobalState> _globalState = new(() =>
         new(provider.GetRequiredService<ServicesContext>()));
 
     public GlobalState GlobalState => _globalState.Value;
 
-    public Task<bool> Handle(Message msg, UserEntity user)
+    public Task<bool> HandleMessage(Message msg, UserEntity user)
     {
         var userContext = new MessageContext(msg, user, ReadState(user));
         return GlobalState.ProcessMessage(msg.Chat, userContext);
     }
 
-    public Task SendHelpMenu(UserEntity user)
+    public Task ExitState(Chat chat, UserEntity user, bool withMessage = true)
     {
-        var msg = new Message()
-        {
-            Text = BotCommandsList.Help,
-            Chat = new()
-            {
-                Id = user.TelegramUserId,
-                Username = user.Username
-            }
-        };
+        var database = provider.GetRequiredService<SantaDatabase>();
+        database.Users.ClearState(user);
 
-        return Handle(msg, user);
+        if (!withMessage)
+            return Task.CompletedTask;
+
+        var userContext = new MessageContext(new() { Chat = chat }, user, ReadState(user));
+        return GlobalState.SendWelcomeMessage(chat, userContext);
     }
 
-    private string ReadState(UserEntity user)
+    private StateModel ReadState(UserEntity user)
     {
         if (user.CurrentState is not null)
-            return user.CurrentState;
+            return StateModel.Build(user.CurrentState);
 
-        return user.SelectedRoom is null
-            ? StatesList.Default
-            : StatesList.InRoom;
+        return new StateModel()
+        {
+            States = [
+                user.SelectedRoom is null
+                    ? StatesList.Default
+                    : StatesList.InRoom
+            ]
+        };
     }
 }

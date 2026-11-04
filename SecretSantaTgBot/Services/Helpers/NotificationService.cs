@@ -74,10 +74,12 @@ public sealed class NotificationService(
     public Task SendWrongText(long chatId)
         => SendStagedMessageByKey(chatId, BotContent.Messages.ErrText);
 
-    public Task NotifyEveryoneInRoom(PartyRoomEntity room, string message, long[]? excluded = default)
+    public Task NotifyEveryoneInRoom(UserEntity sender, PartyRoomEntity room, string message)
     {
-        excluded ??= [];
-        var users = room.Participants.Select(u => u.TelegramUserId).Where(x => !excluded.Contains(x)).ToArray();
+        var users = room.Participants
+            .Select(u => u.TelegramUserId)
+            .Where(x => x != sender.TelegramUserId)
+            .ToArray();
         return NotifyEveryone(users, message);
     }
 }

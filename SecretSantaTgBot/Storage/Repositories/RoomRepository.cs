@@ -6,7 +6,9 @@ namespace SecretSantaTgBot.Storage.Repositories;
 
 public class RoomRepository(LiteDatabase db) : DirectoryBase<PartyRoomEntity>(db, "rooms")
 {
-    public PartyRoomEntity? GetById(Guid id) => Collection.FindById(id);
+    public PartyRoomEntity? GetById(string id) => Guid.TryParse(id, out var roomId)
+        ? Collection.Include(x => x.Admin).FindById(roomId)
+        : default;
 
     public PartyRoomEntity Create(
         UserEntity admin,

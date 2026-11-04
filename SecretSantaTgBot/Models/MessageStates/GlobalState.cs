@@ -1,5 +1,4 @@
 using SecretSantaTgBot.Enums;
-using SecretSantaTgBot.Models.Commands.Base;
 using SecretSantaTgBot.Models.Commands.General;
 using SecretSantaTgBot.Models.MessageStates.Base;
 
@@ -10,7 +9,7 @@ namespace SecretSantaTgBot.Models.MessageStates;
 public class GlobalState : MessageStateBase
 {
     public GlobalState(ServicesContext services)
-        : base(services, StatesList.Global)
+        : base(StatesList.Global, null, services)
     {
         var defaultState = new DefaultState(services);
 
@@ -19,6 +18,11 @@ public class GlobalState : MessageStateBase
 
         Commands[BotCommandsList.Start] = new StartBotCommand(services, defaultState);
     }
+
+    public override Task SendWelcomeMessage(Chat chat, MessageContext context)
+        => TryGetMessageState(this, context.State.States, out var state)
+            ? state.SendWelcomeMessage(chat, context)
+            : Task.CompletedTask;
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
@@ -33,7 +37,7 @@ public class GlobalState : MessageStateBase
             }
         }
 
-        if (TryGetMessageState(this, context.State, out var state))
+        if (TryGetMessageState(this, context.State.States, out var state))
         {
             if (await state.ProcessMessage(chat, context))
                 return true;
@@ -43,25 +47,25 @@ public class GlobalState : MessageStateBase
     }
 
     private bool TryGetMessageState(
-        MessageStateBase parrentState,
-        StateModel stateModel,
-        out MessageStateBase state)
+        MessageStateBase parrent,
+        string[] states,
+        out MessageStateBase state,
+        int iterator = 0)
     {
-        if (!parrentState.ReadOnlyStates.TryGetValue(
-                stateModel.CurrentState,
+        if (!parrent.ReadOnlyStates.TryGetValue(
+                states[iterator],
                 out var currentState))
         {
             state = null;
             return false;
         }
 
-        if (stateModel.NextState is null)
+        if (iterator == states.Length - 1)
         {
             state = currentState;
             return true;
         }
-        
-        stateModel.MoveToNextState();
-        return TryGetMessageState(currentState, stateModel, out state);
+
+        return TryGetMessageState(currentState, states, out state, iterator + 1);
     }
 }

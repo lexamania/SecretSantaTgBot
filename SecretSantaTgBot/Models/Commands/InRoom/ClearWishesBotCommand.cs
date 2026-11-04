@@ -17,7 +17,7 @@ public class ClearWishesBotCommand(ServicesContext services)
         participant.Wishes.Clear();
         services.Database.Rooms.Update(room);
 
-        return services.Notifications.SendStagedMessageByKey(
+        return services.Notifications.SendMessageByKey(
             chat.Id, BotContent.Messages.UserWishesIsCleared);
     }
 }

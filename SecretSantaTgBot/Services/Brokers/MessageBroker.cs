@@ -30,7 +30,7 @@ public class MessageBroker(
         {
             try
             {
-                if (await globalHandler.Handle(msg, user))
+                if (await globalHandler.HandleMessage(msg, user))
                     return;
 
                 logger.LogError(
@@ -49,11 +49,9 @@ public class MessageBroker(
                     user.SelectedRoom);
             }
 
-            database.Users.ClearState(user);
-
             await notifications.SendMessageByKey(
                 msg.Chat.Id, BotContent.Messages.ErrServer);
-            await globalHandler.SendHelpMenu(user);
+            await globalHandler.ExitState(msg.Chat, user);
         }
     }
 }

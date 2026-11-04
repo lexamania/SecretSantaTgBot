@@ -10,23 +10,27 @@ namespace SecretSantaTgBot.Models.MessageStates;
 
 public class DefaultState : MessageStateBase
 {
-    public DefaultState(ServicesContext services) : base(services, StatesList.Default)
+    public DefaultState(ServicesContext services)
+        : base(StatesList.Default, null, services)
     {
-        var selectRoomState = new RoomSelectionState(services);
-        var deleteRoomState = new RoomDeletingState(services);
-        var createRoomState = new RoomCreationState(services);
+        var selectRoomState = new RoomSelectionState(this, services);
+        var deleteRoomState = new RoomDeletingState(this, services);
+        var createRoomState = new RoomCreationState(this, services);
 
         States[createRoomState.Title] = createRoomState;
         States[selectRoomState.Title] = selectRoomState;
         States[deleteRoomState.Title] = deleteRoomState;
 
         Commands[BotCommandsList.Help] = new HelpBotCommand(services, this);
-        Commands[BotCommandsList.SelectRoom] = new SelectRoomBotCommand(services, selectRoomState);
+        Commands[BotCommandsList.ShowRooms] = new ShowRoomsBotCommand(services);
         Commands[BotCommandsList.CreateRoom] = new CreateRoomBotCommand(createRoomState);
         Commands[BotCommandsList.DeleteRoom] = new DeleteRoomBotCommand(services, deleteRoomState);
-        Commands[BotCommandsList.ShowRooms] = new ShowRoomsBotCommand(services);
+        // Commands[BotCommandsList.SelectRoom] = new SelectRoomBotCommand(services, selectRoomState);
     }
 
+    public override Task SendWelcomeMessage(Chat chat, MessageContext context)
+        => Commands[BotCommandsList.Help].Execute(chat, context);
+
     public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => Services.ProcessHandler.HandleCommand(this, chat, context);
+        => Services.CustomHandler.HandleCommand(this, chat, context);
 }

@@ -1,56 +1,40 @@
 using SecretSantaTgBot.Enums;
-using SecretSantaTgBot.Models.Commands.General;
+using SecretSantaTgBot.Extensions;
 using SecretSantaTgBot.Models.MessageStates.Base;
 using SecretSantaTgBot.Models.MessageStates.Common;
-using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 
-public class ModifyRoomState : MessageStateBase
+public class ModifyRoomState : SequentialMessageStateBase
 {
-    public ModifyRoomState(ServicesContext services)
-        : base(services, StatesList.RoomModifying)
+    public ModifyRoomState(
+        MessageStateBase parrent,
+        ServicesContext services)
+        : base(StatesList.RoomModifying, parrent, services)
     {
-        var enterDescriptionState = new EnterValueState(
-            services,
-            StatesList.EnterDescription,
-            StateArgsList.Description,
-            BotContent.Messages.EnterDescription,
-            ModifyRoom,
-            context => MessageParser.GetCommandsAsButtons(this)!
-        );
-        var enterTitleState = new EnterValueState(
-            services,
-            StatesList.EnterTitle,
-            StateArgsList.Title,
-            BotContent.Messages.EnterTitle,
-            StateUtil.NextStateCallback(enterDescriptionState),
-            context => MessageParser.GetCommandsAsButtons(this)!
-        );
+        var enterDescriptionState = EnterValueState.NewDiscription(
+            this, services, ProcessMessage);
+        var enterTitleState = EnterValueState.NewTitle(
+            this, services, enterDescriptionState.StartState);
 
         States[enterTitleState.Title] = enterTitleState;
         States[enterDescriptionState.Title] = enterDescriptionState;
-
-        Commands[BotCommandsList.Stop] = new StopBotCommand(services);
     }
 
-    protected override Task PrepareStateInternal(MessageContext context)
-        => States[StatesList.EnterTitle].PrepareState(context);
+    protected override MessageStateBase FirstState => States[StatesList.EnterTitle];
 
-    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => Services.ProcessHandler.HandleCommand(this, chat, context);
-
-    private Task ModifyRoom(Chat chat, MessageContext context)
+    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
         var room = context.User.SelectedRoom!;
-        room.Title = context.State.StateObject.Arguments[StateArgsList.Title];
-        room.Description = context.State.StateObject.Arguments[StateArgsList.Description];
+        room.Title = context.State.Arguments[StateArgsList.Title];
+        room.Description = context.State.Arguments[StateArgsList.Description];
         Services.Database.Rooms.Update(room);
 
-        FinishState(context.User);
-        return Services.Notifications.SendMessageByKey(
+        await Services.Notifications.SendMessageByKey(
             context.User.TelegramUserId, BotContent.Messages.RoomModifyed);
+        await Services.GlobalHandler.ExitState(chat, context.User);
+        return true;
     }
 }

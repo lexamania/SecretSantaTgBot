@@ -70,10 +70,11 @@ public class MessageBuilder(
         strBldr.AppendLine();
         strBldr.AppendLine($"{room.Description}");
         strBldr.AppendLine();
-        strBldr.AppendLine($"{texts[BotContent.Messages.RoomAdmin]}: {GetUserName(admin)}");
+        strBldr.AppendLine($"{texts[BotContent.Messages.RoomAdmin]} {GetUserName(admin)}");
         strBldr.AppendLine($"<b>{texts[BotContent.Messages.RoomLink]}</b> {GetJoinLink(room.Id.ToString())}");
         strBldr.AppendLine();
         strBldr.AppendLine($"<b>{texts[BotContent.Messages.ParticipantsList]} ({participants.Count}):</b>");
+        strBldr.AppendLine();
 
         foreach (var prt in participants)
             strBldr.AppendLine($" ► {GetUserName(prt)}");
@@ -89,12 +90,11 @@ public class MessageBuilder(
 
         foreach (var room in user.AvailableRooms)
         {
-            var adminText = user.IsAdmin(room)
-                ? $" - {texts[BotContent.Messages.RoomAdmin]}"
+            var admin = room.Admin.Username is not null
+                ? $" - @{room.Admin.Username}"
                 : string.Empty;
 
-            strBldr.AppendLine($" ► <b>{room.Title}</b>{adminText}");
-            strBldr.AppendLine($"{room.Description}");
+            strBldr.AppendLine($" ► <b>{room.Title}</b>{admin}");
             strBldr.AppendLine($"{texts[BotContent.Messages.RoomLink]} {GetJoinLink(room.Id.ToString())}");
             strBldr.AppendLine();
         }

@@ -1,6 +1,5 @@
 using SecretSantaTgBot.Attributes;
 using SecretSantaTgBot.Models;
-using SecretSantaTgBot.Models.Messages;
 using SecretSantaTgBot.Models.MessageStates.Base;
 using SecretSantaTgBot.Services.Helpers;
 
@@ -9,17 +8,17 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Services.MessageHandlers;
 
 [RequiredService(InjectionType.Singleton)]
-public class CustomProcessHandler(NotificationService notifications)
+public class CustomHandler(NotificationService notifications)
 {
     public async Task<bool> HandleCommand(
-        MessageStateBase msgState,
+        MessageStateBase state,
         Chat chat,
         MessageContext context)
     {
-        if (context.Message.Type != MessageType.Command)
+        if (context.Message.Type != Models.Messages.MessageType.Command)
             return false;
 
-        if (msgState.ReadOnlyCommands.TryGetValue(
+        if (state.ReadOnlyCommands.TryGetValue(
                 context.Message.CommandMsg!.Command,
                 out var command))
         {

@@ -7,17 +7,18 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 
-public class LeaveRoomState : MessageStateBase
+public class LeaveRoomState : SequentialMessageStateBase
 {
-    public LeaveRoomState(ServicesContext services)
-        : base(services, StatesList.RoomLeaving)
+    public LeaveRoomState(
+        MessageStateBase parrent,
+        ServicesContext services)
+        : base(StatesList.RoomLeaving, parrent, services)
     {
         States[StatesList.Confirmation] = new ConfirmationState(
-            services, ProcessMessage);
+            this, services, ProcessMessage);
     }
 
-    protected override Task PrepareStateInternal(MessageContext context)
-        => States[StatesList.Confirmation].PrepareState(context);
+    protected override MessageStateBase FirstState => States[StatesList.Confirmation];
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
@@ -26,12 +27,12 @@ public class LeaveRoomState : MessageStateBase
 
         Services.Database.RemoveUserFromRoom(context.User, room);
 
-        var message = Services.MessageBuilder.BuildLeave(participant);
-
         await Task.WhenAll(
             Services.Notifications.SendMessageByKey(
                 chat.Id, BotContent.Messages.UserLeftRoom),
-            Services.Notifications.NotifyEveryoneInRoom(room, message)
+            Services.Notifications.NotifyEveryoneInRoom(
+                context.User, room,
+                Services.MessageBuilder.BuildLeave(participant))
         );
         return true;
     }

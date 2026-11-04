@@ -1,6 +1,3 @@
-using SecretSantaTgBot.Models.MessageStates.Base;
-using SecretSantaTgBot.Storage.Entities;
-
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -8,15 +5,6 @@ namespace SecretSantaTgBot.Utils;
 
 public static class MessageParser
 {
-    public static string GenerateRoomButton(PartyRoomEntity room)
-        => $"{room.Title} {room.Id}";
-
-    public static string[] ParseButtonMessage(string text)
-        => [.. text.Split().Where(x => x.Length > 0)];
-
-    public static string[] GetCommandsAsButtons(MessageStateBase state)
-        => [..state.ReadOnlyCommands.Keys];
-
     public static bool TryParseCommand(Message msg, out string? command, out string[]? args)
     {
         var text = msg.Text?.Trim();

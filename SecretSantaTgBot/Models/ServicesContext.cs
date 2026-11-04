@@ -10,5 +10,5 @@ public record ServicesContext(
     SantaDatabase Database,
     MessageBuilder MessageBuilder,
     NotificationService Notifications,
-    CustomProcessHandler ProcessHandler,
-    GlobalMessageHandler GlobalMessageHandler);
+    GlobalMessageHandler GlobalHandler,
+    CustomHandler CustomHandler);

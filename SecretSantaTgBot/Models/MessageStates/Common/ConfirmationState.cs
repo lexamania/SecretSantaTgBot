@@ -6,11 +6,12 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Models.MessageStates.Common;
 
 public class ConfirmationState(
+    MessageStateBase parrent,
     ServicesContext services,
     Func<Chat, MessageContext, Task> callback)
-    : MessageStateBase(services, StatesList.Confirmation)
+    : MessageStateBase(StatesList.Confirmation, parrent, services)
 {
-    protected override Task PrepareStateInternal(MessageContext context)
+    public override Task SendWelcomeMessage(Chat chat, MessageContext context)
     {
         var buttons = new string[] {
             Services.MessageBuilder.GetByKey(BotContent.Buttons.Yes),
@@ -26,21 +27,16 @@ public class ConfirmationState(
     {
         if (context.Message.Type == Messages.MessageType.Text)
         {
-            if (CompareButton(
-                context.Message.TextMsg!.Text,
-                Services.MessageBuilder.GetByKey(BotContent.Buttons.Yes)))
+            if (CompareButton(context.Message.TextMsg!.Text,BotContent.Buttons.Yes))
             {
                 await callback.Invoke(chat, context);
-                FinishState(context.User);
+                await Services.GlobalHandler.ExitState(chat, context.User, false);
                 return true;
             }
 
-            if (CompareButton(
-                context.Message.TextMsg!.Text,
-                Services.MessageBuilder.GetByKey(BotContent.Buttons.No)))
+            if (CompareButton(context.Message.TextMsg!.Text, BotContent.Buttons.No))
             {
-                FinishState(context.User);
-                await Services.GlobalMessageHandler.SendHelpMenu(context.User);
+                await services.GlobalHandler.ExitState(chat, context.User);
                 return true;
             }
         }
@@ -49,6 +45,9 @@ public class ConfirmationState(
         return true;
     }
 
-    private bool CompareButton(string msg, string button)
-        => msg.Equals(button, StringComparison.CurrentCultureIgnoreCase);
+    private bool CompareButton(string msg, string buttonKey)
+        => string.Equals(
+            msg,
+            Services.MessageBuilder.GetByKey(buttonKey),
+            StringComparison.CurrentCultureIgnoreCase);
 }

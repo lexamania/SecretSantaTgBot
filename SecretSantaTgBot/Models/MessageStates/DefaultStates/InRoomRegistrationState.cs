@@ -1,73 +1,53 @@
 using SecretSantaTgBot.Enums;
 using SecretSantaTgBot.Extensions;
-using SecretSantaTgBot.Models.Commands.General;
 using SecretSantaTgBot.Models.MessageStates.Base;
 using SecretSantaTgBot.Models.MessageStates.Common;
 using SecretSantaTgBot.Storage.Entities;
-using SecretSantaTgBot.Utils;
 
 using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Models.MessageStates.DefaultStates;
 
-public class InRoomRegistrationState : MessageStateBase
+public class InRoomRegistrationState : SequentialMessageStateBase
 {
-    public InRoomRegistrationState(ServicesContext services)
-        : base(services, StatesList.RoomRegistration)
+    public InRoomRegistrationState(
+        MessageStateBase parrent,
+        ServicesContext services)
+        : base(StatesList.InRoomRegistration, parrent, services)
     {
-        States[StatesList.EnterInRoomName] = new EnterValueState(
-            services,
-            StatesList.EnterInRoomName,
-            StateArgsList.Name,
-            BotContent.Messages.EnterName,
-            Registration,
-            context => MessageParser.GetCommandsAsButtons(this)!);
-
-        Commands[BotCommandsList.Stop] = new StopBotCommand(services);
+        States[StatesList.EnterUserName] = EnterValueState.NewUsername(
+            this, services, ProcessMessage);
     }
 
-    protected override Task PrepareStateInternal(MessageContext context)
-        => States[StatesList.EnterInRoomName].PrepareState(context);
+    protected override MessageStateBase FirstState => States[StatesList.EnterUserName];
 
-    public override Task<bool> ProcessMessage(Chat chat, MessageContext context)
-        => Services.ProcessHandler.HandleCommand(this, chat, context);
-    
-    private async Task Registration(Chat chat, MessageContext context)
+    public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
-        var roomId = context.State.StateObject.Arguments[StateArgsList.RoomId];
-        var userName = context.State.StateObject.Arguments[StateArgsList.Name];
+        var roomId = context.State.Arguments[StateArgsList.RoomId];
+        var userName = context.State.Arguments[StateArgsList.Name];
 
-        if (!TryGetRoom(roomId, out var room))
+        var room = Services.Database.Rooms.GetById(roomId);
+        if (room is null)
         {
-            FinishState(context.User);
             await Services.Notifications.SendMessageByKey(
                 chat.Id, BotContent.Messages.ErrRoomDoesntExist);
-            return;
+            await Services.GlobalHandler.ExitState(chat, context.User);
+            return true;
         }
 
-        Services.Database.AddUserToRoom(context.User, room!, userName);
-        Services.Database.Users.EnterRoom(context.User, room!);
+        Services.Database.AddUserToRoom(context.User, room, userName);
+        Services.Database.Users.EnterRoom(context.User, room);
 
-        var participant = context.User.GetAsParticipant(room!)!;
+        var participant = context.User.GetAsParticipant(room)!;
 
         await Services.Notifications.SendMessageByKey(
             chat.Id, BotContent.Messages.UserRegistered);
-        await Services.GlobalMessageHandler.SendHelpMenu(context.User);
+        await Services.GlobalHandler.ExitState(chat, context.User);
 
-        await Services.Notifications.NotifyEveryoneInRoom(room!,
-                Services.MessageBuilder.BuildNewParticipant(room!, participant),
-                [participant.TelegramUserId]);
-    }
+        await Services.Notifications.NotifyEveryoneInRoom(
+            context.User, room,
+            Services.MessageBuilder.BuildNewParticipant(room, participant));
 
-    private bool TryGetRoom(string strRoomId, out PartyRoomEntity? room)
-    {
-        if (Guid.TryParse(strRoomId, out var roomId))
-        {
-            room = Services.Database.Rooms.GetById(roomId);
-            return room is { };
-        }
-
-        room = default;
-        return false;
+        return true;
     }
 }

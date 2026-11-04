@@ -17,7 +17,7 @@ public class NotifyEveryoneCommand(
     public override Task Execute(Chat chat, MessageContext context)
     {
         return context.User.IsAdmin()
-            ? notifyEveryoneState.PrepareState(context)
+            ? notifyEveryoneState.StartState(chat, context)
             : services.Notifications.SendNeedAdminRights(chat.Id);
     }
 }

@@ -11,23 +11,25 @@ namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 
 public class WishAddingState : MessageStateBase
 {
-    public WishAddingState(ServicesContext services)
-        : base(services, StatesList.AddWishes)
+    public WishAddingState(
+        MessageStateBase parrent,
+        ServicesContext services)
+        : base(StatesList.AddWishes, parrent, services)
     {
         Commands[BotCommandsList.Stop] = new StopBotCommand(services);
     }
 
-    protected override Task PrepareStateInternal(MessageContext context)
+    public override Task SendWelcomeMessage(Chat chat, MessageContext context)
     {
         return Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
             BotContent.Messages.UserAddWishes,
-            MessageParser.GetCommandsAsButtons(this)!);
+            ButtonUtil.GetCommandsAsButtons(this)!);
     }
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
-        if (await Services.ProcessHandler.HandleCommand(this, chat, context))
+        if (await Services.CustomHandler.HandleCommand(this, chat, context))
             return true;
 
         var user = context.User;
@@ -39,7 +41,7 @@ public class WishAddingState : MessageStateBase
             case Messages.MessageType.Text:
                 participant.Wishes.Add(new() { Message = context.Message.TextMsg!.Text });
                 await FinalizeWishAdding(room, context);
-                return true;
+                break;
             case Messages.MessageType.Image:
                 var imageObj = context.Message.ImageMsg!;
                 var lastWish = participant.Wishes.LastOrDefault();
@@ -61,12 +63,13 @@ public class WishAddingState : MessageStateBase
                 }
 
                 await FinalizeWishAdding(room, context);
-                return true;
+                break;
             default:
                 await Services.Notifications.SendWrongText(chat.Id);
-                await PrepareState(context);
-                return true;
+                break;
         }
+
+        return true;
     }
 
     private async Task FinalizeWishAdding(PartyRoomEntity room, MessageContext context)
@@ -75,6 +78,5 @@ public class WishAddingState : MessageStateBase
         await Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
             BotContent.Messages.UserWishIsAdded);
-        await PrepareState(context);
     }
 }

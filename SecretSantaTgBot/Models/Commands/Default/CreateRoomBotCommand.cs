@@ -10,5 +10,5 @@ public class CreateRoomBotCommand(RoomCreationState createRoomState)
     : BotCommandBase(BotCommandsList.CreateRoom)
 {
     public override Task Execute(Chat chat, MessageContext context)
-        => createRoomState.PrepareState(context);
+        => createRoomState.StartState(chat, context);
 }

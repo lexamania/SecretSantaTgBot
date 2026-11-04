@@ -15,7 +15,7 @@ public class DeleteRoomBotCommand(
     public override Task Execute(Chat chat, MessageContext context)
     {
         return context.User.GetAdminRooms().Count() > 0
-            ? deleteRoomState.PrepareState(context)
+            ? deleteRoomState.StartState(chat, context)
             : services.Notifications.SendMessageByKey(
                 chat.Id, BotContent.Messages.ErrZeroRooms);
     }

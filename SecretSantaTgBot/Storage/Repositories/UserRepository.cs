@@ -1,5 +1,6 @@
 using LiteDB;
 
+using SecretSantaTgBot.Models;
 using SecretSantaTgBot.Storage.Entities;
 using SecretSantaTgBot.Utils;
 
@@ -9,7 +10,8 @@ public class UserRepository(LiteDatabase db) : DirectoryBase<UserEntity>(db, "us
 {
     private ILiteCollection<UserEntity> FullUsers => Collection
             .Include(x => x.AvailableRooms)
-            .Include(x => x.SelectedRoom);
+            .Include(x => x.SelectedRoom)
+            .Include(x => x.AvailableRooms.Select(x => x.Admin));
 
     public List<UserEntity> GetByIds(IEnumerable<long> ids)
         => [.. FullUsers.Find(x => ids.Contains(x.TelegramUserId))];
@@ -49,9 +51,9 @@ public class UserRepository(LiteDatabase db) : DirectoryBase<UserEntity>(db, "us
     public bool Update(UserEntity user) => Collection.Update(user);
     public void Update(IEnumerable<UserEntity> users) => Collection.Update(users);
 
-    public bool SetState(UserEntity user, string state)
+    public bool SetState(UserEntity user, StateModel state)
     {
-        user.CurrentState = state;
+        user.CurrentState = state.ToString();
         return Update(user);
     }
 

@@ -14,7 +14,7 @@ public class SelectRoomBotCommand(
     public override Task Execute(Chat chat, MessageContext context)
     {
         return context.User.AvailableRooms is { Count: > 0 }
-            ? selectRoomState.PrepareState(context)
+            ? selectRoomState.StartState(chat, context)
             : services.Notifications.SendMessageByKey(
                 chat.Id, BotContent.Messages.ErrZeroRooms);
     }

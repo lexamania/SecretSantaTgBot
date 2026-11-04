@@ -8,44 +8,38 @@ using Telegram.Bot.Types;
 
 namespace SecretSantaTgBot.Models.MessageStates.DefaultStates;
 
-public class RoomSelectionState : MessageStateBase
+public class RoomSelectionState : SequentialMessageStateBase
 {
-    public RoomSelectionState(ServicesContext services)
-        : base(services, StatesList.RoomSelection)
+    public RoomSelectionState(
+        MessageStateBase parrent,
+        ServicesContext services)
+        : base(StatesList.RoomSelection, parrent, services)
     {
-        States[StatesList.EnterRoomAlias] = new EnterValueState(
-            services,
-            StatesList.EnterRoomAlias,
-            StateArgsList.RoomAlias,
-            BotContent.Messages.ChooseRoom,
+        States[StatesList.EnterRoomAlias] = EnterValueState.NewRoomAlias(
+            this, services,
             ProcessMessage,
-            context => context.User.AvailableRooms
-                        .Select(MessageParser.GenerateRoomButton)
-                        .ToArray()!
+            ButtonUtil.GetRoomButtons
         );
     }
 
-    protected override Task PrepareStateInternal(MessageContext context)
-        => States[StatesList.EnterRoomAlias].PrepareState(context);
+    protected override MessageStateBase FirstState => States[StatesList.EnterRoomAlias];
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
-        var roomAlias = context.State.StateObject.Arguments[StateArgsList.RoomAlias];
-        var roomId = MessageParser
-            .ParseButtonMessage(roomAlias)
-            .Last();
+        var roomAlias = context.State.Arguments[StateArgsList.RoomAlias];
+        var roomId = ButtonUtil.ParseRoomIdFromAlias(roomAlias);
         var room = context.User.GetAvailableRoom(roomId);
 
         if (room is null)
         {
             await Services.Notifications.SendStagedMessageByKey(
                 chat.Id, BotContent.Messages.ErrRoomDoesntExist);
-            await PrepareState(context);
+            await SendWelcomeMessage(chat, context);
         }
         else
         {
             Services.Database.Users.EnterRoom(context.User, room);
-            await Services.GlobalMessageHandler.SendHelpMenu(context.User);
+            await Services.GlobalHandler.ExitState(chat, context.User);
         }
 
         return true;

@@ -10,5 +10,5 @@ public class StartWishesBotCommand(WishAddingState addWishesState)
     : BotCommandBase(BotCommandsList.AddWishes)
 {
     public override Task Execute(Chat chat, MessageContext context)
-        => addWishesState.PrepareState(context);
+        => addWishesState.StartState(chat, context);
 }
