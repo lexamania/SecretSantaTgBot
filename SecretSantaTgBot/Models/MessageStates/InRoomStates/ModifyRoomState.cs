@@ -10,7 +10,7 @@ namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 public class ModifyRoomState : SequentialMessageStateBase
 {
     public ModifyRoomState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         ServicesContext services)
         : base(StatesList.RoomModifying, parrent, services)
     {
@@ -23,7 +23,7 @@ public class ModifyRoomState : SequentialMessageStateBase
         States[enterDescriptionState.Title] = enterDescriptionState;
     }
 
-    protected override MessageStateBase FirstState => States[StatesList.EnterTitle];
+    protected override IMessageState FirstState => States[StatesList.EnterTitle];
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {

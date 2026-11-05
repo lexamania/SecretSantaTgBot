@@ -6,7 +6,7 @@ using Telegram.Bot.Types;
 namespace SecretSantaTgBot.Models.MessageStates.Common;
 
 public class ConfirmationState(
-    MessageStateBase parrent,
+    IMessageState parrent,
     ServicesContext services,
     Func<Chat, MessageContext, Task> callback)
     : MessageStateBase(StatesList.Confirmation, parrent, services)

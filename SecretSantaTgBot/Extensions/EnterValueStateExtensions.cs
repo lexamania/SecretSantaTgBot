@@ -12,7 +12,7 @@ public static class EnterValueStateExtensions
     extension(EnterValueState state)
     {
         public static EnterValueState NewTitle(
-            MessageStateBase parrent,
+            IMessageState parrent,
             ServicesContext services,
             EnterValueState.ProcessHandler handler
         ) => new(
@@ -25,7 +25,7 @@ public static class EnterValueStateExtensions
         );
 
         public static EnterValueState NewDiscription(
-            MessageStateBase parrent,
+            IMessageState parrent,
             ServicesContext services,
             EnterValueState.ProcessHandler handler
         ) => new(
@@ -38,7 +38,7 @@ public static class EnterValueStateExtensions
         );
 
         public static EnterValueState NewUsername(
-            MessageStateBase parrent,
+            IMessageState parrent,
             ServicesContext services,
             EnterValueState.ProcessHandler handler
         ) => new(
@@ -51,7 +51,7 @@ public static class EnterValueStateExtensions
         );
 
         public static EnterValueState NewRoomAlias(
-            MessageStateBase parrent,
+            IMessageState parrent,
             ServicesContext services,
             EnterValueState.ProcessHandler handler,
             EnterValueState.ButtonsGenerator buttons

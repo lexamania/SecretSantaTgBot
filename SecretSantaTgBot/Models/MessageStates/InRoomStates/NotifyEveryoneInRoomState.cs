@@ -10,7 +10,7 @@ namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 public class NotifyEveryoneInRoomState : MessageStateBase
 {
     public NotifyEveryoneInRoomState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         ServicesContext services)
         : base(StatesList.NotifyEveryone, parrent, services)
     {

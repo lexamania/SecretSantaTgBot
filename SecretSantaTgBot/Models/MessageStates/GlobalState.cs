@@ -47,7 +47,7 @@ public class GlobalState : MessageStateBase
     }
 
     private bool TryGetMessageState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         string[] states,
         out MessageStateBase state,
         int iterator = 0)

@@ -12,7 +12,7 @@ namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 public class WishAddingState : MessageStateBase
 {
     public WishAddingState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         ServicesContext services)
         : base(StatesList.AddWishes, parrent, services)
     {

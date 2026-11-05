@@ -5,7 +5,7 @@ namespace SecretSantaTgBot.Utils;
 public static class StateUtil
 {
     public static string[] CalculateStates(MessageStateBase state)
-        => state.ParrentState is null
+        => state.Parrent is null
             ? [state.Title]
-            : [..CalculateStates(state.ParrentState), state.Title];
+            : [..CalculateStates(state.Parrent), state.Title];
 }

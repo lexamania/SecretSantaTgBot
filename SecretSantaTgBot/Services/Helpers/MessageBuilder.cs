@@ -19,7 +19,7 @@ public class MessageBuilder(
     public string GetByKey(string textKey)
         => texts[textKey];
 
-    public string BuildHelpMessage(IEnumerable<IBotCommand> commands, bool isAdmin)
+    public string BuildHelpMenu(IEnumerable<IBotCommand> commands, bool isAdmin)
     {
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>{texts[BotContent.Messages.Menu]}</b>");
@@ -36,6 +36,7 @@ public class MessageBuilder(
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>{room.Title}</b>");
         strBldr.AppendLine(texts[BotContent.Messages.NtfSantaFinished]);
+        strBldr.AppendLine();
         strBldr.AppendLine($"{BuildTargetInfo(target)}");
         return strBldr.ToString();
     }
@@ -102,22 +103,28 @@ public class MessageBuilder(
         return strBldr.ToString();
     }
 
-    public string BuildCreateRoom(string roomId)
+    public string BuildRoomCreated(string roomId)
         => $"{texts[BotContent.Messages.RoomCreated]}\n\n{texts[BotContent.Messages.RoomLink]} {GetJoinLink(roomId)}";
 
-    public string BuildLeave(ParticipantEntity p)
+    public string BuildUserLeft(ParticipantEntity p)
         => $"{GetUserName(p)} {texts[BotContent.Messages.NtfUserLeftRoom]}";
 
-    public string BuildDeleteRoom(PartyRoomEntity room)
+    public string BuildRoomDeleted(PartyRoomEntity room)
         => $"<b>{room.Title}</b> {texts[BotContent.Messages.RoomDeleted]}";
 
     public string BuildNewParticipant(PartyRoomEntity room, ParticipantEntity participant)
         => $"{GetUserName(participant)} {texts[BotContent.Messages.NewParticipant]} <b>{room.Title}</b>";
 
+    public string BuildErrLeavingRestricted()
+        => $"{texts[BotContent.Messages.ErrRoomLeaving]}\n{texts[BotContent.Messages.ErrSantaWasPlayed]}";
+
+    public string BuildErrJoiningRestricted()
+        => $"{texts[BotContent.Messages.ErrRoomJoining]}\n{texts[BotContent.Messages.ErrSantaWasPlayed]}";
+
 
 
     private string GetJoinLink(string roomId)
-        => $"t.me/{config.BotName}?start={roomId}";
+        => $"https://t.me/{config.BotName}?start={roomId}";
 
     private string GetUserName(ParticipantEntity p)
         => p.Username is not null

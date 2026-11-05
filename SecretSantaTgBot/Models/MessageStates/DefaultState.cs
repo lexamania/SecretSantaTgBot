@@ -16,10 +16,12 @@ public class DefaultState : MessageStateBase
         var selectRoomState = new RoomSelectionState(this, services);
         var deleteRoomState = new RoomDeletingState(this, services);
         var createRoomState = new RoomCreationState(this, services);
+        var InRoomRegistrationState = new InRoomRegistrationState(this, services);
 
         States[createRoomState.Title] = createRoomState;
         States[selectRoomState.Title] = selectRoomState;
         States[deleteRoomState.Title] = deleteRoomState;
+        States[InRoomRegistrationState.Title] = InRoomRegistrationState;
 
         Commands[BotCommandsList.Help] = new HelpBotCommand(services, this);
         Commands[BotCommandsList.ShowRooms] = new ShowRoomsBotCommand(services);

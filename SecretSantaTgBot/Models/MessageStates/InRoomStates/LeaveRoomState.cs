@@ -10,7 +10,7 @@ namespace SecretSantaTgBot.Models.MessageStates.InRoomStates;
 public class LeaveRoomState : SequentialMessageStateBase
 {
     public LeaveRoomState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         ServicesContext services)
         : base(StatesList.RoomLeaving, parrent, services)
     {
@@ -18,22 +18,29 @@ public class LeaveRoomState : SequentialMessageStateBase
             this, services, ProcessMessage);
     }
 
-    protected override MessageStateBase FirstState => States[StatesList.Confirmation];
+    protected override IMessageState FirstState => States[StatesList.Confirmation];
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
         var room = context.User.SelectedRoom!;
         var participant = context.User.GetAsParticipant(room)!;
 
+        if (room.SantaPlayed)
+        {
+            await Services.Notifications.SendMessage(chat.Id,
+                Services.MessageBuilder.BuildErrLeavingRestricted());
+            return true;
+        }
+
         Services.Database.RemoveUserFromRoom(context.User, room);
 
-        await Task.WhenAll(
-            Services.Notifications.SendMessageByKey(
-                chat.Id, BotContent.Messages.UserLeftRoom),
-            Services.Notifications.NotifyEveryoneInRoom(
+        await Services.Notifications.SendMessageByKey(
+                chat.Id, BotContent.Messages.UserLeftRoom);
+        await Services.GlobalHandler.ExitState(chat, context.User);
+        await Services.Notifications.NotifyEveryoneInRoom(
                 context.User, room,
-                Services.MessageBuilder.BuildLeave(participant))
-        );
+                Services.MessageBuilder.BuildUserLeft(participant));
+
         return true;
     }
 }

@@ -13,7 +13,7 @@ public class EnterValueState : MessageStateBase
     public delegate string[] ButtonsGenerator(MessageContext context);
 
     public EnterValueState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         ServicesContext services,
         string title,
         string valueKey,

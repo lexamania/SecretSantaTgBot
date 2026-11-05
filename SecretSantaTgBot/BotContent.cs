@@ -52,6 +52,7 @@ public sealed class BotContent
         public const string UserStartRegistration = "msg_user_start_registration";
         public const string UserRegistered = "msg_user_registered";
         public const string NewParticipant = "msg_new_participant";
+        public const string ErrRoomJoining = "msg_err_room_joining";
         public const string ParticipantsList = "msg_participants_list";
         public const string StartSanta = "msg_start_santa";
         public const string NtfSantaFinished = "msg_ntf_santa_finished";
@@ -59,6 +60,7 @@ public sealed class BotContent
         public const string ErrSantaWasPlayed = "msg_err_santa_was_played";
         public const string UserLeftRoom = "msg_user_left_room";
         public const string NtfUserLeftRoom = "msg_ntf_user_left_room";
+        public const string ErrRoomLeaving = "msg_err_room_leaving";
         public const string EnterMessage = "msg_enter_message";
         public const string MessageIsSent = "msg_message_is_sent";
         public const string MessageAskConfirmation = "msg_message_ask_confirmation";

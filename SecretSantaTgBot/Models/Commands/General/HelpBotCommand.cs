@@ -14,7 +14,7 @@ public class HelpBotCommand(
 {
     public override Task Execute(Chat chat, MessageContext context)
     {
-        var msg = services.MessageBuilder.BuildHelpMessage(
+        var msg = services.MessageBuilder.BuildHelpMenu(
             state.ReadOnlyCommands.Values,
             context.User.IsAdmin());
         return services.Notifications.SendMessage(chat.Id, msg);

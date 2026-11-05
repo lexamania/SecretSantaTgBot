@@ -10,7 +10,7 @@ namespace SecretSantaTgBot.Models.MessageStates.DefaultStates;
 public class RoomCreationState : SequentialMessageStateBase
 {
     public RoomCreationState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         ServicesContext services)
         : base(StatesList.RoomCreation, parrent, services)
     {
@@ -26,7 +26,7 @@ public class RoomCreationState : SequentialMessageStateBase
         States[enterNameState.Title] = enterNameState;
     }
 
-    protected override MessageStateBase FirstState => States[StatesList.EnterTitle];
+    protected override IMessageState FirstState => States[StatesList.EnterTitle];
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
@@ -37,7 +37,7 @@ public class RoomCreationState : SequentialMessageStateBase
 
         var room = Services.Database.CreateRoom(user, title, description, adminName);
 
-        var message = Services.MessageBuilder.BuildCreateRoom(room.Id.ToString());
+        var message = Services.MessageBuilder.BuildRoomCreated(room.Id.ToString());
         await Services.Notifications.SendMessage(user.TelegramUserId, message);
 
         Services.Database.Users.EnterRoom(user, room);

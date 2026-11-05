@@ -7,17 +7,18 @@ namespace SecretSantaTgBot.Models.MessageStates.Base;
 
 public abstract class MessageStateBase(
     string title,
-    MessageStateBase? parrent,
+    IMessageState? parrent,
     ServicesContext services)
+    : IMessageState
 {
     protected ServicesContext Services { get; } = services;
     protected Dictionary<string, IBotCommand> Commands { get; } = [];
-    protected Dictionary<string, MessageStateBase> States { get; } = [];
+    protected Dictionary<string, IMessageState> States { get; } = [];
 
     public string Title { get; } = title;
-    public MessageStateBase? ParrentState { get; } = parrent;
+    public IMessageState? Parrent { get; } = parrent;
     public IReadOnlyDictionary<string, IBotCommand> ReadOnlyCommands => Commands;
-    public IReadOnlyDictionary<string, MessageStateBase> ReadOnlyStates => States;
+    public IReadOnlyDictionary<string, IMessageState> ReadOnlyStates => States;
 
     public async Task StartState(Chat chat, MessageContext context)
     {

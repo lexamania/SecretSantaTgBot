@@ -11,7 +11,7 @@ namespace SecretSantaTgBot.Models.MessageStates.DefaultStates;
 public class RoomDeletingState : SequentialMessageStateBase
 {
     public RoomDeletingState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         ServicesContext services)
         : base(StatesList.RoomDeleting, parrent, services)
     {
@@ -27,7 +27,7 @@ public class RoomDeletingState : SequentialMessageStateBase
         States[confirmDeleteState.Title] = confirmDeleteState;
     }
 
-    protected override MessageStateBase FirstState => States[StatesList.EnterRoomAlias];
+    protected override IMessageState FirstState => States[StatesList.EnterRoomAlias];
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
@@ -43,7 +43,7 @@ public class RoomDeletingState : SequentialMessageStateBase
                 Services.GlobalHandler.ExitState(chat, context.User),
                 Services.Notifications.NotifyEveryoneInRoom(
                     context.User, room,
-                    Services.MessageBuilder.BuildDeleteRoom(room)));
+                    Services.MessageBuilder.BuildRoomDeleted(room)));
         }
         else
         {

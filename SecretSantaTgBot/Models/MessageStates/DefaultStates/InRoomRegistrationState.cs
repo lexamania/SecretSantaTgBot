@@ -11,7 +11,7 @@ namespace SecretSantaTgBot.Models.MessageStates.DefaultStates;
 public class InRoomRegistrationState : SequentialMessageStateBase
 {
     public InRoomRegistrationState(
-        MessageStateBase parrent,
+        IMessageState parrent,
         ServicesContext services)
         : base(StatesList.InRoomRegistration, parrent, services)
     {
@@ -19,7 +19,7 @@ public class InRoomRegistrationState : SequentialMessageStateBase
             this, services, ProcessMessage);
     }
 
-    protected override MessageStateBase FirstState => States[StatesList.EnterUserName];
+    protected override IMessageState FirstState => States[StatesList.EnterUserName];
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
@@ -32,6 +32,13 @@ public class InRoomRegistrationState : SequentialMessageStateBase
             await Services.Notifications.SendMessageByKey(
                 chat.Id, BotContent.Messages.ErrRoomDoesntExist);
             await Services.GlobalHandler.ExitState(chat, context.User);
+            return true;
+        }
+
+        if (room.SantaPlayed)
+        {
+            await Services.Notifications.SendMessage(chat.Id,
+                Services.MessageBuilder.BuildErrJoiningRestricted());
             return true;
         }
 
