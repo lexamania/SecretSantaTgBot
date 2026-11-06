@@ -24,7 +24,7 @@
                 "win-x64",
                 "--output",
                 "${workspaceFolder}/Builds/win-x64",
-                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
+                "${workspaceFolder}/SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -45,7 +45,7 @@
                 "linux-x64",
                 "--output",
                 "${workspaceFolder}/Builds/linux-x64",
-                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
+                "${workspaceFolder}/SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -61,7 +61,7 @@
             "type": "shell",
             "args": [
                 "build",
-                "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj",
+                "${workspaceFolder}/SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

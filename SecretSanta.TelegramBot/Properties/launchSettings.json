@@ -1,0 +1,10 @@
+{
+    "profiles": {
+        "SecretSanta.TelegramBot": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        }
+    }
+}

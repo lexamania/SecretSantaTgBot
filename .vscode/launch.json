@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/SecretSantaTgBot/bin/Debug/net10.0/SecretSantaTgBot.dll",
+            "program": "${workspaceFolder}/SecretSanta.TelegramBot/bin/Debug/net10.0/SecretSanta.TelegramBot.dll",
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "internalConsole"
@@ -18,7 +18,7 @@
             "name": "C#: Launch & Debug",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/SecretSantaTgBot/SecretSantaTgBot.csproj"
+            "projectPath": "${workspaceFolder}/SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj"
         },
     ]
 }
