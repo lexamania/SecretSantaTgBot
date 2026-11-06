@@ -1,10 +1,10 @@
 using LiteDB;
 
-using SecretSanta.TelegramBot.Models;
-using SecretSanta.TelegramBot.Storage.Entities;
-using SecretSanta.TelegramBot.Utils;
+using SecretSanta.Shared.Models;
+using SecretSanta.Shared.Storage.Entities;
+using SecretSanta.Shared.Utils;
 
-namespace SecretSanta.TelegramBot.Storage.Repositories;
+namespace SecretSanta.Shared.Storage.Repositories;
 
 public class UserRepository(LiteDatabase db) : DirectoryBase<UserEntity>(db, "users")
 {

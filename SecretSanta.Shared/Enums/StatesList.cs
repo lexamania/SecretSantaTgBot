@@ -1,4 +1,4 @@
-namespace SecretSanta.TelegramBot.Enums;
+namespace SecretSanta.Shared.Enums;
 
 public static class StatesList
 {

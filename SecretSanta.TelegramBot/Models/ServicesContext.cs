@@ -1,7 +1,7 @@
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.TelegramBot.Services.Helpers;
 using SecretSanta.TelegramBot.Services.MessageHandlers;
-using SecretSanta.TelegramBot.Storage;
+using SecretSanta.Shared.Storage;
 
 namespace SecretSanta.TelegramBot.Models;
 

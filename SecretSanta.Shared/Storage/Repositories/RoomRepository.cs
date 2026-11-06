@@ -1,8 +1,8 @@
 using LiteDB;
 
-using SecretSanta.TelegramBot.Storage.Entities;
+using SecretSanta.Shared.Storage.Entities;
 
-namespace SecretSanta.TelegramBot.Storage.Repositories;
+namespace SecretSanta.Shared.Storage.Repositories;
 
 public class RoomRepository(LiteDatabase db) : DirectoryBase<PartyRoomEntity>(db, "rooms")
 {

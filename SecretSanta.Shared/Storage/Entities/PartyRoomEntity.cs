@@ -1,6 +1,6 @@
 using LiteDB;
 
-namespace SecretSanta.TelegramBot.Storage.Entities;
+namespace SecretSanta.Shared.Storage.Entities;
 
 public class PartyRoomEntity
 {

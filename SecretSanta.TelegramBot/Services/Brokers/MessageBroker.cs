@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.TelegramBot.Services.Helpers;
 using SecretSanta.TelegramBot.Services.MessageHandlers;
-using SecretSanta.TelegramBot.Storage;
+using SecretSanta.Shared.Storage;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;

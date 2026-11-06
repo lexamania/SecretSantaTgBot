@@ -1,11 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using SecretSanta.TelegramBot.Attributes;
-using SecretSanta.TelegramBot.Enums;
-using SecretSanta.TelegramBot.Models;
+using SecretSanta.Shared.Enums;
+using SecretSanta.Shared.Models;
 using SecretSanta.TelegramBot.Models.MessageStates;
-using SecretSanta.TelegramBot.Storage;
-using SecretSanta.TelegramBot.Storage.Entities;
+using SecretSanta.Shared.Storage;
+using SecretSanta.Shared.Storage.Entities;
 
 using Telegram.Bot.Types;
 

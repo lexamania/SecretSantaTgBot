@@ -1,5 +1,6 @@
 using SecretSanta.TelegramBot.Enums;
-using SecretSanta.TelegramBot.Extensions;
+using SecretSanta.Shared.Enums;
+using SecretSanta.Shared.Extensions;
 using SecretSanta.TelegramBot.Models.Commands.Base;
 using SecretSanta.TelegramBot.Models.MessageStates.InRoomStates;
 

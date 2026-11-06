@@ -1,5 +1,4 @@
 using SecretSanta.TelegramBot.Attributes;
-using SecretSanta.TelegramBot.Models;
 using SecretSanta.TelegramBot.Models.MessageStates.Base;
 using SecretSanta.TelegramBot.Services.Helpers;
 

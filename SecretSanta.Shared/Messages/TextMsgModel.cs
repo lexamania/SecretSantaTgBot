@@ -1,4 +1,4 @@
-namespace SecretSanta.TelegramBot.Models.Messages;
+namespace SecretSanta.Shared.Messages;
 
 public class TextMsgModel(string message)
 {

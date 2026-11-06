@@ -1,4 +1,4 @@
-namespace SecretSanta.TelegramBot.Utils;
+namespace SecretSanta.Shared.Utils;
 
 public static class RandomUtility
 {

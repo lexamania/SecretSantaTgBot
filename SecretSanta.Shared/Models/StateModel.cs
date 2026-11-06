@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace SecretSanta.TelegramBot.Models;
+namespace SecretSanta.Shared.Models;
 
 public class StateModel
 {

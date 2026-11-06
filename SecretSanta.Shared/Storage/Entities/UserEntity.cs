@@ -1,8 +1,6 @@
 using LiteDB;
 
-using SecretSanta.TelegramBot.Localization;
-
-namespace SecretSanta.TelegramBot.Storage.Entities;
+namespace SecretSanta.Shared.Storage.Entities;
 
 public class UserEntity
 {

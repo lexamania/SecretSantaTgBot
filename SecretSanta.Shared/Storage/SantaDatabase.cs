@@ -1,12 +1,11 @@
 using LiteDB;
 
-using SecretSanta.TelegramBot.Configurations;
-using SecretSanta.TelegramBot.Extensions;
-using SecretSanta.TelegramBot.Storage.Repositories;
-using SecretSanta.TelegramBot.Storage.Entities;
-using SecretSanta.TelegramBot.Utils;
+using SecretSanta.Shared.Extensions;
+using SecretSanta.Shared.Storage.Repositories;
+using SecretSanta.Shared.Storage.Entities;
+using SecretSanta.Shared.Utils;
 
-namespace SecretSanta.TelegramBot.Storage;
+namespace SecretSanta.Shared.Storage;
 
 public class SantaDatabase: IDisposable
 {
@@ -15,9 +14,8 @@ public class SantaDatabase: IDisposable
     public UserRepository Users { get; }
     public RoomRepository Rooms { get; }
 
-    public SantaDatabase(BotConfiguration config)
+    public SantaDatabase(string dbPath)
     {
-        var dbPath = config.DBPath;
         DirectoryUtils.CreateDirectoryRecursively(Path.GetDirectoryName(dbPath)!);
 
         _database = new LiteDatabase(dbPath);
@@ -70,7 +68,7 @@ public class SantaDatabase: IDisposable
         {
             TelegramUserId = user.TelegramUserId,
             Username = user.Username,
-            InRoomName = userInRoomName
+            CustomName = userInRoomName
         });
 
         Rooms.Update(room);

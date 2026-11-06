@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-using SecretSanta.TelegramBot.Extensions;
+using SecretSanta.Shared.Extensions;
 
 namespace SecretSanta.TelegramBot.Configurations;
 

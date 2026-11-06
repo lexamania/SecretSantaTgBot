@@ -1,6 +1,6 @@
 using LiteDB;
 
-namespace SecretSanta.TelegramBot.Storage.Repositories;
+namespace SecretSanta.Shared.Storage.Repositories;
 
 public class DirectoryBase<T>(LiteDatabase database, string collectionName)
 {

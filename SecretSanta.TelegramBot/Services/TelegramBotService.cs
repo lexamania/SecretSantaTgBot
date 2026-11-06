@@ -1,9 +1,9 @@
+using SecretSanta.TelegramBot.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.TelegramBot.Configurations;
-using SecretSanta.TelegramBot.Enums;
 using SecretSanta.TelegramBot.Services.Brokers;
 using SecretSanta.TelegramBot.Services.Helpers;
 

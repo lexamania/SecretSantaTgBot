@@ -1,5 +1,5 @@
 using SecretSanta.TelegramBot.Attributes;
-using SecretSanta.TelegramBot.Storage.Entities;
+using SecretSanta.Shared.Storage.Entities;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;

@@ -1,6 +1,7 @@
-using SecretSanta.TelegramBot.Extensions;
-using SecretSanta.TelegramBot.Models.Commands.Base;
 using SecretSanta.TelegramBot.Enums;
+using SecretSanta.Shared.Extensions;
+using SecretSanta.TelegramBot.Models.Commands.Base;
+using SecretSanta.Shared.Enums;
 
 using Telegram.Bot.Types;
 using SecretSanta.TelegramBot.Models.MessageStates.Base;

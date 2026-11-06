@@ -1,13 +1,12 @@
+using SecretSanta.TelegramBot.Enums;
 using System.Text;
 
 using Microsoft.Extensions.Localization;
 
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.TelegramBot.Configurations;
-using SecretSanta.TelegramBot.Enums;
-using SecretSanta.TelegramBot.Extensions;
 using SecretSanta.TelegramBot.Models.Commands.Base;
-using SecretSanta.TelegramBot.Storage.Entities;
+using SecretSanta.Shared.Storage.Entities;
 
 namespace SecretSanta.TelegramBot.Services.Helpers;
 
@@ -128,6 +127,6 @@ public class MessageBuilder(
 
     private string GetUserName(ParticipantEntity p)
         => p.Username is not null
-            ? $"{p.InRoomName} (@{p.Username})"
-            : p.InRoomName;
+            ? $"{p.CustomName} (@{p.Username})"
+            : p.CustomName;
 }

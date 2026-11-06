@@ -1,4 +1,4 @@
-using SecretSanta.TelegramBot.Utils;
+using SecretSanta.Shared.Messages;
 
 using Telegram.Bot.Types;
 

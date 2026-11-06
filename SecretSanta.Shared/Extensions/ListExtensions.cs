@@ -1,4 +1,4 @@
-namespace SecretSanta.TelegramBot.Extensions;
+namespace SecretSanta.Shared.Extensions;
 
 public static class ListExtensions
 {

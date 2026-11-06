@@ -4,10 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using SecretSanta.TelegramBot.Configurations;
-using SecretSanta.TelegramBot.Extensions;
-using SecretSanta.TelegramBot.Localization;
 using SecretSanta.TelegramBot.Services;
-using SecretSanta.TelegramBot.Storage;
+using SecretSanta.Shared.Storage;
 
 using Serilog;
 
@@ -30,14 +28,11 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Services.AddSerilog();
 
-builder.Services.AddLocalization(options =>
-{
-    options.ResourcesPath = "Resources";
-});
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 builder.Services.AddSingleton<BotConfiguration>();
-builder.Services.AddSingleton<LocalizationDispatcher>();
-builder.Services.AddSingleton<SantaDatabase>();
+builder.Services.AddSingleton(provider =>
+    new SantaDatabase(provider.GetRequiredService<BotConfiguration>().DBPath));
 
 builder.Services.AddRequiredServices();
 

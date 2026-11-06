@@ -1,3 +1,6 @@
 {
-    "dotnet.defaultSolution": "SecretSanta.TelegramBot.slnx"
+    "dotnet.defaultSolution": "SecretSanta.slnx",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    }
 }

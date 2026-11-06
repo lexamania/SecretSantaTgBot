@@ -1,5 +1,5 @@
 using SecretSanta.TelegramBot.Models.Commands.Base;
-using SecretSanta.TelegramBot.Utils;
+using SecretSanta.Shared.Utils;
 
 using Telegram.Bot.Types;
 
