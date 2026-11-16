@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Configuration;
 
-using SecretSanta.Shared.Extensions;
-
 namespace SecretSanta.TelegramBot.Configurations;
 
 public class BotConfiguration(IConfiguration config) : IDisposable
@@ -12,10 +10,13 @@ public class BotConfiguration(IConfiguration config) : IDisposable
     public string BotToken { get; } = 
         config.GetRequiredValue<string>("BOT_TOKEN");
 
+    public string DBPath { get; } =
+        Path.GetFullPath(config.GetRequiredValue<string>("LiteDb:DatabasePath"));
+
     public string? BotName { get; set; }
 
-    public string DBPath { get; } =
-        Path.Join(AppContext.BaseDirectory, "Data", "Storage.db");
+    public void Cancel()
+        => _cts.Cancel();
 
     public void Dispose()
     {

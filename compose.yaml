@@ -6,4 +6,11 @@ services:
       dockerfile: Dockerfile
     environment:
       - BOT_TOKEN=${TG_BOT_TOKEN}
+      - LiteDb__DatabasePath=/data/secretsanta.db
+    volumes:
+      - secret_santa_data:/data
     restart: unless-stopped
+
+volumes:
+  secret_santa_data:
+    name: secretsanta_litedb
