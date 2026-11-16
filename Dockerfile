@@ -1,0 +1,30 @@
+# Learn about building .NET container images:
+# https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
+
+# build copies all project files and restores NuGet packages
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG TARGETARCH
+WORKDIR /source
+
+# Copy project file and restore as distinct layers
+COPY --link Directory.Packages.props .
+COPY --link SecretSanta.TelegramBot/*.csproj SecretSanta.TelegramBot/
+COPY --link SecretSanta.Shared/*.csproj SecretSanta.Shared/
+RUN dotnet restore -a $TARGETARCH SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj
+
+# Copy source code
+COPY --link SecretSanta.TelegramBot/ SecretSanta.TelegramBot/
+COPY --link SecretSanta.Shared/ SecretSanta.Shared/
+
+
+# publish builds and publishes MultiProjectApp
+FROM build AS publish
+WORKDIR /source/SecretSanta.TelegramBot
+RUN dotnet publish -a $TARGETARCH --no-restore -o /app
+
+
+# final is the final runtime stage for running the app
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
+WORKDIR /app
+COPY --link --from=publish /app .
+ENTRYPOINT ["dotnet", "SecretSanta.TelegramBot.dll"]
