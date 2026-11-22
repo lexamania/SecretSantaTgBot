@@ -5,17 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C#: Debug Build",
+            "name": "Debug: build and run",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/SecretSanta.TelegramBot/bin/Debug/net10.0/SecretSanta.TelegramBot.dll",
-            "cwd": "${workspaceFolder}",
-            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/SecretSanta.TelegramBot",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development"
+            },
+            "stopAtEntry": false,
             "console": "internalConsole"
         },
         {
-            "name": "C#: Launch & Debug",
+            "name": "Debug: automation",
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj"
