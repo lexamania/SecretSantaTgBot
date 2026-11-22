@@ -4,63 +4,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "run tasks",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "release win",
-                "release linux",
-            ],
-        },
-        {
-            "label": "release win",
-            "command": "dotnet",
-            "type": "shell",
-            "args": [
-                "publish",
-                //"-p:PublishSingleFile=true",
-                // Doesn't work well with some dependencies
-                // "-p:PublishTrimmed=true",
-                "--runtime",
-                "win-x64",
-                "--output",
-                "${workspaceFolder}/Builds/win-x64",
-                "${workspaceFolder}/SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
-            ],
-            "group": "build",
-            "presentation": {
-                "reveal": "silent"
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "release linux",
-            "command": "dotnet",
-            "type": "shell",
-            "args": [
-                "publish",
-                //"-p:PublishSingleFile=true",
-                "--runtime",
-                "linux-x64",
-                "--output",
-                "${workspaceFolder}/Builds/linux-x64",
-                "${workspaceFolder}/SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
-            ],
-            "group": "build",
-            "presentation": {
-                "reveal": "silent"
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
             "label": "build",
             "command": "dotnet",
             "type": "shell",
             "args": [
                 "build",
+                "-c",
+                "Debug",
                 "${workspaceFolder}/SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
@@ -69,7 +19,7 @@
             "presentation": {
                 "reveal": "silent"
             },
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
         },
     ]
 }

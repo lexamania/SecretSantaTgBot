@@ -8,7 +8,7 @@ public class BotConfiguration(IConfiguration config) : IDisposable
     public CancellationToken CancellationToken => _cts.Token;
 
     public string BotToken { get; } = 
-        config.GetRequiredValue<string>("BOT_TOKEN");
+        config.GetRequiredValue<string>("TelegramBot:Token");
 
     public string DBPath { get; } =
         Path.GetFullPath(config.GetRequiredValue<string>("LiteDb:DatabasePath"));

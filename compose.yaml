@@ -5,8 +5,9 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - BOT_TOKEN=${TG_BOT_TOKEN}
-      - LiteDb__DatabasePath=/data/secretsanta.db
+     - DOTNET_ENVIRONMENT=Production
+     - TelegramBot__Token=${TelegramBotToken}
+     - LiteDb__DatabasePath=/data/secretsanta.db
     volumes:
       - secret_santa_data:/data
     restart: unless-stopped
