@@ -4,17 +4,18 @@ The Mini App frontend is built with plain HTML, CSS, and JavaScript. It has no
 build step or package dependencies. The current page is a responsive shell;
 room data and actions will be connected after the API contract is defined.
 
-## Local preview
+## Run locally with .NET
 
-From the repository root, serve this folder over HTTP:
+From the repository root, start the ASP.NET Core host:
 
 ```sh
-python3 -m http.server 8080 --directory SecretSanta.TelegramWebApp
+dotnet run --project SecretSanta.TelegramApi
 ```
 
-Then open `http://localhost:8080`. Outside Telegram the page displays a preview
-notice. Telegram Mini Apps must be served from an HTTPS URL when registered for
-use in Telegram.
+Then open `http://localhost:5080`. The API project serves these frontend files
+from its `wwwroot` path, including when published. Outside Telegram the page
+displays a preview notice. Telegram Mini Apps must be served from a public
+HTTPS URL when registered for use in Telegram.
 
 ## Telegram integration
 

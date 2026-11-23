@@ -2,13 +2,21 @@
 
 A little holiday magic, shared. Organize your Secret Santa with a Telegram bot.
 
-## Run
+## Run locally
 
-Get a bot token from [@BotFather](https://t.me/BotFather), then:
+Start the bot with a token from [@BotFather](https://t.me/BotFather):
 
 ```sh
 export TelegramBot__Token="your-bot-token"
 dotnet run --project SecretSanta.TelegramBot
 ```
 
-The Telegram Mini App frontend is in [`SecretSanta.TelegramWebApp`](./SecretSanta.TelegramWebApp/).
+Run the Mini App and API at `http://localhost:5080`:
+
+```sh
+dotnet run --project SecretSanta.TelegramApi
+```
+
+The API project serves the vanilla-JavaScript frontend in
+[`SecretSanta.TelegramWebApp`](./SecretSanta.TelegramWebApp/). Telegram requires
+a public HTTPS URL for the deployed Mini App.
