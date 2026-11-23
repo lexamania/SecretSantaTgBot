@@ -1,6 +1,14 @@
-It's tg bot for game Secret Santa.
+# Secret Santa
 
-For using bot:
+A little holiday magic, shared. Organize your Secret Santa with a Telegram bot.
 
-1. You need to set Environment Variable 'BOT_TOKEN' with token of your bot. You can get token from @BotFather in tg.
-2. Launch your bot.
+## Run
+
+Get a bot token from [@BotFather](https://t.me/BotFather), then:
+
+```sh
+export TelegramBot__Token="your-bot-token"
+dotnet run --project SecretSanta.TelegramBot
+```
+
+The Telegram Mini App frontend is in [`SecretSanta.TelegramWebApp`](./SecretSanta.TelegramWebApp/).
