@@ -54,7 +54,7 @@ public class EnterValueState : MessageStateBase
         }
 
         context.State.Arguments[_valueKey] = context.Message.TextMsg!.Text;
-        Services.Database.Users.SetState(context.User, context.State);
+        await Services.Database.Users.SetStateAsync(context.User, context.State);
 
         await _postProcess.Invoke(chat, context);
         return true;

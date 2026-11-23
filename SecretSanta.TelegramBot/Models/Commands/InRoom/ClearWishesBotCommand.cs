@@ -10,15 +10,15 @@ namespace SecretSanta.TelegramBot.Models.Commands.InRoom;
 public class ClearWishesBotCommand(ServicesContext services)
     : BotCommandBase(BotCommandsList.ClearWishes)
 {
-    public override Task Execute(Chat chat, MessageContext context)
+    public override async Task Execute(Chat chat, MessageContext context)
     {
         var room = context.User.SelectedRoom!;
         var participant = context.User.GetAsParticipant(room)!;
 
         participant.Wishes.Clear();
-        services.Database.Rooms.Update(room);
+        await services.Database.Rooms.UpdateAsync(room);
 
-        return services.Notifications.SendMessageByKey(
+        await services.Notifications.SendMessageByKey(
             chat.Id, BotContent.Messages.UserWishesIsCleared);
     }
 }

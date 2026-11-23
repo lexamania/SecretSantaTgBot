@@ -9,9 +9,9 @@ namespace SecretSanta.TelegramBot.Models.Commands.General;
 public class StopBotCommand(ServicesContext services)
     : BotCommandBase(BotCommandsList.Stop)
 {
-    public override Task Execute(Chat chat, MessageContext context)
+    public override async Task Execute(Chat chat, MessageContext context)
     {
-        services.Database.Users.ClearState(context.User);
-        return services.GlobalHandler.ExitState(chat, context.User);
+        await services.Database.Users.ClearStateAsync(context.User);
+        await services.GlobalHandler.ExitState(chat, context.User);
     }
 }

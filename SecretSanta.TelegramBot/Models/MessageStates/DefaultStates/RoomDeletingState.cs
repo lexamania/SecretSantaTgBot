@@ -33,11 +33,13 @@ public class RoomDeletingState : SequentialMessageStateBase
     {
         var roomAlias = context.State.Arguments[StateArgsList.RoomAlias];
         var roomId = ButtonUtil.ParseRoomIdFromAlias(roomAlias);
-        var room = context.User.GetAvailableRoom(roomId);
+        var room = roomId is { } id
+            ? context.User.GetAvailableRoom(id)
+            : null;
 
         if (room is { } && context.User.IsAdmin(room))
         {
-            Services.Database.DeleteRoom(context.User, room.Id);
+            await Services.Database.Rooms.DeleteAsync(context.User, room.Id);
 
             await Task.WhenAll(
                 Services.GlobalHandler.ExitState(chat, context.User),

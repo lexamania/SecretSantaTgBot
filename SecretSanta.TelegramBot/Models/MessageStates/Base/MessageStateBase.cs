@@ -26,11 +26,10 @@ public abstract class MessageStateBase(
         await SendWelcomeMessage(chat, context);
     }
 
-    public virtual Task PrepareState(MessageContext context)
+    public virtual async Task PrepareState(MessageContext context)
     {
         context.State.States = StateUtil.CalculateStates(this);
-        Services.Database.Users.SetState(context.User, context.State);
-        return Task.CompletedTask;
+        await Services.Database.Users.SetStateAsync(context.User, context.State);
     }
 
     public abstract Task SendWelcomeMessage(Chat chat, MessageContext context);

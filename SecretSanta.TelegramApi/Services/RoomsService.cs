@@ -6,13 +6,15 @@ namespace SecretSanta.TelegramApi.Services;
 
 [RequiredService(InjectionType.Singleton)]
 public sealed class RoomsService(
-    SantaDatabase database)
+    ISantaDatabase database)
 {
-    public ServiceResult<IReadOnlyList<RoomListItem>> GetRooms(TelegramInitData initData)
+    public async Task<ServiceResult<IReadOnlyList<RoomListItem>>> GetRoomsAsync(
+        TelegramInitData initData,
+        CancellationToken cancellationToken = default)
     {
-        var rooms = database.Users.GetRooms(initData.User.Id)
+        var rooms = (await database.Users.GetRoomsAsync(initData.User.Id, cancellationToken))
             .Select(room => new RoomListItem(
-                room.Id,
+                room.Id.Value,
                 room.Title,
                 room.Description,
                 room.Participants.Count,

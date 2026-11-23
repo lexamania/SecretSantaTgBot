@@ -9,9 +9,9 @@ namespace SecretSanta.TelegramBot.Models.Commands.InRoom;
 public class BackToMenuBotCommand(ServicesContext services)
     : BotCommandBase(BotCommandsList.Back)
 {
-    public override Task Execute(Chat chat, MessageContext context)
+    public override async Task Execute(Chat chat, MessageContext context)
     {
-        services.Database.Users.ExitRoom(context.User);
-        return services.GlobalHandler.ExitState(chat, context.User);
+        await services.Database.Users.ExitRoomAsync(context.User);
+        await services.GlobalHandler.ExitState(chat, context.User);
     }
 }

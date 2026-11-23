@@ -75,7 +75,7 @@ public class WishAddingState : MessageStateBase
 
     private async Task FinalizeWishAdding(PartyRoomEntity room, MessageContext context)
     {
-        Services.Database.Rooms.Update(room);
+        await Services.Database.Rooms.UpdateAsync(room);
         await Services.Notifications.SendStagedMessageByKey(
             context.User.TelegramUserId,
             BotContent.Messages.UserWishIsAdded);

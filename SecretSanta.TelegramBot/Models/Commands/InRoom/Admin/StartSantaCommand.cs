@@ -14,31 +14,36 @@ public class StartSantaCommand(ServicesContext services)
         BotCommandsList.StartSanta,
         access: AccessRights.Admin)
 {
-    public override Task Execute(Chat chat, MessageContext context)
+    public override async Task Execute(Chat chat, MessageContext context)
     {
         var room = context.User.SelectedRoom!;
 
         if (!context.User.IsAdmin())
-            return services.Notifications.SendNeedAdminRights(chat.Id);
+        {
+            await services.Notifications.SendNeedAdminRights(chat.Id);
+            return;
+        }
 
         if (room.SantaPlayed)
         {
-            return services.Notifications.SendMessageByKey(
+            await services.Notifications.SendMessageByKey(
                 chat.Id, BotContent.Messages.ErrSantaWasPlayed);
+            return;
         }
 
         var participants = room.Participants;
         if (participants.Count < 2)
         {
-            return services.Notifications.SendMessageByKey(
+            await services.Notifications.SendMessageByKey(
                 chat.Id, BotContent.Messages.ErrSantaNotEnoughParticipants);
+            return;
         }
 
         room.Participants = ShuffleTargets(room.Participants);
         room.SantaPlayed = true;
-        services.Database.Rooms.Update(room);
+        await services.Database.Rooms.UpdateAsync(room);
 
-        return NotifyEveryoneTheirTarget(room);
+        await NotifyEveryoneTheirTarget(room);
     }
 
     private List<ParticipantEntity> ShuffleTargets(List<ParticipantEntity> participants)

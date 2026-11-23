@@ -6,6 +6,7 @@ using Microsoft.Extensions.Localization;
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.TelegramBot.Configurations;
 using SecretSanta.TelegramBot.Models.Commands.Base;
+using SecretSanta.Shared.Models;
 using SecretSanta.Shared.Storage.Entities;
 
 namespace SecretSanta.TelegramBot.Services.Helpers;
@@ -71,7 +72,7 @@ public class MessageBuilder(
         strBldr.AppendLine($"{room.Description}");
         strBldr.AppendLine();
         strBldr.AppendLine($"{texts[BotContent.Messages.RoomAdmin]} {GetUserName(admin)}");
-        strBldr.AppendLine($"<b>{texts[BotContent.Messages.RoomLink]}</b> {GetJoinLink(room.Id.ToString())}");
+        strBldr.AppendLine($"<b>{texts[BotContent.Messages.RoomLink]}</b> {GetJoinLink(room.Id)}");
         strBldr.AppendLine();
         strBldr.AppendLine($"<b>{texts[BotContent.Messages.ParticipantsList]} ({participants.Count}):</b>");
         strBldr.AppendLine();
@@ -95,14 +96,14 @@ public class MessageBuilder(
                 : string.Empty;
 
             strBldr.AppendLine($" ► <b>{room.Title}</b>{admin}");
-            strBldr.AppendLine($"{texts[BotContent.Messages.RoomLink]} {GetJoinLink(room.Id.ToString())}");
+            strBldr.AppendLine($"{texts[BotContent.Messages.RoomLink]} {GetJoinLink(room.Id)}");
             strBldr.AppendLine();
         }
 
         return strBldr.ToString();
     }
 
-    public string BuildRoomCreated(string roomId)
+    public string BuildRoomCreated(RoomId roomId)
         => $"{texts[BotContent.Messages.RoomCreated]}\n\n{texts[BotContent.Messages.RoomLink]} {GetJoinLink(roomId)}";
 
     public string BuildUserLeft(ParticipantEntity p)
@@ -122,7 +123,7 @@ public class MessageBuilder(
 
 
 
-    private string GetJoinLink(string roomId)
+    private string GetJoinLink(RoomId roomId)
         => $"https://t.me/{config.BotName}?start={roomId}";
 
     private string GetUserName(ParticipantEntity p)

@@ -30,7 +30,7 @@ public class ModifyRoomState : SequentialMessageStateBase
         var room = context.User.SelectedRoom!;
         room.Title = context.State.Arguments[StateArgsList.Title];
         room.Description = context.State.Arguments[StateArgsList.Description];
-        Services.Database.Rooms.Update(room);
+        await Services.Database.Rooms.UpdateAsync(room);
 
         await Services.Notifications.SendMessageByKey(
             context.User.TelegramUserId, BotContent.Messages.RoomModifyed);

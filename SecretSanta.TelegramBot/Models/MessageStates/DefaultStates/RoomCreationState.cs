@@ -35,12 +35,12 @@ public class RoomCreationState : SequentialMessageStateBase
         var description = context.State.Arguments[StateArgsList.Description];
         var adminName = context.State.Arguments[StateArgsList.Name];
 
-        var room = Services.Database.CreateRoom(user, title, description, adminName);
+        var room = await Services.Database.Rooms.CreateAsync(user, title, description, adminName);
 
-        var message = Services.MessageBuilder.BuildRoomCreated(room.Id.ToString());
+        var message = Services.MessageBuilder.BuildRoomCreated(room.Id);
         await Services.Notifications.SendMessage(user.TelegramUserId, message);
 
-        Services.Database.Users.EnterRoom(user, room);
+        await Services.Database.Users.EnterRoomAsync(user, room);
         await Services.GlobalHandler.ExitState(chat, context.User);
 
         return true;

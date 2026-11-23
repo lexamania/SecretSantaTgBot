@@ -12,7 +12,7 @@ using Telegram.Bot.Types;
 namespace SecretSanta.TelegramBot.Services.MessageHandlers;
 
 [RequiredService(InjectionType.Singleton)]
-public class GlobalMessageHandler(IServiceProvider provider)
+public class GlobalMessageHandler(IServiceProvider provider, ISantaDatabase database)
 {
     private readonly Lazy<GlobalState> _globalState = new(() =>
         new(provider.GetRequiredService<ServicesContext>()));
@@ -25,16 +25,15 @@ public class GlobalMessageHandler(IServiceProvider provider)
         return GlobalState.ProcessMessage(msg.Chat, userContext);
     }
 
-    public Task ExitState(Chat chat, UserEntity user, bool withMessage = true)
+    public async Task ExitState(Chat chat, UserEntity user, bool withMessage = true)
     {
-        var database = provider.GetRequiredService<SantaDatabase>();
-        database.Users.ClearState(user);
+        await database.Users.ClearStateAsync(user);
 
         if (!withMessage)
-            return Task.CompletedTask;
+            return;
 
         var userContext = new MessageContext(new() { Chat = chat }, user, ReadState(user));
-        return GlobalState.SendWelcomeMessage(chat, userContext);
+        await GlobalState.SendWelcomeMessage(chat, userContext);
     }
 
     private StateModel ReadState(UserEntity user)

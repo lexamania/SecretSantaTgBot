@@ -46,7 +46,11 @@ Santa. They are not visible to other room members or room admins by default.
 ## Existing implementation to preserve and reuse
 
 - Shared room/user storage and domain code live in `SecretSanta.Shared`.
-- The existing store is LiteDB, exposed through `SantaDatabase`.
+- Persistence is accessed through `ISantaDatabase`, `IUserRepository`, and
+  `IRoomRepository`; the current implementation is LiteDB. Repository APIs use
+  async methods so another provider can be substituted without changing the
+  bot/API consumers. LiteDB itself is synchronous, so its adapter still runs
+  the underlying operations synchronously.
 - `PartyRoomEntity` already has a title, description, admin, participants, and
   a `SantaPlayed` flag.
 - `ParticipantEntity` already has a Telegram user ID, username, custom in-room

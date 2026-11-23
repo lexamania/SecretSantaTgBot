@@ -1,6 +1,7 @@
 using SecretSanta.TelegramBot.Enums;
 using SecretSanta.Shared.Enums;
 using SecretSanta.Shared.Extensions;
+using SecretSanta.Shared.Models;
 using SecretSanta.TelegramBot.Models.Commands.Base;
 using SecretSanta.TelegramBot.Models.MessageStates;
 using SecretSanta.Shared.Storage.Entities;
@@ -15,25 +16,35 @@ public class StartBotCommand(
     DefaultState defaultState)
     : BotCommandBase(BotCommandsList.Start)
 {
-    public override Task Execute(Chat chat, MessageContext context)
+    public override async Task Execute(Chat chat, MessageContext context)
     {
         var args = context.Message.CommandMsg!.Args;
 
         if (args.Length == 0)
         { 
-            return services.GlobalHandler.ExitState(chat, context.User);
+            await services.GlobalHandler.ExitState(chat, context.User);
+            return;
         }
 
-        var room = services.Database.Rooms.GetById(args[0]);
+        if (!RoomId.TryParse(args[0], out var roomId))
+        {
+            await services.Notifications.SendStagedMessageByKey(
+                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+            return;
+        }
+
+        var room = await services.Database.Rooms.GetByIdAsync(roomId);
         if (room is null)
         {
-            return services.Notifications.SendStagedMessageByKey(
+            await services.Notifications.SendStagedMessageByKey(
                 chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+            return;
         }
 
-        return context.User.GetAvailableRoom(room.Id) is null
-            ? RegisterInRoom(chat, context, room)
-            : RedirectToRoom(chat, context, room);
+        if (context.User.GetAvailableRoom(room.Id) is null)
+            await RegisterInRoom(chat, context, room);
+        else
+            await RedirectToRoom(chat, context, room);
     }
 
     private Task RegisterInRoom(

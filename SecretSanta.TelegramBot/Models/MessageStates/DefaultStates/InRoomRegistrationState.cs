@@ -1,8 +1,7 @@
 using SecretSanta.Shared.Enums;
-using SecretSanta.Shared.Extensions;
 using SecretSanta.TelegramBot.Models.MessageStates.Base;
 using SecretSanta.TelegramBot.Models.MessageStates.Common;
-using SecretSanta.Shared.Storage.Entities;
+using SecretSanta.Shared.Models;
 
 using Telegram.Bot.Types;
 
@@ -26,7 +25,10 @@ public class InRoomRegistrationState : SequentialMessageStateBase
         var roomId = context.State.Arguments[StateArgsList.RoomId];
         var userName = context.State.Arguments[StateArgsList.Name];
 
-        var room = Services.Database.Rooms.GetById(roomId);
+        var room = RoomId.TryParse(roomId, out var parsedRoomId)
+            ? await Services.Database.Rooms.GetByIdAsync(parsedRoomId)
+            : null;
+
         if (room is null)
         {
             await Services.Notifications.SendMessageByKey(
@@ -42,8 +44,8 @@ public class InRoomRegistrationState : SequentialMessageStateBase
             return true;
         }
 
-        Services.Database.AddUserToRoom(context.User, room, userName);
-        Services.Database.Users.EnterRoom(context.User, room);
+        await Services.Database.Rooms.AddUserToRoomAsync(context.User, room, userName);
+        await Services.Database.Users.EnterRoomAsync(context.User, room);
 
         var participant = context.User.GetAsParticipant(room)!;
 

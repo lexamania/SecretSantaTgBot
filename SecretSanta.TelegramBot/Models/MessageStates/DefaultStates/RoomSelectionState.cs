@@ -28,7 +28,9 @@ public class RoomSelectionState : SequentialMessageStateBase
     {
         var roomAlias = context.State.Arguments[StateArgsList.RoomAlias];
         var roomId = ButtonUtil.ParseRoomIdFromAlias(roomAlias);
-        var room = context.User.GetAvailableRoom(roomId);
+        var room = roomId is { } id
+            ? context.User.GetAvailableRoom(id)
+            : null;
 
         if (room is null)
         {
@@ -38,7 +40,7 @@ public class RoomSelectionState : SequentialMessageStateBase
         }
         else
         {
-            Services.Database.Users.EnterRoom(context.User, room);
+            await Services.Database.Users.EnterRoomAsync(context.User, room);
             await Services.GlobalHandler.ExitState(chat, context.User);
         }
 

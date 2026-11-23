@@ -23,8 +23,8 @@ builder.Services
         options => !string.IsNullOrWhiteSpace(options.Token),
         "Configuration value 'TelegramBot:Token' is required.")
     .ValidateOnStart();
-builder.Services.AddSingleton(serviceProvider =>
-    new SantaDatabase(
+builder.Services.AddSingleton<ISantaDatabase>(serviceProvider =>
+    new LiteDbSantaDatabase(
         serviceProvider.GetRequiredService<IOptions<TelegramBotOptions>>().Value.DatabasePath));
 builder.Services.AddRequiredServices();
 
@@ -34,11 +34,12 @@ var webRootProvider = new PhysicalFileProvider(webRootPath);
 
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
-app.MapGet("/api/rooms", IResult (
+app.MapGet("/api/rooms", async Task<IResult> (
     HttpContext context,
-    RoomsService roomsService) =>
+    RoomsService roomsService,
+    CancellationToken cancellationToken) =>
 {
-    var result = roomsService.GetRooms(context.GetTelegramInitData());
+    var result = await roomsService.GetRoomsAsync(context.GetTelegramInitData(), cancellationToken);
 
     return result.Status switch
     {

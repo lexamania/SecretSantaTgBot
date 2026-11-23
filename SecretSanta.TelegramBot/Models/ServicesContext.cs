@@ -7,7 +7,7 @@ namespace SecretSanta.TelegramBot.Models;
 
 [RequiredService(InjectionType.Singleton)]
 public record ServicesContext(
-    SantaDatabase Database,
+    ISantaDatabase Database,
     MessageBuilder MessageBuilder,
     NotificationService Notifications,
     GlobalMessageHandler GlobalHandler,

@@ -12,7 +12,7 @@ namespace SecretSanta.TelegramBot.Services.Brokers;
 
 [RequiredService(InjectionType.Singleton)]
 public class MessageBroker(
-    SantaDatabase database,
+    ISantaDatabase database,
     NotificationService notifications,
     GlobalMessageHandler globalHandler,
     UserLanguageService userLanguageService,
@@ -22,8 +22,8 @@ public class MessageBroker(
     public async Task OnMessage(Message msg, UpdateType type)
     {
         var user = msg.From is not null
-            ? database.Users.GetOrCreate(msg.From.Id, msg.From.Username, msg.From.LanguageCode)
-            : database.Users.GetOrCreate(msg.Chat.Id, msg.Chat.Username);
+            ? await database.Users.GetOrCreateAsync(msg.From.Id, msg.From.Username, msg.From.LanguageCode)
+            : await database.Users.GetOrCreateAsync(msg.Chat.Id, msg.Chat.Username);
 
         var language = userLanguageService.GetLanguage(user);
         using (localizationService.UseCulture(language))

@@ -1,3 +1,4 @@
+using SecretSanta.Shared.Models;
 using SecretSanta.Shared.Storage.Entities;
 
 namespace SecretSanta.TelegramBot.Extensions;
@@ -9,12 +10,8 @@ public static class UserExtensions
         public IEnumerable<PartyRoomEntity> GetAdminRooms()
             => user.AvailableRooms.Where(x => x.Admin.TelegramUserId == user.TelegramUserId);
 
-        public PartyRoomEntity? GetAvailableRoom(Guid roomId)
+        public PartyRoomEntity? GetAvailableRoom(RoomId roomId)
             => user.AvailableRooms.FirstOrDefault(x => roomId.Equals(x.Id));
-        public PartyRoomEntity? GetAvailableRoom(string roomIdStr)
-            => Guid.TryParse(roomIdStr, out var roomId)
-                ? user.GetAvailableRoom(roomId)
-                : default;
 
         public ParticipantEntity? GetAsParticipant(PartyRoomEntity room)
             => room.Participants.FirstOrDefault(x => x.TelegramUserId == user.TelegramUserId);

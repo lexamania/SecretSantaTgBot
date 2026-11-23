@@ -49,8 +49,8 @@ builder.Services
         "Configuration value 'LiteDb:DatabasePath' is required.")
     .ValidateOnStart();
 builder.Services.AddSingleton<BotConfiguration>();
-builder.Services.AddSingleton(provider =>
-    new SantaDatabase(provider.GetRequiredService<BotConfiguration>().DBPath));
+builder.Services.AddSingleton<ISantaDatabase>(provider =>
+    new LiteDbSantaDatabase(provider.GetRequiredService<BotConfiguration>().DBPath));
 
 builder.Services.AddRequiredServices();
 
