@@ -8,7 +8,7 @@
     <title>Secret Santa</title>
     <link rel="stylesheet" href="./styles.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="./app.js" defer></script>
+    <script type="module" src="./app.js"></script>
   </head>
   <body>
     <main class="app">
@@ -32,16 +32,18 @@
             <p class="eyebrow">Your celebrations</p>
             <h2 id="rooms-title">My rooms</h2>
           </div>
-          <span class="room-count" aria-label="0 rooms">0</span>
+          <span class="room-count" id="room-count" aria-label="0 rooms">0</span>
         </div>
 
-        <div class="empty-card">
-          <div class="gift-illustration" aria-hidden="true">
-            <span class="gift-ribbon"></span>
-            <span class="gift-bow"></span>
+        <div class="rooms-list" id="rooms-list" aria-live="polite">
+          <div class="empty-card" id="empty-rooms">
+            <div class="gift-illustration" aria-hidden="true">
+              <span class="gift-ribbon"></span>
+              <span class="gift-bow"></span>
+            </div>
+            <h3>Your next tradition starts here</h3>
+            <p>Your rooms will appear here when you join or create one.</p>
           </div>
-          <h3>Your next tradition starts here</h3>
-          <p>Your rooms will show up here. Room creation and invitations are coming next.</p>
         </div>
       </section>
 

@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using SecretSanta.Shared.Configurations;
 using SecretSanta.TelegramBot.Configurations;
 using SecretSanta.TelegramBot.Services;
 using SecretSanta.Shared.Storage;
@@ -30,6 +31,23 @@ builder.Services.AddSerilog();
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
+builder.Services
+    .AddOptions<TelegramBotOptions>()
+    .Bind(builder.Configuration.GetSection(TelegramBotOptions.SectionName))
+    .Configure(options =>
+    {
+        var databasePath = builder.Configuration["LiteDb:DatabasePath"];
+        options.DatabasePath = string.IsNullOrWhiteSpace(databasePath)
+            ? string.Empty
+            : Path.GetFullPath(databasePath, builder.Environment.ContentRootPath);
+    })
+    .Validate(
+        options => !string.IsNullOrWhiteSpace(options.Token),
+        "Configuration value 'TelegramBot:Token' is required.")
+    .Validate(
+        options => !string.IsNullOrWhiteSpace(options.DatabasePath),
+        "Configuration value 'LiteDb:DatabasePath' is required.")
+    .ValidateOnStart();
 builder.Services.AddSingleton<BotConfiguration>();
 builder.Services.AddSingleton(provider =>
     new SantaDatabase(provider.GetRequiredService<BotConfiguration>().DBPath));

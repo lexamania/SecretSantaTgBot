@@ -1,17 +1,16 @@
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+
+using SecretSanta.Shared.Configurations;
 
 namespace SecretSanta.TelegramBot.Configurations;
 
-public class BotConfiguration(IConfiguration config) : IDisposable
+public class BotConfiguration(IOptions<TelegramBotOptions> options) : IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     public CancellationToken CancellationToken => _cts.Token;
 
-    public string BotToken { get; } = 
-        config.GetRequiredValue<string>("TelegramBot:Token");
-
-    public string DBPath { get; } =
-        Path.GetFullPath(config.GetRequiredValue<string>("LiteDb:DatabasePath"));
+    public string BotToken { get; } = options.Value.Token;
+    public string DBPath { get; } = options.Value.DatabasePath;
 
     public string? BotName { get; set; }
 

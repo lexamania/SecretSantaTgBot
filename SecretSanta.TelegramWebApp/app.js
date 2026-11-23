@@ -1,38 +1,40 @@
+import { getRooms } from "./api.js";
+import { initializeTelegram } from "./telegram.js";
+import { renderRooms } from "./rooms.js";
+
 const statusMessage = document.querySelector("#app-status");
-const telegram = window.Telegram?.WebApp;
 
-function applyTelegramTheme(themeParams) {
-  if (!themeParams) return;
+function setStatus(message) {
+  statusMessage.textContent = message;
+}
 
-  const root = document.documentElement;
-  const theme = telegram?.colorScheme;
+async function startApp() {
+  const telegram = initializeTelegram();
 
-  if (theme === "light" || theme === "dark") {
-    root.dataset.telegramTheme = theme;
-    root.style.colorScheme = theme;
+  if (!telegram?.initData) {
+    setStatus("Open this page in Telegram to securely load your rooms.");
+    return;
   }
 
-  const colors = {
-    "--page": themeParams.bg_color,
-    "--surface": themeParams.secondary_bg_color,
-    "--text": themeParams.text_color,
-    "--muted": themeParams.hint_color,
-  };
+  setStatus("Loading your rooms…");
 
-  for (const [property, value] of Object.entries(colors)) {
-    if (typeof value === "string" && /^#[\da-f]{6}$/i.test(value)) {
-      root.style.setProperty(property, value);
+  try {
+    const rooms = await getRooms(telegram.initData);
+    renderRooms(rooms);
+    setStatus(rooms.length
+      ? "Your Secret Santa rooms are ready."
+      : "No rooms yet. Create one or open an invite from your bot.");
+  } catch (error) {
+    if (error.status === 401) {
+      setStatus("Telegram could not verify this session. Close and reopen the Mini App.");
+    } else if (error.status === 503) {
+      setStatus("The server is not configured to authenticate Telegram sessions yet.");
+    } else if (error instanceof TypeError) {
+      setStatus("Could not connect to the server. Check your connection and try again.");
+    } else {
+      setStatus("Your rooms could not be loaded. Please try again later.");
     }
   }
 }
 
-if (telegram) {
-  applyTelegramTheme(telegram.themeParams);
-  telegram.ready();
-  telegram.expand();
-  statusMessage.textContent = "The Mini App is open in Telegram. Room features are coming soon.";
-} else {
-  statusMessage.textContent = "Preview mode: open this page from Telegram to use it as a Mini App.";
-}
-
-telegram?.onEvent("themeChanged", () => applyTelegramTheme(telegram.themeParams));
+void startApp();

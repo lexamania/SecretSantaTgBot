@@ -11,7 +11,8 @@ export TelegramBot__Token="your-bot-token"
 dotnet run --project SecretSanta.TelegramBot
 ```
 
-Run the Mini App and API at `http://localhost:5080`:
+Run the Mini App and API at `http://localhost:5080` (using the bot token set
+above):
 
 ```sh
 dotnet run --project SecretSanta.TelegramApi

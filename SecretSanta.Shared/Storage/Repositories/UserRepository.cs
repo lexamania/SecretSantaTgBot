@@ -16,6 +16,9 @@ public class UserRepository(LiteDatabase db) : DirectoryBase<UserEntity>(db, "us
     public List<UserEntity> GetByIds(IEnumerable<long> ids)
         => [.. FullUsers.Find(x => ids.Contains(x.TelegramUserId))];
 
+    public List<PartyRoomEntity> GetRooms(long telegramUserId)
+        => FullUsers.FindById(telegramUserId)?.AvailableRooms ?? [];
+
     public UserEntity GetOrCreate(long id, string? username, string? language = null)
     {
         var user = FullUsers.FindById(id);

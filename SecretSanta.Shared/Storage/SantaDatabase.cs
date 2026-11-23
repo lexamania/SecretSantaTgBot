@@ -18,7 +18,11 @@ public class SantaDatabase: IDisposable
     {
         DirectoryUtils.CreateDirectoryRecursively(Path.GetDirectoryName(dbPath)!);
 
-        _database = new LiteDatabase(dbPath);
+        _database = new LiteDatabase(new ConnectionString
+        {
+            Filename = dbPath,
+            Connection = ConnectionType.Shared
+        });
         Users = new UserRepository(_database);
         Rooms = new RoomRepository(_database);
     }
