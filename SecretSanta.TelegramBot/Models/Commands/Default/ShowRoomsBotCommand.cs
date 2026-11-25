@@ -18,7 +18,7 @@ public class ShowRoomsBotCommand(ServicesContext services)
             return services.Notifications.SendStagedMessage(chat.Id, message);
         }
 
-        return services.Notifications.SendMessageByKey(
-            chat.Id, BotContent.Messages.ErrZeroRooms);
+        return services.Notifications.SendMessage(
+            chat.Id, services.Localizer.Messages.ErrZeroRooms);
     }
 }

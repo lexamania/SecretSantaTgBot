@@ -30,5 +30,13 @@ public static class ServiceCollectionExtensions
 
             return services;
         }
+
+        public IServiceCollection AddLocalizationServices()
+        {
+            return services
+                .AddLocalization(options => options.ResourcesPath = "Resources")
+                .AddSingleton<BotLocalizer>()
+                .AddSingleton<CultureSwitcher>();
+        }
     }
 }

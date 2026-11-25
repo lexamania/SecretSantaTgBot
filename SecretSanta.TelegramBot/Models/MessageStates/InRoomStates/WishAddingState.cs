@@ -22,9 +22,9 @@ public class WishAddingState : MessageStateBase
 
     public override Task SendWelcomeMessage(Chat chat, MessageContext context)
     {
-        return Services.Notifications.SendStagedMessageByKey(
+        return Services.Notifications.SendStagedMessage(
             context.User.TelegramUserId,
-            BotContent.Messages.UserAddWishes,
+            Services.Localizer.Messages.UserAddWishes,
             ButtonUtil.GetCommandsAsButtons(this)!);
     }
 
@@ -76,8 +76,8 @@ public class WishAddingState : MessageStateBase
     private async Task FinalizeWishAdding(PartyRoomEntity room, MessageContext context)
     {
         await Services.Database.Rooms.UpdateAsync(room);
-        await Services.Notifications.SendStagedMessageByKey(
+        await Services.Notifications.SendStagedMessage(
             context.User.TelegramUserId,
-            BotContent.Messages.UserWishIsAdded);
+            Services.Localizer.Messages.UserWishIsAdded);
     }
 }

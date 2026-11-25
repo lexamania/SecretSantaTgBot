@@ -34,8 +34,8 @@ public class LeaveRoomState : SequentialMessageStateBase
 
         await Services.Database.Rooms.RemoveUserFromRoomAsync(context.User, room);
 
-        await Services.Notifications.SendMessageByKey(
-                chat.Id, BotContent.Messages.UserLeftRoom);
+        await Services.Notifications.SendMessage(
+                chat.Id, Services.Localizer.Messages.UserLeftRoom);
         await Services.GlobalHandler.ExitState(chat, context.User);
         await Services.Notifications.NotifyEveryoneInRoom(
                 context.User, room,

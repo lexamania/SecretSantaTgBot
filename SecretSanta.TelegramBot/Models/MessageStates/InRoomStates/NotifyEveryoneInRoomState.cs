@@ -20,9 +20,9 @@ public class NotifyEveryoneInRoomState : MessageStateBase
 
     public override Task SendWelcomeMessage(Chat chat, MessageContext context)
     {
-        return Services.Notifications.SendStagedMessageByKey(
+        return Services.Notifications.SendStagedMessage(
             context.User.TelegramUserId,
-            BotContent.Messages.EnterMessage,
+            Services.Localizer.Messages.EnterMessage,
             ButtonUtil.GetCommandsAsButtons(this)!);
     }
 
@@ -41,9 +41,9 @@ public class NotifyEveryoneInRoomState : MessageStateBase
             context.User,
             context.User.SelectedRoom!,
             context.Message.TextMsg!.Text);
-        await Services.Notifications.SendMessageByKey(
+        await Services.Notifications.SendMessage(
             context.User.TelegramUserId,
-            BotContent.Messages.MessageIsSent);
+            Services.Localizer.Messages.MessageIsSent);
 
         await Services.GlobalHandler.ExitState(chat, context.User, false);
         return true;

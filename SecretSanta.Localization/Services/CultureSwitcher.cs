@@ -1,23 +1,20 @@
 using System.Globalization;
 
-using SecretSanta.TelegramBot.Attributes;
+namespace SecretSanta.Localization.Services;
 
-namespace SecretSanta.TelegramBot.Services.Helpers;
-
-[RequiredService(InjectionType.Singleton)]
-public sealed class LocalizationService
+public class CultureSwitcher
 {
     public IDisposable UseCulture(string language)
         => new CultureScope(language);
 
     private sealed class CultureScope : IDisposable
     {
-        public CultureScope (string language)
+        public CultureScope(string language)
         {
+            var culture = CultureInfo.GetCultureInfo(language);
+
             _previousCulture = CultureInfo.CurrentCulture;
             _previousUICulture = CultureInfo.CurrentUICulture;
-
-            var culture = CultureInfo.GetCultureInfo(language);
 
             CultureInfo.CurrentCulture = culture;
             CultureInfo.CurrentUICulture = culture;

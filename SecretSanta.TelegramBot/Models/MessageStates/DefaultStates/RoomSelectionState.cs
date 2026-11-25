@@ -34,8 +34,8 @@ public class RoomSelectionState : SequentialMessageStateBase
 
         if (room is null)
         {
-            await Services.Notifications.SendStagedMessageByKey(
-                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+            await Services.Notifications.SendStagedMessage(
+                chat.Id, Services.Localizer.Messages.ErrRoomDoesntExist);
             await SendWelcomeMessage(chat, context);
         }
         else

@@ -18,13 +18,13 @@ public class EnterValueState : MessageStateBase
         ServicesContext services,
         string title,
         string valueKey,
-        string messageKey,
+        string message,
         ProcessHandler handler,
         ButtonsGenerator? buttons = default)
         : base(title, parrent, services)
     {
         _valueKey = valueKey;
-        _messageKey = messageKey;
+        _message = message;
         _postProcess = handler;
         _buttons = buttons;
 
@@ -32,14 +32,14 @@ public class EnterValueState : MessageStateBase
     }
 
     private readonly string _valueKey;
-    private readonly string _messageKey;
+    private readonly string _message;
     private readonly ProcessHandler _postProcess;
     private readonly ButtonsGenerator? _buttons;
 
     public override Task SendWelcomeMessage(Chat chat, MessageContext context)
-        => Services.Notifications.SendStagedMessageByKey(
+        => Services.Notifications.SendStagedMessage(
             context.User.TelegramUserId,
-            _messageKey,
+            _message,
             GetButtons(context));
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)

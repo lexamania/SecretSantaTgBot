@@ -17,7 +17,7 @@ public static class EnterValueStateExtensions
             services,
             StatesList.EnterTitle,
             StateArgsList.Title,
-            BotContent.Messages.EnterTitle,
+            services.Localizer.Messages.EnterTitle,
             handler
         );
 
@@ -30,7 +30,7 @@ public static class EnterValueStateExtensions
             services,
             StatesList.EnterDescription,
             StateArgsList.Description,
-            BotContent.Messages.EnterDescription,
+            services.Localizer.Messages.EnterDescription,
             handler
         );
 
@@ -43,7 +43,7 @@ public static class EnterValueStateExtensions
             services,
             StatesList.EnterUserName,
             StateArgsList.Name,
-            BotContent.Messages.EnterName,
+            services.Localizer.Messages.EnterName,
             handler
         );
 
@@ -57,7 +57,7 @@ public static class EnterValueStateExtensions
             services,
             StatesList.EnterRoomAlias,
             StateArgsList.RoomAlias,
-            BotContent.Messages.ChooseRoom,
+            services.Localizer.Messages.ChooseRoom,
             handler,
             buttons
         );

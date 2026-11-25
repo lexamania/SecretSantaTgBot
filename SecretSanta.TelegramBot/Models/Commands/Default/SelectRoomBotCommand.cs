@@ -15,7 +15,7 @@ public class SelectRoomBotCommand(
     {
         return context.User.AvailableRooms is { Count: > 0 }
             ? selectRoomState.StartState(chat, context)
-            : services.Notifications.SendMessageByKey(
-                chat.Id, BotContent.Messages.ErrZeroRooms);
+            : services.Notifications.SendMessage(
+                chat.Id, services.Localizer.Messages.ErrZeroRooms);
     }
 }

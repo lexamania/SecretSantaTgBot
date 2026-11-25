@@ -32,8 +32,8 @@ public class ModifyRoomState : SequentialMessageStateBase
         room.Description = context.State.Arguments[StateArgsList.Description];
         await Services.Database.Rooms.UpdateAsync(room);
 
-        await Services.Notifications.SendMessageByKey(
-            context.User.TelegramUserId, BotContent.Messages.RoomModifyed);
+        await Services.Notifications.SendMessage(
+            context.User.TelegramUserId, Services.Localizer.Messages.RoomModified);
         await Services.GlobalHandler.ExitState(chat, context.User);
         return true;
     }

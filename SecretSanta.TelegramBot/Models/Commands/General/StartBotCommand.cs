@@ -28,16 +28,16 @@ public class StartBotCommand(
 
         if (!RoomId.TryParse(args[0], out var roomId))
         {
-            await services.Notifications.SendStagedMessageByKey(
-                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+            await services.Notifications.SendStagedMessage(
+                chat.Id, services.Localizer.Messages.ErrRoomDoesntExist);
             return;
         }
 
         var room = await services.Database.Rooms.GetByIdAsync(roomId);
         if (room is null)
         {
-            await services.Notifications.SendStagedMessageByKey(
-                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+            await services.Notifications.SendStagedMessage(
+                chat.Id, services.Localizer.Messages.ErrRoomDoesntExist);
             return;
         }
 

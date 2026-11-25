@@ -24,25 +24,25 @@ public static class BotCommandsList
 
     public static class Descriptions
     {
-        public static string? GetKey(string command) => command switch
+        public static string? Get(string command, BotLocalizer localizer)=> command switch
         {
-            Start => BotContent.Commands.Start,
-            Help => BotContent.Commands.Help,
-            Back => BotContent.Commands.BackToMenu,
-            Stop => BotContent.Commands.Stop,
-            CreateRoom => BotContent.Commands.CreateRoom,
-            SelectRoom => BotContent.Commands.SelectRoom,
-            DeleteRoom => BotContent.Commands.DeleteRoom,
-            ShowRooms => BotContent.Commands.ShowRooms,
-            ShowMe => BotContent.Commands.ShowMe,
-            ShowMyTarget => BotContent.Commands.ShowTarget,
-            ShowRoomInfo => BotContent.Commands.ShowRoomInfo,
-            AddWishes => BotContent.Commands.AddWishes,
-            ClearWishes => BotContent.Commands.ClearWishes,
-            LeaveRoom => BotContent.Commands.LeaveRoom,
-            ModifyRoom => BotContent.Commands.ModifyRoom,
-            NotifyEveryone => BotContent.Commands.NotifyEveryone,
-            StartSanta => BotContent.Commands.StartSanta,
+            Start => localizer.Commands.Start,
+            Help => localizer.Commands.Help,
+            Back => localizer.Commands.BackToMenu,
+            Stop => localizer.Commands.Stop,
+            CreateRoom => localizer.Commands.CreateRoom,
+            SelectRoom => localizer.Commands.SelectRoom,
+            DeleteRoom => localizer.Commands.DeleteRoom,
+            ShowRooms => localizer.Commands.ShowRooms,
+            ShowMe => localizer.Commands.ShowMe,
+            ShowMyTarget => localizer.Commands.ShowTarget,
+            ShowRoomInfo => localizer.Commands.ShowRoomInfo,
+            AddWishes => localizer.Commands.AddWishes,
+            ClearWishes => localizer.Commands.ClearWishes,
+            LeaveRoom => localizer.Commands.LeaveRoom,
+            ModifyRoom => localizer.Commands.ModifyRoom,
+            NotifyEveryone => localizer.Commands.NotifyEveryone,
+            StartSanta => localizer.Commands.StartSanta,
             _ => default
         };
     }

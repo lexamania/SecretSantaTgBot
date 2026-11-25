@@ -1,22 +1,20 @@
 using SecretSanta.TelegramBot.Enums;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.TelegramBot.Configurations;
 using SecretSanta.TelegramBot.Services.Brokers;
-using SecretSanta.TelegramBot.Services.Helpers;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using SecretSanta.Localization.Enums;
 
 namespace SecretSanta.TelegramBot.Services;
 
 [RequiredService(InjectionType.Singleton)]
 public class TelegramBotService(
-    UserLanguageService languageService,
-    LocalizationService localizationService,
-    IStringLocalizer<BotContent> texts,
+    CultureSwitcher cultureSwitcher,
+    BotLocalizer localizer,
     IServiceProvider provider)
 {
     public TelegramBotClient? Bot { get; private set; }
@@ -46,9 +44,9 @@ public class TelegramBotService(
 
     private async Task RegisterAsync(CancellationToken ct)
     {
-        foreach (var language in languageService.SupportedLanguages)
+        foreach (var language in LanguageList.Supported)
         {
-            using (localizationService.UseCulture(language))
+            using (cultureSwitcher.UseCulture(language))
             {
                 await Bot!.SetMyCommands(
                     GetCommands(),
@@ -63,17 +61,17 @@ public class TelegramBotService(
         new BotCommand
         {
             Command = BotCommandsList.Start,
-            Description = texts[BotContent.Commands.Start].Value
+            Description = BotCommandsList.Descriptions.Get(BotCommandsList.Start, localizer)!
         },
         new BotCommand
         {
             Command = BotCommandsList.Help,
-            Description = texts[BotContent.Commands.Help].Value
+            Description = BotCommandsList.Descriptions.Get(BotCommandsList.Help, localizer)!
         },
         new BotCommand
         {
             Command = BotCommandsList.Stop,
-            Description = texts[BotContent.Commands.Stop].Value
+            Description = BotCommandsList.Descriptions.Get(BotCommandsList.Stop, localizer)!
         }
     ];
 }

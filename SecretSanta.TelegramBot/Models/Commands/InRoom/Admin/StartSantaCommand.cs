@@ -26,16 +26,16 @@ public class StartSantaCommand(ServicesContext services)
 
         if (room.SantaPlayed)
         {
-            await services.Notifications.SendMessageByKey(
-                chat.Id, BotContent.Messages.ErrSantaWasPlayed);
+            await services.Notifications.SendMessage(
+                chat.Id, services.Localizer.Messages.ErrSantaWasPlayed);
             return;
         }
 
         var participants = room.Participants;
         if (participants.Count < 2)
         {
-            await services.Notifications.SendMessageByKey(
-                chat.Id, BotContent.Messages.ErrSantaNotEnoughParticipants);
+            await services.Notifications.SendMessage(
+                chat.Id, services.Localizer.Messages.ErrSantaNotEnoughParticipants);
             return;
         }
 

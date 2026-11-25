@@ -14,12 +14,12 @@ public class ConfirmationState(
     public override Task SendWelcomeMessage(Chat chat, MessageContext context)
     {
         var buttons = new string[] {
-            Services.MessageBuilder.GetByKey(BotContent.Buttons.Yes),
-            Services.MessageBuilder.GetByKey(BotContent.Buttons.No)
+            Services.Localizer.Buttons.Yes,
+            Services.Localizer.Buttons.No
         };
-        return Services.Notifications.SendStagedMessageByKey(
+        return Services.Notifications.SendStagedMessage(
             context.User.TelegramUserId,
-            BotContent.Messages.MessageAskConfirmation,
+            Services.Localizer.Messages.MessageAskConfirmation,
             buttons!);
     }
 
@@ -27,14 +27,14 @@ public class ConfirmationState(
     {
         if (context.Message.Type == Messages.MessageType.Text)
         {
-            if (CompareButton(context.Message.TextMsg!.Text,BotContent.Buttons.Yes))
+            if (CompareButton(context.Message.TextMsg!.Text, Services.Localizer.Buttons.Yes))
             {
                 await callback.Invoke(chat, context);
                 await Services.GlobalHandler.ExitState(chat, context.User, false);
                 return true;
             }
 
-            if (CompareButton(context.Message.TextMsg!.Text, BotContent.Buttons.No))
+            if (CompareButton(context.Message.TextMsg!.Text, Services.Localizer.Buttons.No))
             {
                 await services.GlobalHandler.ExitState(chat, context.User);
                 return true;
@@ -45,9 +45,9 @@ public class ConfirmationState(
         return true;
     }
 
-    private bool CompareButton(string msg, string buttonKey)
+    private bool CompareButton(string msg, string button)
         => string.Equals(
             msg,
-            Services.MessageBuilder.GetByKey(buttonKey),
+            button,
             StringComparison.CurrentCultureIgnoreCase);
 }

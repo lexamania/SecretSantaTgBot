@@ -31,8 +31,8 @@ public class InRoomRegistrationState : SequentialMessageStateBase
 
         if (room is null)
         {
-            await Services.Notifications.SendMessageByKey(
-                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+            await Services.Notifications.SendMessage(
+                chat.Id, Services.Localizer.Messages.ErrRoomDoesntExist);
             await Services.GlobalHandler.ExitState(chat, context.User);
             return true;
         }
@@ -49,8 +49,8 @@ public class InRoomRegistrationState : SequentialMessageStateBase
 
         var participant = context.User.GetAsParticipant(room)!;
 
-        await Services.Notifications.SendMessageByKey(
-            chat.Id, BotContent.Messages.UserRegistered);
+        await Services.Notifications.SendMessage(
+            chat.Id, Services.Localizer.Messages.UserRegistered);
         await Services.GlobalHandler.ExitState(chat, context.User);
 
         await Services.Notifications.NotifyEveryoneInRoom(

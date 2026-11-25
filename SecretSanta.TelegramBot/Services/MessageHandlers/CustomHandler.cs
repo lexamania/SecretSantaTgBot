@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 namespace SecretSanta.TelegramBot.Services.MessageHandlers;
 
 [RequiredService(InjectionType.Singleton)]
-public class CustomHandler(NotificationService notifications)
+public class CustomHandler(NotificationService notifications, BotLocalizer localizer)
 {
     public async Task<bool> HandleCommand(
         IMessageState state,
@@ -25,8 +25,7 @@ public class CustomHandler(NotificationService notifications)
             return true;
         }
 
-        await notifications.SendStagedMessageByKey(
-            chat.Id, BotContent.Messages.ErrCommand);
+        await notifications.SendStagedMessage(chat.Id, localizer.Messages.ErrCommand);
         return true;
     }
 }

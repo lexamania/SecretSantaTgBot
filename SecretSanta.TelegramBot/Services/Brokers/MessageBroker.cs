@@ -2,8 +2,6 @@ using Microsoft.Extensions.Logging;
 
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.TelegramBot.Services.Helpers;
-using SecretSanta.TelegramBot.Services.MessageHandlers;
-using SecretSanta.Shared.Storage;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -12,25 +10,23 @@ namespace SecretSanta.TelegramBot.Services.Brokers;
 
 [RequiredService(InjectionType.Singleton)]
 public class MessageBroker(
-    ISantaDatabase database,
-    NotificationService notifications,
-    GlobalMessageHandler globalHandler,
+    ServicesContext services,
     UserLanguageService userLanguageService,
-    LocalizationService localizationService,
+    CultureSwitcher cultureSwitcher,
     ILogger<MessageBroker> logger)
 {
     public async Task OnMessage(Message msg, UpdateType type)
     {
         var user = msg.From is not null
-            ? await database.Users.GetOrCreateAsync(msg.From.Id, msg.From.Username, msg.From.LanguageCode)
-            : await database.Users.GetOrCreateAsync(msg.Chat.Id, msg.Chat.Username);
+            ? await services.Database.Users.GetOrCreateAsync(msg.From.Id, msg.From.Username, msg.From.LanguageCode)
+            : await services.Database.Users.GetOrCreateAsync(msg.Chat.Id, msg.Chat.Username);
 
         var language = userLanguageService.GetLanguage(user);
-        using (localizationService.UseCulture(language))
+        using (cultureSwitcher.UseCulture(language))
         {
             try
             {
-                if (await globalHandler.HandleMessage(msg, user))
+                if (await services.GlobalHandler.HandleMessage(msg, user))
                     return;
 
                 logger.LogError(
@@ -49,9 +45,8 @@ public class MessageBroker(
                     user.SelectedRoom);
             }
 
-            await notifications.SendMessageByKey(
-                msg.Chat.Id, BotContent.Messages.ErrServer);
-            await globalHandler.ExitState(msg.Chat, user);
+            await services.Notifications.SendMessage(msg.Chat.Id, services.Localizer.Messages.ErrServer);
+            await services.GlobalHandler.ExitState(msg.Chat, user);
         }
     }
 }

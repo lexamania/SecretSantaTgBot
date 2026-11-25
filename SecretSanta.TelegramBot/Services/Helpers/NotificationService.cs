@@ -1,5 +1,6 @@
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.Shared.Storage.Entities;
+using SecretSanta.Localization.Services;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -10,8 +11,8 @@ namespace SecretSanta.TelegramBot.Services.Helpers;
 
 [RequiredService(InjectionType.Singleton)]
 public sealed class NotificationService(
-    TelegramBotService telegramService, 
-    MessageBuilder msgBuilder)
+    TelegramBotService telegramService,
+    BotLocalizer localizer)
 {
     private TelegramBotClient Bot => telegramService.Bot!;
 
@@ -26,10 +27,6 @@ public sealed class NotificationService(
             replyMarkup: new ReplyKeyboardRemove());
     }
 
-    /// <inheritdoc cref="SendMessage"/>
-    public Task SendMessageByKey(long chatId, string key)
-        => SendMessage(chatId, msgBuilder.GetByKey(key));
-
     /// <summary>
     /// Send message with new keyboard or save old
     /// </summary>
@@ -40,10 +37,6 @@ public sealed class NotificationService(
             parseMode: ParseMode.Html,
             replyMarkup: buttons);
     }
-
-    /// <inheritdoc cref="SendStagedMessage"/>
-    public Task SendStagedMessageByKey(long chatId, string key, ReplyMarkup? buttons = null)
-        => SendStagedMessage(chatId, msgBuilder.GetByKey(key), buttons);
 
     /// <summary>
     /// Send group of images with caption as one message
@@ -69,10 +62,10 @@ public sealed class NotificationService(
 
 
     public Task SendNeedAdminRights(long chatId)
-        => SendStagedMessageByKey(chatId, BotContent.Messages.ErrNeedAdminRights);
+        => SendStagedMessage(chatId, localizer.Messages.ErrNeedAdminRights);
 
     public Task SendWrongText(long chatId)
-        => SendStagedMessageByKey(chatId, BotContent.Messages.ErrText);
+        => SendStagedMessage(chatId, localizer.Messages.ErrText);
 
     public Task NotifyEveryoneInRoom(UserEntity sender, PartyRoomEntity room, string message)
     {

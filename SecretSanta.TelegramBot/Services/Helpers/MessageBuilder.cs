@@ -1,8 +1,6 @@
 using SecretSanta.TelegramBot.Enums;
 using System.Text;
 
-using Microsoft.Extensions.Localization;
-
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.TelegramBot.Configurations;
 using SecretSanta.TelegramBot.Models.Commands.Base;
@@ -12,21 +10,16 @@ using SecretSanta.Shared.Storage.Entities;
 namespace SecretSanta.TelegramBot.Services.Helpers;
 
 [RequiredService(InjectionType.Singleton)]
-public class MessageBuilder(
-    IStringLocalizer<BotContent> texts,
-    BotConfiguration config)
+public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
 {
-    public string GetByKey(string textKey)
-        => texts[textKey];
-
     public string BuildHelpMenu(IEnumerable<IBotCommand> commands, bool isAdmin)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{texts[BotContent.Messages.Menu]}</b>");
+        strBldr.AppendLine($"<b>{localizer.Messages.Menu}</b>");
         strBldr.AppendLine();
 
         foreach (var command in commands.Where(x => x.Access.HasAccess(isAdmin)))
-            strBldr.AppendLine($"{command.Command} - {texts[BotCommandsList.Descriptions.GetKey(command.Command)!]}");
+            strBldr.AppendLine($"{command.Command} - {BotCommandsList.Descriptions.Get(command.Command, localizer)!}");
 
         return strBldr.ToString();
     }
@@ -35,14 +28,14 @@ public class MessageBuilder(
     {
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>{room.Title}</b>");
-        strBldr.AppendLine(texts[BotContent.Messages.NtfSantaFinished]);
+        strBldr.AppendLine(localizer.Messages.NtfSantaFinished);
         strBldr.AppendLine();
         strBldr.AppendLine($"{BuildTargetInfo(target)}");
         return strBldr.ToString();
     }
 
     public string BuildTargetInfo(ParticipantEntity participant)
-        => $"{texts[BotContent.Messages.UserTarget]}\n{BuildUserInfo(participant)}";
+        => $"{localizer.Messages.UserTarget}\n{BuildUserInfo(participant)}";
 
     public string BuildUserInfo(ParticipantEntity participant)
     {
@@ -52,7 +45,7 @@ public class MessageBuilder(
         if (participant.Wishes.Count > 0)
         {
             strBldr.AppendLine();
-            strBldr.AppendLine($"<b>{texts[BotContent.Messages.WishesList]}</b>");
+            strBldr.AppendLine($"<b>{localizer.Messages.WishesList}</b>");
 
             foreach (var wish in participant.Wishes.Where(x => x.ImageIds is not { Count: > 0 }))
                 strBldr.AppendLine($" ► {wish.Message}");            
@@ -71,10 +64,10 @@ public class MessageBuilder(
         strBldr.AppendLine();
         strBldr.AppendLine($"{room.Description}");
         strBldr.AppendLine();
-        strBldr.AppendLine($"{texts[BotContent.Messages.RoomAdmin]} {GetUserName(admin)}");
-        strBldr.AppendLine($"<b>{texts[BotContent.Messages.RoomLink]}</b> {GetJoinLink(room.Id)}");
+        strBldr.AppendLine($"{localizer.Messages.RoomAdmin} {GetUserName(admin)}");
+        strBldr.AppendLine($"<b>{localizer.Messages.RoomLink}</b> {GetJoinLink(room.Id)}");
         strBldr.AppendLine();
-        strBldr.AppendLine($"<b>{texts[BotContent.Messages.ParticipantsList]} ({participants.Count}):</b>");
+        strBldr.AppendLine($"<b>{localizer.Messages.ParticipantsList} ({participants.Count}):</b>");
         strBldr.AppendLine();
 
         foreach (var prt in participants)
@@ -86,7 +79,7 @@ public class MessageBuilder(
     public string BuildRoomsList(UserEntity user)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{texts[BotContent.Messages.RoomsList]}</b>");
+        strBldr.AppendLine($"<b>{localizer.Messages.RoomsList}</b>");
         strBldr.AppendLine();
 
         foreach (var room in user.AvailableRooms)
@@ -96,7 +89,7 @@ public class MessageBuilder(
                 : string.Empty;
 
             strBldr.AppendLine($" ► <b>{room.Title}</b>{admin}");
-            strBldr.AppendLine($"{texts[BotContent.Messages.RoomLink]} {GetJoinLink(room.Id)}");
+            strBldr.AppendLine($"{localizer.Messages.RoomLink} {GetJoinLink(room.Id)}");
             strBldr.AppendLine();
         }
 
@@ -104,22 +97,22 @@ public class MessageBuilder(
     }
 
     public string BuildRoomCreated(RoomId roomId)
-        => $"{texts[BotContent.Messages.RoomCreated]}\n\n{texts[BotContent.Messages.RoomLink]} {GetJoinLink(roomId)}";
+        => $"{localizer.Messages.RoomCreated}\n\n{localizer.Messages.RoomLink} {GetJoinLink(roomId)}";
 
     public string BuildUserLeft(ParticipantEntity p)
-        => $"{GetUserName(p)} {texts[BotContent.Messages.NtfUserLeftRoom]}";
+        => $"{GetUserName(p)} {localizer.Messages.NtfUserLeftRoom}";
 
     public string BuildRoomDeleted(PartyRoomEntity room)
-        => $"<b>{room.Title}</b> {texts[BotContent.Messages.RoomDeleted]}";
+        => $"<b>{room.Title}</b> {localizer.Messages.RoomDeleted}";
 
     public string BuildNewParticipant(PartyRoomEntity room, ParticipantEntity participant)
-        => $"{GetUserName(participant)} {texts[BotContent.Messages.NewParticipant]} <b>{room.Title}</b>";
+        => $"{GetUserName(participant)} {localizer.Messages.NewParticipant} <b>{room.Title}</b>";
 
     public string BuildErrLeavingRestricted()
-        => $"{texts[BotContent.Messages.ErrRoomLeaving]}\n{texts[BotContent.Messages.ErrSantaWasPlayed]}";
+        => $"{localizer.Messages.ErrRoomLeaving}\n{localizer.Messages.ErrSantaWasPlayed}";
 
     public string BuildErrJoiningRestricted()
-        => $"{texts[BotContent.Messages.ErrRoomJoining]}\n{texts[BotContent.Messages.ErrSantaWasPlayed]}";
+        => $"{localizer.Messages.ErrRoomJoining}\n{localizer.Messages.ErrSantaWasPlayed}";
 
 
 

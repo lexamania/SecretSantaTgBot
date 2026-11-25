@@ -49,8 +49,8 @@ public class RoomDeletingState : SequentialMessageStateBase
         }
         else
         {
-            await Services.Notifications.SendStagedMessageByKey(
-                chat.Id, BotContent.Messages.ErrRoomDoesntExist);
+            await Services.Notifications.SendStagedMessage(
+                chat.Id, Services.Localizer.Messages.ErrRoomDoesntExist);
             await Services.GlobalHandler.ExitState(chat, context.User, false);
         }
 

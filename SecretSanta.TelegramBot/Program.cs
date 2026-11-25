@@ -9,10 +9,11 @@ using SecretSanta.TelegramBot.Services;
 using SecretSanta.Shared.Storage;
 
 using Serilog;
+using SecretSanta.Localization.Enums;
 
 CultureInfo.DefaultThreadCurrentCulture =
 CultureInfo.DefaultThreadCurrentUICulture =
-    CultureInfo.GetCultureInfo("uk");
+    CultureInfo.GetCultureInfo(LanguageList.Default);
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -29,7 +30,7 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Services.AddSerilog();
 
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddLocalizationServices();
 
 builder.Services
     .AddOptions<TelegramBotOptions>()

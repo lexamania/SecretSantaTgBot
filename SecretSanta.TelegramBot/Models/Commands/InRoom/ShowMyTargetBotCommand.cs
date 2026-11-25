@@ -16,8 +16,8 @@ public class ShowMyTargetBotCommand(ServicesContext services)
 
         if (me.TargetUserId is null)
         {
-            await services.Notifications.SendStagedMessageByKey(
-                chat.Id, BotContent.Messages.ErrSantaIsStillOffline);
+            await services.Notifications.SendStagedMessage(
+                chat.Id, services.Localizer.Messages.ErrSantaIsStillOffline);
             return;
         }
 
