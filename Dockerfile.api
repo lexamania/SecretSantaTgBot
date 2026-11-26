@@ -1,0 +1,27 @@
+# build copies all project files and restores NuGet packages
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /source
+
+# Copy project file and restore as distinct layers
+COPY --link Directory.Packages.props .
+COPY --link SecretSanta.Shared/*.csproj SecretSanta.Shared/
+COPY --link SecretSanta.TelegramApi/*.csproj SecretSanta.TelegramApi/
+RUN dotnet restore SecretSanta.TelegramApi/SecretSanta.TelegramApi.csproj
+
+# Copy source code
+COPY --link SecretSanta.Shared/ SecretSanta.Shared/
+COPY --link SecretSanta.TelegramApi/ SecretSanta.TelegramApi/
+COPY --link SecretSanta.TelegramWebApp/ SecretSanta.TelegramWebApp/
+
+# publish builds and publishes SecretSanta.TelegramApi
+FROM build AS publish
+WORKDIR /source/SecretSanta.TelegramApi
+RUN dotnet publish --no-restore -o /app
+
+# final is the final runtime stage for running the api
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+ENV ASPNETCORE_HTTP_PORTS=8080
+EXPOSE 8080
+COPY --link --from=publish /app .
+ENTRYPOINT ["dotnet", "SecretSanta.TelegramApi.dll"]

@@ -8,20 +8,20 @@ WORKDIR /source
 
 # Copy project file and restore as distinct layers
 COPY --link Directory.Packages.props .
-COPY --link SecretSanta.TelegramBot/*.csproj SecretSanta.TelegramBot/
 COPY --link SecretSanta.Shared/*.csproj SecretSanta.Shared/
+COPY --link SecretSanta.Localization/*.csproj SecretSanta.Localization/
+COPY --link SecretSanta.TelegramBot/*.csproj SecretSanta.TelegramBot/
 RUN dotnet restore -a $TARGETARCH SecretSanta.TelegramBot/SecretSanta.TelegramBot.csproj
 
 # Copy source code
-COPY --link SecretSanta.TelegramBot/ SecretSanta.TelegramBot/
 COPY --link SecretSanta.Shared/ SecretSanta.Shared/
+COPY --link SecretSanta.Localization/ SecretSanta.Localization/
+COPY --link SecretSanta.TelegramBot/ SecretSanta.TelegramBot/
 
-
-# publish builds and publishes MultiProjectApp
+# publish builds and publishes SecretSanta.TelegramBot
 FROM build AS publish
 WORKDIR /source/SecretSanta.TelegramBot
 RUN dotnet publish -a $TARGETARCH --no-restore -o /app
-
 
 # final is the final runtime stage for running the app
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final

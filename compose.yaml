@@ -3,11 +3,27 @@ services:
     container_name: telegram-bot
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.bot
     environment:
-     - DOTNET_ENVIRONMENT=Production
-     - TelegramBot__Token=${TelegramBotToken}
-     - LiteDb__DatabasePath=/data/secretsanta.db
+      DOTNET_ENVIRONMENT: Production
+      TelegramBot__Token: ${TelegramBotToken:?Set TelegramBotToken in the environment or .env file}
+      LiteDb__DatabasePath: /data/secretsanta.db
+    volumes:
+      - secret_santa_data:/data
+    restart: unless-stopped
+
+  api:
+    container_name: telegram-api
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      TelegramBot__Token: ${TelegramBotToken:?Set TelegramBotToken in the environment or .env file}
+      LiteDb__DatabasePath: /data/secretsanta.db
+      ASPNETCORE_HTTP_PORTS: 8080
+    ports:
+      - "5080:8080"
     volumes:
       - secret_santa_data:/data
     restart: unless-stopped
