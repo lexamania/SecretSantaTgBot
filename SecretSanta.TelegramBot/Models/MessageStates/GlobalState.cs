@@ -4,6 +4,7 @@ using SecretSanta.TelegramBot.Models.Commands.General;
 using SecretSanta.TelegramBot.Models.MessageStates.Base;
 
 using Telegram.Bot.Types;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SecretSanta.TelegramBot.Models.MessageStates;
 
@@ -21,9 +22,12 @@ public class GlobalState : MessageStateBase
     }
 
     public override Task SendWelcomeMessage(Chat chat, MessageContext context)
-        => TryGetMessageState(this, context.State.States, out var state)
+        => TryGetMessageState(context.State.States, out var state)
             ? state.SendWelcomeMessage(chat, context)
-            : Task.CompletedTask;
+            : throw new InvalidOperationException("The saved message state path is invalid.");
+
+    public bool IsValidStatePath(string[] states)
+        => TryGetMessageState(states, out _);
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
@@ -38,7 +42,7 @@ public class GlobalState : MessageStateBase
             }
         }
 
-        if (TryGetMessageState(this, context.State.States, out var state))
+        if (TryGetMessageState(context.State.States, out var state))
         {
             if (await state.ProcessMessage(chat, context))
                 return true;
@@ -48,25 +52,27 @@ public class GlobalState : MessageStateBase
     }
 
     private bool TryGetMessageState(
-        IMessageState parrent,
         string[] states,
-        out IMessageState state,
-        int iterator = 0)
+        [NotNullWhen(true)] out IMessageState? state)
     {
-        if (!parrent.ReadOnlyStates.TryGetValue(
-                states[iterator],
-                out var currentState))
+        if (states is not { Length: > 0 })
         {
             state = null;
             return false;
         }
 
-        if (iterator == states.Length - 1)
+        state = this;
+        foreach (var stateName in states)
         {
-            state = currentState;
-            return true;
+            if (!state.ReadOnlyStates.TryGetValue(stateName, out var nextState))
+            {
+                state = null;
+                return false;
+            }
+
+            state = nextState;
         }
 
-        return TryGetMessageState(currentState, states, out state, iterator + 1);
+        return true;
     }
 }

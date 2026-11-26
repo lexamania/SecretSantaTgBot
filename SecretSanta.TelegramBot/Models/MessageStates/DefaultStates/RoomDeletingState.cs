@@ -39,10 +39,10 @@ public class RoomDeletingState : SequentialMessageStateBase
 
         if (room is { } && context.User.IsAdmin(room))
         {
-            await Services.Database.Rooms.DeleteAsync(context.User, room.Id);
+            await Services.Database.Rooms.DeleteAsync(context.User.TelegramUserId, room.Id);
 
             await Task.WhenAll(
-                Services.GlobalHandler.ExitState(chat, context.User),
+                Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId),
                 Services.Notifications.NotifyEveryoneInRoom(
                     context.User, room,
                     Services.MessageBuilder.BuildRoomDeleted(room)));
@@ -51,7 +51,10 @@ public class RoomDeletingState : SequentialMessageStateBase
         {
             await Services.Notifications.SendStagedMessage(
                 chat.Id, Services.Localizer.Messages.ErrRoomDoesntExist);
-            await Services.GlobalHandler.ExitState(chat, context.User, false);
+            await Services.GlobalHandler.ResetStateAsync(
+                chat,
+                context.User.TelegramUserId,
+                sendWelcomeMessage: false);
         }
 
         return true;

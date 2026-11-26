@@ -18,7 +18,10 @@ public class MessageBroker(
     public async Task OnMessage(Message msg, UpdateType type)
     {
         var user = msg.From is not null
-            ? await services.Database.Users.GetOrCreateAsync(msg.From.Id, msg.From.Username, msg.From.LanguageCode)
+            ? await services.Database.Users.GetOrCreateAsync(
+                msg.From.Id,
+                msg.From.Username,
+                msg.From.LanguageCode)
             : await services.Database.Users.GetOrCreateAsync(msg.Chat.Id, msg.Chat.Username);
 
         var language = userLanguageService.GetLanguage(user);
@@ -30,7 +33,12 @@ public class MessageBroker(
                     return;
 
                 logger.LogError(
-                    "Message wasn't handled!",
+                    "Message was not handled for chat {ChatId}. " +
+                    "Update type: {UpdateType}, message type: {MessageType}, " +
+                    "text: {MessageText}, state: {CurrentState}, " +
+                    "selected room: {SelectedRoom}.",
+                    msg.Chat.Id,
+                    type,
                     msg.Type,
                     msg.Text,
                     user.CurrentState,
@@ -38,15 +46,23 @@ public class MessageBroker(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "SERVER ERROR",
+                logger.LogError(ex,
+                    "Failed to process update for chat {ChatId}. " +
+                    "Update type: {UpdateType}, message type: {MessageType}, " +
+                    "text: {MessageText}, state: {CurrentState}, " +
+                    "selected room: {SelectedRoom}.",
+                    msg.Chat.Id,
+                    type,
                     msg.Type,
                     msg.Text,
                     user.CurrentState,
                     user.SelectedRoom);
             }
 
-            await services.Notifications.SendMessage(msg.Chat.Id, services.Localizer.Messages.ErrServer);
-            await services.GlobalHandler.ExitState(msg.Chat, user);
+            await services.Notifications.SendMessage(
+                msg.Chat.Id,
+                services.Localizer.Messages.ErrServer);
+            await services.GlobalHandler.ResetStateAsync(msg.Chat, user.TelegramUserId);
         }
     }
 }

@@ -1,3 +1,5 @@
+using System.Net;
+
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.Shared.Storage.Entities;
 using SecretSanta.Localization.Services;
@@ -55,7 +57,8 @@ public sealed class NotificationService(
     /// </summary>
     public Task NotifyEveryone(long[] users, string message)
     {
-        var tasks = users.Select(u => SendStagedMessage(u, message)).ToArray();
+        var safeMessage = WebUtility.HtmlEncode(message);
+        var tasks = users.Select(user => SendStagedMessage(user, safeMessage)).ToArray();
         return Task.WhenAll(tasks);
     }
 

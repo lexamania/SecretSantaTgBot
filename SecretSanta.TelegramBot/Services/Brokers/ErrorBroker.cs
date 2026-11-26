@@ -11,7 +11,7 @@ public class ErrorBroker(ILogger<ErrorBroker> logger)
 {
     public Task OnError(Exception exception, HandleErrorSource source)
     {
-        logger.LogError(exception, exception.Message);
+        logger.LogError(exception, "Telegram update handler failed. Error source: {ErrorSource}.", source);
         return Task.CompletedTask;
     }
 }

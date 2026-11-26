@@ -33,7 +33,7 @@ public class InRoomRegistrationState : SequentialMessageStateBase
         {
             await Services.Notifications.SendMessage(
                 chat.Id, Services.Localizer.Messages.ErrRoomDoesntExist);
-            await Services.GlobalHandler.ExitState(chat, context.User);
+            await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
             return true;
         }
 
@@ -44,14 +44,17 @@ public class InRoomRegistrationState : SequentialMessageStateBase
             return true;
         }
 
-        await Services.Database.Rooms.AddUserToRoomAsync(context.User, room, userName);
+        await Services.Database.Rooms.AddUserToRoomAsync(
+            context.User.TelegramUserId,
+            room.Id,
+            userName);
         await Services.Database.Users.EnterRoomAsync(context.User, room);
 
         var participant = context.User.GetAsParticipant(room)!;
 
         await Services.Notifications.SendMessage(
             chat.Id, Services.Localizer.Messages.UserRegistered);
-        await Services.GlobalHandler.ExitState(chat, context.User);
+        await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
 
         await Services.Notifications.NotifyEveryoneInRoom(
             context.User, room,

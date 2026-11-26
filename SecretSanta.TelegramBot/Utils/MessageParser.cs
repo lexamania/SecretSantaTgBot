@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -5,7 +7,10 @@ namespace SecretSanta.TelegramBot.Utils;
 
 public static class MessageParser
 {
-    public static bool TryParseCommand(Message msg, out string? command, out string[]? args)
+    public static bool TryParseCommand(
+        Message msg,
+        [NotNullWhen(true)] out string? command,
+        [NotNullWhen(true)] out string[]? args)
     {
         var text = msg.Text?.Trim();
         if (msg.Type == MessageType.Text && text!.StartsWith('/'))
@@ -24,7 +29,9 @@ public static class MessageParser
         return false;
     }
 
-    public static bool TryParseText(Message msg, out string? message)
+    public static bool TryParseText(
+        Message msg,
+        [NotNullWhen(true)] out string? message)
     {
         var text = msg.Text?.Trim();
         if (msg.Type == MessageType.Text && !text!.StartsWith('/'))
@@ -37,7 +44,10 @@ public static class MessageParser
         return false;
     }
 
-    public static bool TryParseImage(Message msg, out string? message, out PhotoSize? image)
+    public static bool TryParseImage(
+        Message msg,
+        out string? message,
+        [NotNullWhen(true)] out PhotoSize? image)
     {
         if (msg.Type == MessageType.Photo)
         {

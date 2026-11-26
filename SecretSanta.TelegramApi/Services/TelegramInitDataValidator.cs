@@ -10,6 +10,7 @@ using Microsoft.Extensions.Primitives;
 using SecretSanta.TelegramApi.Attributes;
 using SecretSanta.Shared.Configurations;
 using SecretSanta.TelegramApi.Models;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SecretSanta.TelegramApi.Services;
 
@@ -18,7 +19,9 @@ public sealed class TelegramInitDataValidator(IOptions<TelegramBotOptions> optio
 {
     private static readonly TimeSpan MaxAge = TimeSpan.FromHours(24);
 
-    public bool TryValidate(string? initData, out TelegramInitData? validatedData)
+    public bool TryValidate(
+        string? initData,
+        [NotNullWhen(true)] out TelegramInitData? validatedData)
     {
         validatedData = null;
 

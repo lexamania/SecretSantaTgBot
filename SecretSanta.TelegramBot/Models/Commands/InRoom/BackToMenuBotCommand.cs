@@ -12,6 +12,6 @@ public class BackToMenuBotCommand(ServicesContext services)
     public override async Task Execute(Chat chat, MessageContext context)
     {
         await services.Database.Users.ExitRoomAsync(context.User);
-        await services.GlobalHandler.ExitState(chat, context.User);
+        await services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
     }
 }

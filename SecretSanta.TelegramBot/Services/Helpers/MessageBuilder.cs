@@ -1,3 +1,4 @@
+using System.Net;
 using SecretSanta.TelegramBot.Enums;
 using System.Text;
 
@@ -27,7 +28,7 @@ public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
     public string BuildSantaFinished(PartyRoomEntity room, ParticipantEntity target)
     {
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>{room.Title}</b>");
+        strBldr.AppendLine($"<b>{Encode(room.Title)}</b>");
         strBldr.AppendLine(localizer.Messages.NtfSantaFinished);
         strBldr.AppendLine();
         strBldr.AppendLine($"{BuildTargetInfo(target)}");
@@ -48,7 +49,7 @@ public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
             strBldr.AppendLine($"<b>{localizer.Messages.WishesList}</b>");
 
             foreach (var wish in participant.Wishes.Where(x => x.ImageIds is not { Count: > 0 }))
-                strBldr.AppendLine($" ► {wish.Message}");            
+                strBldr.AppendLine($" ► {Encode(wish.Message)}");
         }
 
         return strBldr.ToString();
@@ -60,9 +61,9 @@ public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
         var participants = room.Participants;
 
         var strBldr = new StringBuilder();
-        strBldr.AppendLine($"<b>\"{room.Title}\"</b>");
+        strBldr.AppendLine($"<b>\"{Encode(room.Title)}\"</b>");
         strBldr.AppendLine();
-        strBldr.AppendLine($"{room.Description}");
+        strBldr.AppendLine(Encode(room.Description));
         strBldr.AppendLine();
         strBldr.AppendLine($"{localizer.Messages.RoomAdmin} {GetUserName(admin)}");
         strBldr.AppendLine($"<b>{localizer.Messages.RoomLink}</b> {GetJoinLink(room.Id)}");
@@ -85,10 +86,10 @@ public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
         foreach (var room in user.AvailableRooms)
         {
             var admin = room.Admin.Username is not null
-                ? $" - @{room.Admin.Username}"
+                ? $" - @{Encode(room.Admin.Username)}"
                 : string.Empty;
 
-            strBldr.AppendLine($" ► <b>{room.Title}</b>{admin}");
+            strBldr.AppendLine($" ► <b>{Encode(room.Title)}</b>{admin}");
             strBldr.AppendLine($"{localizer.Messages.RoomLink} {GetJoinLink(room.Id)}");
             strBldr.AppendLine();
         }
@@ -103,10 +104,10 @@ public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
         => $"{GetUserName(p)} {localizer.Messages.NtfUserLeftRoom}";
 
     public string BuildRoomDeleted(PartyRoomEntity room)
-        => $"<b>{room.Title}</b> {localizer.Messages.RoomDeleted}";
+        => $"<b>{Encode(room.Title)}</b> {localizer.Messages.RoomDeleted}";
 
     public string BuildNewParticipant(PartyRoomEntity room, ParticipantEntity participant)
-        => $"{GetUserName(participant)} {localizer.Messages.NewParticipant} <b>{room.Title}</b>";
+        => $"{GetUserName(participant)} {localizer.Messages.NewParticipant} <b>{Encode(room.Title)}</b>";
 
     public string BuildErrLeavingRestricted()
         => $"{localizer.Messages.ErrRoomLeaving}\n{localizer.Messages.ErrSantaWasPlayed}";
@@ -121,6 +122,9 @@ public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
 
     private string GetUserName(ParticipantEntity p)
         => p.Username is not null
-            ? $"{p.CustomName} (@{p.Username})"
-            : p.CustomName;
+            ? $"{Encode(p.CustomName)} (@{Encode(p.Username)})"
+            : Encode(p.CustomName);
+
+    private static string Encode(string? value)
+        => value is null ? string.Empty : WebUtility.HtmlEncode(value);
 }

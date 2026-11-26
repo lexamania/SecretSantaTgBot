@@ -22,7 +22,7 @@ public class StartBotCommand(
 
         if (args.Length == 0)
         { 
-            await services.GlobalHandler.ExitState(chat, context.User);
+            await services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
             return;
         }
 

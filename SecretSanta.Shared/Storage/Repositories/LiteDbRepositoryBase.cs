@@ -1,8 +1,15 @@
-using LiteDB;
+using LiteDB.Async;
 
 namespace SecretSanta.Shared.Storage.Repositories;
 
-public abstract class LiteDbRepositoryBase<T>(LiteDatabase database, string collectionName)
+public abstract class LiteDbRepositoryBase<T>
 {
-    protected ILiteCollection<T> Collection { get; } = database.GetCollection<T>(collectionName);
+    protected LiteDbRepositoryBase(ILiteDatabaseAsync database, string collectionName)
+    {
+        Database = database;
+        Collection = database.GetCollection<T>(collectionName);
+    }
+
+    protected ILiteDatabaseAsync Database { get; }
+    protected ILiteCollectionAsync<T> Collection { get; }
 }

@@ -45,7 +45,10 @@ public class NotifyEveryoneInRoomState : MessageStateBase
             context.User.TelegramUserId,
             Services.Localizer.Messages.MessageIsSent);
 
-        await Services.GlobalHandler.ExitState(chat, context.User, false);
+        await Services.GlobalHandler.ResetStateAsync(
+            chat,
+            context.User.TelegramUserId,
+            sendWelcomeMessage: false);
         return true;
     }
 }

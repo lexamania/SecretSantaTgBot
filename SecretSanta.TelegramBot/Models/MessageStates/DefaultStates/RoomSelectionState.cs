@@ -41,7 +41,7 @@ public class RoomSelectionState : SequentialMessageStateBase
         else
         {
             await Services.Database.Users.EnterRoomAsync(context.User, room);
-            await Services.GlobalHandler.ExitState(chat, context.User);
+            await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
         }
 
         return true;

@@ -1,4 +1,4 @@
-using LiteDB;
+using LiteDB.Async;
 
 using SecretSanta.Shared.Models;
 using SecretSanta.Shared.Storage.Entities;
@@ -6,26 +6,56 @@ using SecretSanta.Shared.Utils;
 
 namespace SecretSanta.Shared.Storage.Repositories;
 
-public sealed class LiteDbUserRepository(LiteDatabase db)
-    : LiteDbRepositoryBase<UserEntity>(db, "users"), IUserRepository
+public sealed class LiteDbUserRepository(ILiteDatabaseAsync database)
+    : LiteDbRepositoryBase<UserEntity>(database, "users"), IUserRepository
 {
-    private ILiteCollection<UserEntity> FullUsers => Collection
-            .Include(x => x.AvailableRooms)
-            .Include(x => x.SelectedRoom)
-            .Include(x => x.AvailableRooms.Select(x => x.Admin));
+    private ILiteCollectionAsync<UserEntity> UsersWithRoomDetails => Collection
+        .Include(user => user.AvailableRooms)
+        .Include(user => user.SelectedRoom)
+        .Include(user => user.AvailableRooms.Select(room => room.Admin));
+
+    private ILiteCollectionAsync<UserEntity> UsersWithRoomMembership => Collection
+        .Include(user => user.AvailableRooms)
+        .Include(user => user.SelectedRoom);
+
+    private ILiteCollectionAsync<UserEntity> UsersWithAvailableRoomDetails => Collection
+        .Include(user => user.AvailableRooms)
+        .Include(user => user.AvailableRooms.Select(room => room.Admin));
+
+    public async Task<UserEntity?> GetByIdAsync(
+        long id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return await UsersWithRoomDetails.FindByIdAsync(id);
+    }
 
     public Task<UserEntity> GetOrCreateAsync(
         long id,
         string? username,
         string? language = null,
         CancellationToken cancellationToken = default)
+        => LiteDbUnitOfWork.ExecuteAsync(
+            Database,
+            unitOfWork => unitOfWork.Users.GetOrCreateInUnitOfWorkAsync(
+                id,
+                username,
+                language,
+                cancellationToken),
+            cancellationToken);
+
+    internal async Task<UserEntity> GetOrCreateInUnitOfWorkAsync(
+        long id,
+        string? username,
+        string? language,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var user = FullUsers.FindById(id);
+        var user = await UsersWithRoomDetails.FindByIdAsync(id);
 
         if (user is null)
         {
-            user = new UserEntity()
+            user = new UserEntity
             {
                 TelegramUserId = id,
                 Username = username,
@@ -33,48 +63,71 @@ public sealed class LiteDbUserRepository(LiteDatabase db)
                 AvailableRooms = []
             };
 
-            Collection.Insert(user);
-            return Task.FromResult(user);
+            await Collection.InsertAsync(user);
+            return user;
         }
 
-        if (username is not null && user.Username?.Equals(username) != true)
+        var changed = false;
+        if (username is not null && user.Username != username)
         {
             user.Username = username;
-            Collection.Update(user);
+            changed = true;
         }
 
         if (user.PrefferedLanguage is null && language is not null)
         {
             user.PrefferedLanguage = language;
-            Collection.Update(user);
+            changed = true;
         }
 
-        return Task.FromResult(user);
+        if (changed)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!await Collection.UpdateAsync(user))
+            {
+                throw new InvalidOperationException("The user profile could not be updated.");
+            }
+        }
+
+        return user;
     }
-    public Task<IReadOnlyList<UserEntity>> GetByIdsAsync(
+
+    public async Task<IReadOnlyList<UserEntity>> GetByIdsAsync(
         IEnumerable<long> ids,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var userIds = ids.ToArray();
-        IReadOnlyList<UserEntity> users = [.. FullUsers.Find(x => userIds.Contains(x.TelegramUserId))];
-        return Task.FromResult(users);
+        var users = await UsersWithRoomMembership.FindAsync(
+            user => userIds.Contains(user.TelegramUserId));
+        return [.. users];
     }
 
-    public Task<bool> UpdateAsync(UserEntity user, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(
+        UserEntity user,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(Collection.Update(user));
+        if (!await Collection.UpdateAsync(user))
+        {
+            throw new InvalidOperationException("The user record could not be updated.");
+        }
     }
 
-    public Task UpdateAsync(IEnumerable<UserEntity> users, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(
+        IEnumerable<UserEntity> users,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        Collection.Update(users);
-        return Task.CompletedTask;
+        var usersToUpdate = users as UserEntity[] ?? [.. users];
+        var updatedCount = await Collection.UpdateAsync(usersToUpdate);
+        if (updatedCount != usersToUpdate.Length)
+        {
+            throw new InvalidOperationException("Not all affected users could be updated.");
+        }
     }
 
-    public Task<bool> SetStateAsync(
+    public Task SetStateAsync(
         UserEntity user,
         StateModel state,
         CancellationToken cancellationToken = default)
@@ -83,36 +136,39 @@ public sealed class LiteDbUserRepository(LiteDatabase db)
         return UpdateAsync(user, cancellationToken);
     }
 
-    public Task<bool> ClearStateAsync(UserEntity user, CancellationToken cancellationToken = default)
+    public Task ClearStateAsync(
+        UserEntity user,
+        CancellationToken cancellationToken = default)
     {
-        user.CurrentState = default;
+        user.CurrentState = null;
         return UpdateAsync(user, cancellationToken);
     }
 
-
-    public Task<IReadOnlyList<PartyRoomEntity>> GetRoomsAsync(
+    public async Task<IReadOnlyList<PartyRoomEntity>> GetRoomsAsync(
         long telegramUserId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        IReadOnlyList<PartyRoomEntity> rooms = FullUsers.FindById(telegramUserId)?.AvailableRooms ?? [];
-        return Task.FromResult(rooms);
+        var user = await UsersWithAvailableRoomDetails.FindByIdAsync(telegramUserId);
+        return user?.AvailableRooms ?? [];
     }
 
-    public Task<bool> EnterRoomAsync(
+    public Task EnterRoomAsync(
         UserEntity user,
         PartyRoomEntity room,
         CancellationToken cancellationToken = default)
     {
         user.SelectedRoom = room;
-        user.CurrentState = default;
+        user.CurrentState = null;
         return UpdateAsync(user, cancellationToken);
     }
 
-    public Task<bool> ExitRoomAsync(UserEntity user, CancellationToken cancellationToken = default)
+    public Task ExitRoomAsync(
+        UserEntity user,
+        CancellationToken cancellationToken = default)
     {
-        user.SelectedRoom = default;
-        user.CurrentState = default;
+        user.SelectedRoom = null;
+        user.CurrentState = null;
         return UpdateAsync(user, cancellationToken);
     }
 }

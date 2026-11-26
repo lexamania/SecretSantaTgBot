@@ -32,11 +32,13 @@ public class LeaveRoomState : SequentialMessageStateBase
             return true;
         }
 
-        await Services.Database.Rooms.RemoveUserFromRoomAsync(context.User, room);
+        await Services.Database.Rooms.RemoveUserFromRoomAsync(
+            context.User.TelegramUserId,
+            room.Id);
 
         await Services.Notifications.SendMessage(
                 chat.Id, Services.Localizer.Messages.UserLeftRoom);
-        await Services.GlobalHandler.ExitState(chat, context.User);
+        await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
         await Services.Notifications.NotifyEveryoneInRoom(
                 context.User, room,
                 Services.MessageBuilder.BuildUserLeft(participant));

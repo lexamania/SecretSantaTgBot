@@ -34,7 +34,7 @@ public class ModifyRoomState : SequentialMessageStateBase
 
         await Services.Notifications.SendMessage(
             context.User.TelegramUserId, Services.Localizer.Messages.RoomModified);
-        await Services.GlobalHandler.ExitState(chat, context.User);
+        await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
         return true;
     }
 }

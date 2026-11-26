@@ -30,13 +30,16 @@ public class ConfirmationState(
             if (CompareButton(context.Message.TextMsg!.Text, Services.Localizer.Buttons.Yes))
             {
                 await callback.Invoke(chat, context);
-                await Services.GlobalHandler.ExitState(chat, context.User, false);
+                await Services.GlobalHandler.ResetStateAsync(
+                    chat,
+                    context.User.TelegramUserId,
+                    sendWelcomeMessage: false);
                 return true;
             }
 
             if (CompareButton(context.Message.TextMsg!.Text, Services.Localizer.Buttons.No))
             {
-                await services.GlobalHandler.ExitState(chat, context.User);
+                await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
                 return true;
             }
         }
