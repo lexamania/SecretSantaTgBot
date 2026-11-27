@@ -1,3 +1,4 @@
+using LiteDB;
 using LiteDB.Async;
 
 using SecretSanta.Shared.Extensions;
@@ -14,8 +15,31 @@ public sealed class LiteDbRoomRepository(ILiteDatabaseAsync database, IUserRepos
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var result = await Collection.Include(room => room.Admin).FindByIdAsync(id.Value);
-        return result;
+        return await Collection.FindByIdAsync(id.Value);
+    }
+
+    public async Task<IReadOnlyList<PartyRoomEntity>> GetByParticipantAsync(
+        long telegramUserId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return
+        [
+            .. await Collection.FindAsync(
+                Query.Any().EQ("$.Participants[*]._id", telegramUserId))
+        ];
+    }
+
+    public async Task<IReadOnlyList<PartyRoomEntity>> GetByAdminAsync(
+        long telegramUserId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return
+        [
+            .. await Collection.FindAsync(
+                room => room.AdminTelegramUserId == telegramUserId)
+        ];
     }
 
     public Task<PartyRoomEntity> CreateAsync(
@@ -46,13 +70,11 @@ public sealed class LiteDbRoomRepository(ILiteDatabaseAsync database, IUserRepos
     }
 
     public Task<PartyRoomEntity> DeleteAsync(
-        long adminTelegramUserId,
         RoomId roomId,
         CancellationToken cancellationToken = default)
         => LiteDbUnitOfWork.ExecuteAsync(
             Database,
             unitOfWork => unitOfWork.Rooms.DeleteInUnitOfWorkAsync(
-                adminTelegramUserId,
                 roomId,
                 cancellationToken),
             cancellationToken);
@@ -96,7 +118,7 @@ public sealed class LiteDbRoomRepository(ILiteDatabaseAsync database, IUserRepos
         {
             Title = title,
             Description = description,
-            Admin = transactionAdmin
+            AdminTelegramUserId = transactionAdmin.TelegramUserId
         };
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -110,19 +132,11 @@ public sealed class LiteDbRoomRepository(ILiteDatabaseAsync database, IUserRepos
     }
 
     internal async Task<PartyRoomEntity> DeleteInUnitOfWorkAsync(
-        long adminTelegramUserId,
         RoomId roomId,
         CancellationToken cancellationToken)
     {
-        var transactionAdmin = await users.GetByIdAsync(adminTelegramUserId, cancellationToken)
-            ?? throw new InvalidOperationException("The room administrator was not found.");
         var room = await GetByIdAsync(roomId, cancellationToken)
             ?? throw new InvalidOperationException("The room to delete was not found.");
-
-        if (!transactionAdmin.AvailableRooms.Any(availableRoom => availableRoom.Id == room.Id))
-        {
-            throw new InvalidOperationException("The room administrator does not have access to the room being deleted.");
-        }
 
         var participantIds = room.Participants
             .Select(participant => participant.TelegramUserId)
@@ -131,8 +145,6 @@ public sealed class LiteDbRoomRepository(ILiteDatabaseAsync database, IUserRepos
 
         foreach (var roomUser in roomUsers)
         {
-            roomUser.AvailableRooms.RemoveFirst(availableRoom => availableRoom.Id == room.Id);
-
             if (roomUser.SelectedRoom?.Id == room.Id)
             {
                 roomUser.SelectedRoom = null;
@@ -179,8 +191,6 @@ public sealed class LiteDbRoomRepository(ILiteDatabaseAsync database, IUserRepos
         var transactionRoom = await GetByIdAsync(roomId, cancellationToken)
             ?? throw new InvalidOperationException("The room to leave was not found.");
 
-        transactionUser.AvailableRooms.RemoveFirst(
-            availableRoom => availableRoom.Id == transactionRoom.Id);
         transactionRoom.Participants.RemoveFirst(
             participant => participant.TelegramUserId == transactionUser.TelegramUserId);
 
@@ -199,7 +209,6 @@ public sealed class LiteDbRoomRepository(ILiteDatabaseAsync database, IUserRepos
         string userInRoomName,
         CancellationToken cancellationToken)
     {
-        user.AvailableRooms.Add(room);
         room.Participants.Add(new ParticipantEntity
         {
             TelegramUserId = user.TelegramUserId,

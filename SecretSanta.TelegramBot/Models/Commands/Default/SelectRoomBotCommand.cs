@@ -11,11 +11,18 @@ public class SelectRoomBotCommand(
     RoomSelectionState selectRoomState)
     : BotCommandBase(BotCommandsList.SelectRoom)
 {
-    public override Task Execute(Chat chat, MessageContext context)
+    public override async Task Execute(Chat chat, MessageContext context)
     {
-        return context.User.AvailableRooms is { Count: > 0 }
-            ? selectRoomState.StartState(chat, context)
-            : services.Notifications.SendMessage(
+        var rooms = await services.Database.Rooms.GetByParticipantAsync(
+            context.User.TelegramUserId);
+
+        if (rooms.Count == 0)
+        {
+            await services.Notifications.SendMessage(
                 chat.Id, services.Localizer.Messages.ErrZeroRooms);
+            return;
+        }
+
+        await selectRoomState.StartState(chat, context);
     }
 }

@@ -12,13 +12,13 @@ public sealed class RoomsService(
         TelegramInitData initData,
         CancellationToken cancellationToken = default)
     {
-        var rooms = (await database.Users.GetRoomsAsync(initData.User.Id, cancellationToken))
+        var rooms = (await database.Rooms.GetByParticipantAsync(initData.User.Id, cancellationToken))
             .Select(room => new RoomListItem(
                 room.Id.Value,
                 room.Title,
                 room.Description,
                 room.Participants.Count,
-                room.Admin.TelegramUserId == initData.User.Id,
+                room.AdminTelegramUserId == initData.User.Id,
                 room.SantaPlayed))
             .ToList();
 

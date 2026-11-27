@@ -1,8 +1,6 @@
 using SecretSanta.Shared.Enums;
-using SecretSanta.Shared.Extensions;
 using SecretSanta.TelegramBot.Models.MessageStates.Base;
 using SecretSanta.TelegramBot.Models.MessageStates.Common;
-using SecretSanta.Shared.Utils;
 
 using Telegram.Bot.Types;
 
@@ -18,7 +16,9 @@ public class RoomSelectionState : SequentialMessageStateBase
         States[StatesList.EnterRoomAlias] = EnterValueState.NewRoomAlias(
             this, services,
             ProcessMessage,
-            ButtonUtil.GetRoomButtons
+            async context => ButtonUtil.GetRoomButtons(
+                await services.Database.Rooms.GetByParticipantAsync(
+                    context.User.TelegramUserId))
         );
     }
 
@@ -26,13 +26,14 @@ public class RoomSelectionState : SequentialMessageStateBase
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
-        var roomAlias = context.State.Arguments[StateArgsList.RoomAlias];
-        var roomId = ButtonUtil.ParseRoomIdFromAlias(roomAlias);
-        var room = roomId is { } id
-            ? context.User.GetAvailableRoom(id)
+        var user = context.User;
+        var roomId = ButtonUtil.ParseRoomIdFromAlias(
+            context.State.Arguments[StateArgsList.RoomAlias]);
+        var room = roomId is { }
+            ? await Services.Database.Rooms.GetByIdAsync(roomId.Value)
             : null;
 
-        if (room is null)
+        if (room is null || !user.IsParticipant(room))
         {
             await Services.Notifications.SendStagedMessage(
                 chat.Id, Services.Localizer.Messages.ErrRoomDoesntExist);
@@ -40,8 +41,8 @@ public class RoomSelectionState : SequentialMessageStateBase
         }
         else
         {
-            await Services.Database.Users.EnterRoomAsync(context.User, room);
-            await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
+            await Services.Database.Users.EnterRoomAsync(user, room);
+            await Services.GlobalHandler.ResetStateAsync(chat, user.TelegramUserId);
         }
 
         return true;

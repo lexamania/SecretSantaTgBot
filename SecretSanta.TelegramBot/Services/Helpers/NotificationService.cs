@@ -2,7 +2,7 @@ using System.Net;
 
 using SecretSanta.TelegramBot.Attributes;
 using SecretSanta.Shared.Storage.Entities;
-using SecretSanta.Localization.Services;
+using SecretSanta.Localization.Localizers;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -70,11 +70,11 @@ public sealed class NotificationService(
     public Task SendWrongText(long chatId)
         => SendStagedMessage(chatId, localizer.Messages.ErrText);
 
-    public Task NotifyEveryoneInRoom(UserEntity sender, PartyRoomEntity room, string message)
+    public Task NotifyEveryoneInRoom(long senderTelegramId, PartyRoomEntity room, string message)
     {
         var users = room.Participants
             .Select(u => u.TelegramUserId)
-            .Where(x => x != sender.TelegramUserId)
+            .Where(x => x != senderTelegramId)
             .ToArray();
         return NotifyEveryone(users, message);
     }

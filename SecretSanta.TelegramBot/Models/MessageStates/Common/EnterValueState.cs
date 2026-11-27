@@ -11,7 +11,7 @@ namespace SecretSanta.TelegramBot.Models.MessageStates.Common;
 public class EnterValueState : MessageStateBase
 {
     public delegate Task ProcessHandler(Chat chat, MessageContext context);
-    public delegate string[] ButtonsGenerator(MessageContext context);
+    public delegate Task<string[]> ButtonsGenerator(MessageContext context);
 
     public EnterValueState(
         IMessageState parrent,
@@ -36,11 +36,11 @@ public class EnterValueState : MessageStateBase
     private readonly ProcessHandler _postProcess;
     private readonly ButtonsGenerator? _buttons;
 
-    public override Task SendWelcomeMessage(Chat chat, MessageContext context)
-        => Services.Notifications.SendStagedMessage(
+    public override async Task SendWelcomeMessage(Chat chat, MessageContext context)
+        => await Services.Notifications.SendStagedMessage(
             context.User.TelegramUserId,
             _message,
-            GetButtons(context));
+            await GetButtonsAsync(context));
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
@@ -60,10 +60,10 @@ public class EnterValueState : MessageStateBase
         return true;
     }
 
-    private string[] GetButtons(MessageContext context)
+    private async Task<string[]> GetButtonsAsync(MessageContext context)
     {
         var cmdBtns = ButtonUtil.GetCommandsAsButtons(this);
-        var btns = _buttons?.Invoke(context) ?? [];
+        var btns = _buttons is null ? [] : await _buttons(context);
         return _buttons is null
             ? cmdBtns
             : [..btns, ..cmdBtns];

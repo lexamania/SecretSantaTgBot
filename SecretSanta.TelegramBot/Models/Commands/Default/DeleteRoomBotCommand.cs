@@ -11,11 +11,18 @@ public class DeleteRoomBotCommand(
     RoomDeletingState deleteRoomState)
     : BotCommandBase(BotCommandsList.DeleteRoom)
 {
-    public override Task Execute(Chat chat, MessageContext context)
+    public override async Task Execute(Chat chat, MessageContext context)
     {
-        return context.User.GetAdminRooms().Count() > 0
-            ? deleteRoomState.StartState(chat, context)
-            : services.Notifications.SendMessage(
+        var rooms = await services.Database.Rooms.GetByAdminAsync(
+            context.User.TelegramUserId);
+
+        if (rooms.Count == 0)
+        {
+            await services.Notifications.SendMessage(
                 chat.Id, services.Localizer.Messages.ErrZeroRooms);
+            return;
+        }
+
+        await deleteRoomState.StartState(chat, context);
     }
 }

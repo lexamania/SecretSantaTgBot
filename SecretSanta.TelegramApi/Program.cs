@@ -1,6 +1,8 @@
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 
+using SecretSanta.Localization.Localizers;
+using SecretSanta.Localization.Services;
 using SecretSanta.Shared.Configurations;
 using SecretSanta.Shared.Storage;
 using SecretSanta.TelegramApi.Extensions;
@@ -9,6 +11,11 @@ using SecretSanta.TelegramApi.Models;
 using SecretSanta.TelegramApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddLocalization(options => options.ResourcesPath = "Resources")
+    .AddSingleton<CultureSwitcher>()
+    .AddSingleton<WebAppLocalizer>();
 
 builder.Services
     .AddOptions<TelegramBotOptions>()
@@ -33,6 +40,10 @@ var webRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot");
 var webRootProvider = new PhysicalFileProvider(webRootPath);
 
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet(
+    "/api/localization",
+    (string? language, WebAppLocalizer localizer) =>
+        Results.Ok(localizer.GetStrings(language)));
 
 app.MapGet("/api/rooms", async Task<IResult> (
     HttpContext context,

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 
+using SecretSanta.Localization.Services;
 using SecretSanta.TelegramBot.Attributes;
-using SecretSanta.TelegramBot.Services.Helpers;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -11,7 +11,6 @@ namespace SecretSanta.TelegramBot.Services.Brokers;
 [RequiredService(InjectionType.Singleton)]
 public class MessageBroker(
     ServicesContext services,
-    UserLanguageService userLanguageService,
     CultureSwitcher cultureSwitcher,
     ILogger<MessageBroker> logger)
 {
@@ -24,7 +23,8 @@ public class MessageBroker(
                 msg.From.LanguageCode)
             : await services.Database.Users.GetOrCreateAsync(msg.Chat.Id, msg.Chat.Username);
 
-        var language = userLanguageService.GetLanguage(user);
+        var language = LanguageManager.GetSupportedLanguage(user.PrefferedLanguage);
+
         using (cultureSwitcher.UseCulture(language))
         {
             try

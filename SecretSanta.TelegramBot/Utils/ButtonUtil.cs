@@ -23,13 +23,8 @@ public static class ButtonUtil
     public static string[] GetCommandsAsButtons(IMessageState state)
         => [..state.ReadOnlyCommands.Keys];
 
-    public static string[] GetAdminRoomButtons(MessageContext context)
-        => context.User.GetAdminRooms()
-            .Select(GenerateRoomButton)
-            .ToArray()!;
-
-    public static string[] GetRoomButtons(MessageContext context)
-        => context.User.AvailableRooms
+    public static string[] GetRoomButtons(IEnumerable<PartyRoomEntity> rooms)
+        => rooms
             .Select(GenerateRoomButton)
             .ToArray()!;
 }

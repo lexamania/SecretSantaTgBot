@@ -14,7 +14,7 @@
             "name": "Run mini app",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/SecretSanta.TelegramWebApp/SecretSanta.TelegramWebApp.csproj"
+            "projectPath": "${workspaceFolder}/SecretSanta.TelegramApi/SecretSanta.TelegramApi.csproj"
         },
     ]
 }

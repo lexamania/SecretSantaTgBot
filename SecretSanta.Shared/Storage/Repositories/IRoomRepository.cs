@@ -15,6 +15,28 @@ public interface IRoomRepository
     Task<PartyRoomEntity?> GetByIdAsync(RoomId id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Finds rooms in which user is a participant.
+    /// </summary>
+    /// <param name="telegramUserId">The Telegram user ID.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>The rooms containing the user as a participant.</returns>
+    /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+    Task<IReadOnlyList<PartyRoomEntity>> GetByParticipantAsync(
+        long telegramUserId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Finds rooms in which user is an admin.
+    /// </summary>
+    /// <param name="telegramUserId">The Telegram user ID.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>The rooms containing the user as an admin.</returns>
+    /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+    Task<IReadOnlyList<PartyRoomEntity>> GetByAdminAsync(
+        long telegramUserId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a room and adds its administrator as the first participant.
     /// </summary>
     /// <param name="adminTelegramUserId">Telegram ID of the user who will administer the room.</param>
@@ -46,15 +68,13 @@ public interface IRoomRepository
     /// <summary>
     /// Deletes a room and removes it from all participants.
     /// </summary>
-    /// <param name="adminTelegramUserId">Telegram ID of the administrator requesting deletion.</param>
     /// <param name="roomId">The ID of the room to delete.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>The deleted room, including its participants.</returns>
-    /// <exception cref="InvalidOperationException">The user or room does not exist, the user does not belong to the room, or a database write fails.</exception>
+    /// <exception cref="InvalidOperationException">The room does not exist or a database write fails.</exception>
     /// <exception cref="OperationCanceledException">The operation was canceled; the transaction is rolled back.</exception>
     /// <exception cref="AggregateException">The operation failed and the transaction could not be rolled back.</exception>
     Task<PartyRoomEntity> DeleteAsync(
-        long adminTelegramUserId,
         RoomId roomId,
         CancellationToken cancellationToken = default);
 

@@ -89,17 +89,6 @@ public interface IUserRepository
     Task ClearStateAsync(UserEntity user, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the rooms available to a user.
-    /// </summary>
-    /// <param name="telegramUserId">The Telegram user ID.</param>
-    /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>The user's available rooms, or an empty list if the user does not exist.</returns>
-    /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
-    Task<IReadOnlyList<PartyRoomEntity>> GetRoomsAsync(
-        long telegramUserId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Sets a user's selected room and clears their current state.
     /// </summary>
     /// <param name="user">The user entering the room.</param>

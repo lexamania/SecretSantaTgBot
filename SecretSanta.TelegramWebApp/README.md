@@ -44,3 +44,8 @@ accepts Telegram `initData` in the `X-Telegram-Init-Data` header and validates
 it on the server before returning the current user's rooms. The local API
 defaults to the same LiteDB file as the bot; set `LiteDb__DatabasePath` to
 override it.
+
+Mini App text is stored in `SecretSanta.Localization/Resources/WebAppContent.resx`
+and loaded from `/api/localization`. Ukrainian is the current supported and
+default language; the API falls back to it when the requested language is not
+supported.

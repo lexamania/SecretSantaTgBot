@@ -57,7 +57,7 @@ public class InRoomRegistrationState : SequentialMessageStateBase
         await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
 
         await Services.Notifications.NotifyEveryoneInRoom(
-            context.User, room,
+            context.User.TelegramUserId, room,
             Services.MessageBuilder.BuildNewParticipant(room, participant));
 
         return true;

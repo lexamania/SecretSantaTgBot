@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="webapp_brand" xml:space="preserve">
+    <value>Таємний Санта</value>
+  </data>
+  <data name="webapp_brand_home" xml:space="preserve">
+    <value>На головну сторінку «Таємного Санти»</value>
+  </data>
+  <data name="webapp_season" xml:space="preserve">
+    <value>Час ділитися радістю</value>
+  </data>
+  <data name="webapp_hero_eyebrow" xml:space="preserve">
+    <value>Трохи святкової магії</value>
+  </data>
+  <data name="webapp_hero_title_first_line" xml:space="preserve">
+    <value>Час дарувати</value>
+  </data>
+  <data name="webapp_hero_title_second_line" xml:space="preserve">
+    <value>і дивувати</value>
+  </data>
+  <data name="webapp_welcome_copy" xml:space="preserve">
+    <value>Зберіть близьких для свята, сповненого теплих зустрічей і продуманих сюрпризів.</value>
+  </data>
+  <data name="webapp_rooms_eyebrow" xml:space="preserve">
+    <value>Ваші святкування</value>
+  </data>
+  <data name="webapp_rooms_title" xml:space="preserve">
+    <value>Мої кімнати</value>
+  </data>
+  <data name="webapp_empty_title" xml:space="preserve">
+    <value>Тут починається ваша нова традиція</value>
+  </data>
+  <data name="webapp_empty_description" xml:space="preserve">
+    <value>Кімнати з’являться тут, щойно ви приєднаєтеся до однієї або створите власну.</value>
+  </data>
+  <data name="webapp_footer" xml:space="preserve">
+    <value>Даруйте подарунки, а не здогадки</value>
+  </data>
+  <data name="webapp_status_initializing" xml:space="preserve">
+    <value>Готуємо все до свята…</value>
+  </data>
+  <data name="webapp_status_open_in_telegram" xml:space="preserve">
+    <value>Відкрийте цю сторінку в Telegram, щоб переглянути кімнати.</value>
+  </data>
+  <data name="webapp_status_loading_rooms" xml:space="preserve">
+    <value>Завантажуємо ваші кімнати…</value>
+  </data>
+  <data name="webapp_status_rooms_ready" xml:space="preserve">
+    <value>Ваші кімнати Таємного Санти готові.</value>
+  </data>
+  <data name="webapp_status_no_rooms" xml:space="preserve">
+    <value>Кімнат поки немає. Створіть кімнату або відкрийте запрошення від бота.</value>
+  </data>
+  <data name="webapp_status_invalid_telegram" xml:space="preserve">
+    <value>Не вдалося перевірити сесію Telegram. Закрийте й знову відкрийте Mini App.</value>
+  </data>
+  <data name="webapp_status_server_not_configured" xml:space="preserve">
+    <value>Сервер ще не налаштований для перевірки сесій Telegram.</value>
+  </data>
+  <data name="webapp_status_connection_error" xml:space="preserve">
+    <value>Не вдалося з’єднатися із сервером. Перевірте підключення та спробуйте ще раз.</value>
+  </data>
+  <data name="webapp_status_rooms_error" xml:space="preserve">
+    <value>Не вдалося завантажити кімнати. Спробуйте пізніше.</value>
+  </data>
+  <data name="webapp_rooms_count_one" xml:space="preserve">
+    <value>кімната</value>
+  </data>
+  <data name="webapp_rooms_count_few" xml:space="preserve">
+    <value>кімнати</value>
+  </data>
+  <data name="webapp_rooms_count_many" xml:space="preserve">
+    <value>кімнат</value>
+  </data>
+  <data name="webapp_participants_count_one" xml:space="preserve">
+    <value>учасник</value>
+  </data>
+  <data name="webapp_participants_count_few" xml:space="preserve">
+    <value>учасники</value>
+  </data>
+  <data name="webapp_participants_count_many" xml:space="preserve">
+    <value>учасників</value>
+  </data>
+  <data name="webapp_admin" xml:space="preserve">
+    <value>Адміністратор</value>
+  </data>
+  <data name="webapp_draw_complete" xml:space="preserve">
+    <value>Розподіл завершено</value>
+  </data>
+</root>

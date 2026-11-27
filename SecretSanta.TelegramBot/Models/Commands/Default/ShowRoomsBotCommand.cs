@@ -8,17 +8,19 @@ namespace SecretSanta.TelegramBot.Models.Commands.Default;
 public class ShowRoomsBotCommand(ServicesContext services)
     : BotCommandBase(BotCommandsList.ShowRooms)
 {
-    public override Task Execute(Chat chat, MessageContext context)
+    public override async Task Execute(Chat chat, MessageContext context)
     {
-        var user = context.User;
+        var rooms = await services.Database.Rooms.GetByParticipantAsync(
+            context.User.TelegramUserId);
 
-        if (user.AvailableRooms is { Count: > 0 })
+        if (rooms.Count == 0)
         {
-            var message = services.MessageBuilder.BuildRoomsList(user);
-            return services.Notifications.SendStagedMessage(chat.Id, message);
+            await services.Notifications.SendMessage(
+                chat.Id, services.Localizer.Messages.ErrZeroRooms);
+            return;
         }
 
-        return services.Notifications.SendMessage(
-            chat.Id, services.Localizer.Messages.ErrZeroRooms);
+        var message = services.MessageBuilder.BuildRoomsList(rooms);
+        await services.Notifications.SendStagedMessage(chat.Id, message);
     }
 }

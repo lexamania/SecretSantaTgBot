@@ -1,8 +1,6 @@
 using SecretSanta.Shared.Enums;
-using SecretSanta.Shared.Extensions;
 using SecretSanta.TelegramBot.Models.MessageStates.Base;
 using SecretSanta.TelegramBot.Models.MessageStates.Common;
-using SecretSanta.Shared.Utils;
 
 using Telegram.Bot.Types;
 
@@ -20,7 +18,9 @@ public class RoomDeletingState : SequentialMessageStateBase
         var selectRoomState = EnterValueState.NewRoomAlias(
             this, services,
             confirmDeleteState.StartState,
-            ButtonUtil.GetAdminRoomButtons
+            async context => ButtonUtil.GetRoomButtons(
+                await services.Database.Rooms.GetByAdminAsync(
+                    context.User.TelegramUserId))
         );
 
         States[selectRoomState.Title] = selectRoomState;
@@ -31,20 +31,21 @@ public class RoomDeletingState : SequentialMessageStateBase
 
     public override async Task<bool> ProcessMessage(Chat chat, MessageContext context)
     {
-        var roomAlias = context.State.Arguments[StateArgsList.RoomAlias];
-        var roomId = ButtonUtil.ParseRoomIdFromAlias(roomAlias);
-        var room = roomId is { } id
-            ? context.User.GetAvailableRoom(id)
+        var user = context.User;
+        var roomId = ButtonUtil.ParseRoomIdFromAlias(
+            context.State.Arguments[StateArgsList.RoomAlias]);
+        var room = roomId is { }
+            ? await Services.Database.Rooms.GetByIdAsync(roomId.Value)
             : null;
 
-        if (room is { } && context.User.IsAdmin(room))
+        if (room is { } && user.IsAdmin(room))
         {
-            await Services.Database.Rooms.DeleteAsync(context.User.TelegramUserId, room.Id);
+            await Services.Database.Rooms.DeleteAsync(room.Id);
 
             await Task.WhenAll(
-                Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId),
+                Services.GlobalHandler.ResetStateAsync(chat, user.TelegramUserId),
                 Services.Notifications.NotifyEveryoneInRoom(
-                    context.User, room,
+                    user.TelegramUserId, room,
                     Services.MessageBuilder.BuildRoomDeleted(room)));
         }
         else
@@ -53,7 +54,7 @@ public class RoomDeletingState : SequentialMessageStateBase
                 chat.Id, Services.Localizer.Messages.ErrRoomDoesntExist);
             await Services.GlobalHandler.ResetStateAsync(
                 chat,
-                context.User.TelegramUserId,
+                user.TelegramUserId,
                 sendWelcomeMessage: false);
         }
 

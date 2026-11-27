@@ -1,5 +1,4 @@
 using SecretSanta.Shared.Enums;
-using SecretSanta.Shared.Extensions;
 using SecretSanta.TelegramBot.Models.MessageStates.Base;
 using SecretSanta.TelegramBot.Models.MessageStates.Common;
 
@@ -40,7 +39,7 @@ public class LeaveRoomState : SequentialMessageStateBase
                 chat.Id, Services.Localizer.Messages.UserLeftRoom);
         await Services.GlobalHandler.ResetStateAsync(chat, context.User.TelegramUserId);
         await Services.Notifications.NotifyEveryoneInRoom(
-                context.User, room,
+                context.User.TelegramUserId, room,
                 Services.MessageBuilder.BuildUserLeft(participant));
 
         return true;

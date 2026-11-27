@@ -7,7 +7,7 @@ using SecretSanta.TelegramBot.Services.Brokers;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using SecretSanta.Localization.Enums;
+using SecretSanta.Localization.Services;
 
 namespace SecretSanta.TelegramBot.Services;
 
@@ -44,7 +44,7 @@ public class TelegramBotService(
 
     private async Task RegisterAsync(CancellationToken ct)
     {
-        foreach (var language in LanguageList.Supported)
+        foreach (var language in LanguageManager.Supported)
         {
             using (cultureSwitcher.UseCulture(language))
             {

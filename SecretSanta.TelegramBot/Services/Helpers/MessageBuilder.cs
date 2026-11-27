@@ -57,7 +57,7 @@ public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
 
     public string BuildRoomInfo(PartyRoomEntity room)
     {
-        var admin = room.Participants.First(x => x.TelegramUserId == room.Admin.TelegramUserId);
+        var admin = room.Participants.First(x => x.TelegramUserId == room.AdminTelegramUserId);
         var participants = room.Participants;
 
         var strBldr = new StringBuilder();
@@ -77,16 +77,19 @@ public class MessageBuilder(BotLocalizer localizer, BotConfiguration config)
         return strBldr.ToString();
     }
 
-    public string BuildRoomsList(UserEntity user)
+    public string BuildRoomsList(IEnumerable<PartyRoomEntity> rooms)
     {
         var strBldr = new StringBuilder();
         strBldr.AppendLine($"<b>{localizer.Messages.RoomsList}</b>");
         strBldr.AppendLine();
 
-        foreach (var room in user.AvailableRooms)
+        foreach (var room in rooms)
         {
-            var admin = room.Admin.Username is not null
-                ? $" - @{Encode(room.Admin.Username)}"
+            var adminUsername = room.Participants
+                .FirstOrDefault(participant => participant.TelegramUserId == room.AdminTelegramUserId)
+                ?.Username;
+            var admin = adminUsername is not null
+                ? $" - @{Encode(adminUsername)}"
                 : string.Empty;
 
             strBldr.AppendLine($" ► <b>{Encode(room.Title)}</b>{admin}");

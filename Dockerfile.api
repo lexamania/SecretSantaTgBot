@@ -4,11 +4,13 @@ WORKDIR /source
 
 # Copy project file and restore as distinct layers
 COPY --link Directory.Packages.props .
+COPY --link SecretSanta.Localization/*.csproj SecretSanta.Localization/
 COPY --link SecretSanta.Shared/*.csproj SecretSanta.Shared/
 COPY --link SecretSanta.TelegramApi/*.csproj SecretSanta.TelegramApi/
 RUN dotnet restore SecretSanta.TelegramApi/SecretSanta.TelegramApi.csproj
 
 # Copy source code
+COPY --link SecretSanta.Localization/ SecretSanta.Localization/
 COPY --link SecretSanta.Shared/ SecretSanta.Shared/
 COPY --link SecretSanta.TelegramApi/ SecretSanta.TelegramApi/
 COPY --link SecretSanta.TelegramWebApp/ SecretSanta.TelegramWebApp/

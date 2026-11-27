@@ -9,11 +9,11 @@ using SecretSanta.TelegramBot.Services;
 using SecretSanta.Shared.Storage;
 
 using Serilog;
-using SecretSanta.Localization.Enums;
+using SecretSanta.Localization.Services;
 
 CultureInfo.DefaultThreadCurrentCulture =
 CultureInfo.DefaultThreadCurrentUICulture =
-    CultureInfo.GetCultureInfo(LanguageList.Default);
+    CultureInfo.GetCultureInfo(LanguageManager.Default);
 
 var builder = Host.CreateApplicationBuilder(args);
 

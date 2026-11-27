@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Localization;
 
-namespace SecretSanta.Localization.Services;
+namespace SecretSanta.Localization.Localizers;
 
 public sealed class BotLocalizer(IStringLocalizer<BotContent> localizer)
 {

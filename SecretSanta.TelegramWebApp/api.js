@@ -24,3 +24,21 @@ export async function getRooms(initData) {
 
   return rooms;
 }
+
+export async function getLocalization(language) {
+  const query = new URLSearchParams({ language });
+  const response = await fetch(`/api/localization?${query}`);
+
+  if (!response.ok) {
+    throw new ApiError(response.status);
+  }
+
+  const localization = await response.json();
+  if (!localization || typeof localization !== "object"
+      || typeof localization.language !== "string"
+      || Object.values(localization).some(value => typeof value !== "string")) {
+    throw new Error("The server returned an unexpected localization response.");
+  }
+
+  return localization;
+}

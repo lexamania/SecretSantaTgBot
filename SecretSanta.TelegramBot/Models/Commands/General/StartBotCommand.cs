@@ -1,11 +1,9 @@
 using SecretSanta.TelegramBot.Enums;
 using SecretSanta.Shared.Enums;
-using SecretSanta.Shared.Extensions;
 using SecretSanta.Shared.Models;
 using SecretSanta.TelegramBot.Models.Commands.Base;
 using SecretSanta.TelegramBot.Models.MessageStates;
 using SecretSanta.Shared.Storage.Entities;
-using SecretSanta.Shared.Utils;
 
 using Telegram.Bot.Types;
 
@@ -41,10 +39,11 @@ public class StartBotCommand(
             return;
         }
 
-        if (context.User.GetAvailableRoom(room.Id) is null)
-            await RegisterInRoom(chat, context, room);
-        else
+        if (room.Participants.Any(
+            participant => participant.TelegramUserId == context.User.TelegramUserId))
             await RedirectToRoom(chat, context, room);
+        else
+            await RegisterInRoom(chat, context, room);
     }
 
     private Task RegisterInRoom(

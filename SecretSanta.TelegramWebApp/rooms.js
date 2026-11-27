@@ -2,10 +2,13 @@ const roomsList = document.querySelector("#rooms-list");
 const roomCount = document.querySelector("#room-count");
 const emptyRooms = document.querySelector("#empty-rooms");
 
-export function renderRooms(rooms) {
+export function renderRooms(rooms, localization) {
   roomsList.replaceChildren();
   roomCount.textContent = String(rooms.length);
-  roomCount.setAttribute("aria-label", `${rooms.length} ${rooms.length === 1 ? "room" : "rooms"}`);
+  roomCount.setAttribute(
+    "aria-label",
+    `${rooms.length} ${getCountLabel(rooms.length, localization, "roomsCount")}`,
+  );
 
   if (rooms.length === 0) {
     roomsList.append(emptyRooms);
@@ -34,20 +37,29 @@ export function renderRooms(rooms) {
     const metadata = document.createElement("div");
     metadata.className = "room-meta";
     metadata.append(createBadge(
-      `${room.participantCount} ${room.participantCount === 1 ? "participant" : "participants"}`,
+      `${room.participantCount} ${getCountLabel(
+        room.participantCount,
+        localization,
+        "participantsCount",
+      )}`,
     ));
 
     if (room.isAdmin) {
-      metadata.append(createBadge("Admin"));
+      metadata.append(createBadge(localization.admin));
     }
 
     if (room.drawStarted) {
-      metadata.append(createBadge("Draw complete", "drawn"));
+      metadata.append(createBadge(localization.drawComplete, "drawn"));
     }
 
     card.append(metadata);
     roomsList.append(card);
   }
+}
+
+function getCountLabel(count, localization, keyPrefix) {
+  const pluralCategory = new Intl.PluralRules(localization.language).select(count);
+  return localization[`${keyPrefix}${pluralCategory[0].toUpperCase()}${pluralCategory.slice(1)}`];
 }
 
 function createBadge(label, modifier = "") {

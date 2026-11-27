@@ -2,32 +2,22 @@ using LiteDB.Async;
 
 using SecretSanta.Shared.Models;
 using SecretSanta.Shared.Storage.Entities;
-using SecretSanta.Shared.Utils;
+using SecretSanta.Localization.Services;
 
 namespace SecretSanta.Shared.Storage.Repositories;
 
 public sealed class LiteDbUserRepository(ILiteDatabaseAsync database)
     : LiteDbRepositoryBase<UserEntity>(database, "users"), IUserRepository
 {
-    private ILiteCollectionAsync<UserEntity> UsersWithRoomDetails => Collection
-        .Include(user => user.AvailableRooms)
-        .Include(user => user.SelectedRoom)
-        .Include(user => user.AvailableRooms.Select(room => room.Admin));
-
-    private ILiteCollectionAsync<UserEntity> UsersWithRoomMembership => Collection
-        .Include(user => user.AvailableRooms)
-        .Include(user => user.SelectedRoom);
-
-    private ILiteCollectionAsync<UserEntity> UsersWithAvailableRoomDetails => Collection
-        .Include(user => user.AvailableRooms)
-        .Include(user => user.AvailableRooms.Select(room => room.Admin));
+    private ILiteCollectionAsync<UserEntity> UsersWithSelectedRoom
+        => Collection.Include(user => user.SelectedRoom);
 
     public async Task<UserEntity?> GetByIdAsync(
         long id,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return await UsersWithRoomDetails.FindByIdAsync(id);
+        return await UsersWithSelectedRoom.FindByIdAsync(id);
     }
 
     public Task<UserEntity> GetOrCreateAsync(
@@ -51,7 +41,7 @@ public sealed class LiteDbUserRepository(ILiteDatabaseAsync database)
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var user = await UsersWithRoomDetails.FindByIdAsync(id);
+        var user = await UsersWithSelectedRoom.FindByIdAsync(id);
 
         if (user is null)
         {
@@ -59,8 +49,7 @@ public sealed class LiteDbUserRepository(ILiteDatabaseAsync database)
             {
                 TelegramUserId = id,
                 Username = username,
-                PrefferedLanguage = LanguageUtil.ConvertLanguageToSystem(language),
-                AvailableRooms = []
+                PrefferedLanguage = LanguageManager.ConvertLanguageToSystem(language)
             };
 
             await Collection.InsertAsync(user);
@@ -98,7 +87,7 @@ public sealed class LiteDbUserRepository(ILiteDatabaseAsync database)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var userIds = ids.ToArray();
-        var users = await UsersWithRoomMembership.FindAsync(
+        var users = await UsersWithSelectedRoom.FindAsync(
             user => userIds.Contains(user.TelegramUserId));
         return [.. users];
     }
@@ -142,15 +131,6 @@ public sealed class LiteDbUserRepository(ILiteDatabaseAsync database)
     {
         user.CurrentState = null;
         return UpdateAsync(user, cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<PartyRoomEntity>> GetRoomsAsync(
-        long telegramUserId,
-        CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var user = await UsersWithAvailableRoomDetails.FindByIdAsync(telegramUserId);
-        return user?.AvailableRooms ?? [];
     }
 
     public Task EnterRoomAsync(

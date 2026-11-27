@@ -1,8 +1,19 @@
-import { getRooms } from "./api.js";
+import { getLocalization, getRooms } from "./api.js";
 import { initializeTelegram } from "./telegram.js";
 import { renderRooms } from "./rooms.js";
 
 const statusMessage = document.querySelector("#app-status");
+
+function applyLocalization(localization) {
+  document.documentElement.lang = localization.language;
+  document.title = localization.brand;
+  document.querySelector('meta[name="description"]').content = localization.welcomeCopy;
+  document.querySelector(".brand").setAttribute("aria-label", localization.brandHome);
+
+  for (const element of document.querySelectorAll("[data-i18n]")) {
+    element.textContent = localization[element.dataset.i18n];
+  }
+}
 
 function setStatus(message) {
   statusMessage.textContent = message;
@@ -10,29 +21,40 @@ function setStatus(message) {
 
 async function startApp() {
   const telegram = initializeTelegram();
+  let localization;
 
-  if (!telegram?.initData) {
-    setStatus("Open this page in Telegram to securely load your rooms.");
+  try {
+    const language = telegram?.initDataUnsafe?.user?.language_code ?? navigator.language;
+    localization = await getLocalization(language);
+    applyLocalization(localization);
+    setStatus(localization.statusInitializing);
+  } catch {
+    setStatus("Не вдалося завантажити переклади. Перевірте підключення та спробуйте ще раз.");
     return;
   }
 
-  setStatus("Loading your rooms…");
+  if (!telegram?.initData) {
+    setStatus(localization.statusOpenInTelegram);
+    return;
+  }
+
+  setStatus(localization.statusLoadingRooms);
 
   try {
     const rooms = await getRooms(telegram.initData);
-    renderRooms(rooms);
+    renderRooms(rooms, localization);
     setStatus(rooms.length
-      ? "Your Secret Santa rooms are ready."
-      : "No rooms yet. Create one or open an invite from your bot.");
+      ? localization.statusRoomsReady
+      : localization.statusNoRooms);
   } catch (error) {
     if (error.status === 401) {
-      setStatus("Telegram could not verify this session. Close and reopen the Mini App.");
+      setStatus(localization.statusInvalidTelegram);
     } else if (error.status === 503) {
-      setStatus("The server is not configured to authenticate Telegram sessions yet.");
+      setStatus(localization.statusServerNotConfigured);
     } else if (error instanceof TypeError) {
-      setStatus("Could not connect to the server. Check your connection and try again.");
+      setStatus(localization.statusConnectionError);
     } else {
-      setStatus("Your rooms could not be loaded. Please try again later.");
+      setStatus(localization.statusRoomsError);
     }
   }
 }

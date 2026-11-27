@@ -2,7 +2,6 @@ using SecretSanta.TelegramBot.Enums;
 using SecretSanta.Shared.Enums;
 using SecretSanta.TelegramBot.Models.Commands.General;
 using SecretSanta.TelegramBot.Models.MessageStates.Base;
-using SecretSanta.Shared.Utils;
 
 using Telegram.Bot.Types;
 
@@ -38,7 +37,7 @@ public class NotifyEveryoneInRoomState : MessageStateBase
         }
 
         await Services.Notifications.NotifyEveryoneInRoom(
-            context.User,
+            context.User.TelegramUserId,
             context.User.SelectedRoom!,
             context.Message.TextMsg!.Text);
         await Services.Notifications.SendMessage(

@@ -2,6 +2,7 @@ using System.Reflection;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using SecretSanta.Localization.Services;
 using SecretSanta.TelegramBot.Attributes;
 
 namespace SecretSanta.TelegramBot.Extensions;

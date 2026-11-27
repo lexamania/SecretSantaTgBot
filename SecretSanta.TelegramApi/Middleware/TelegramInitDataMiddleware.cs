@@ -10,7 +10,8 @@ public sealed class TelegramInitDataMiddleware(RequestDelegate next)
         TelegramInitDataValidator validator)
     {
         if (!context.Request.Path.StartsWithSegments("/api")
-            || context.Request.Path.StartsWithSegments("/api/health"))
+            || context.Request.Path.StartsWithSegments("/api/health")
+            || context.Request.Path.StartsWithSegments("/api/localization"))
         {
             await next(context);
             return;
